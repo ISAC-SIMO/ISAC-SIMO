@@ -1,0 +1,62 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Add Project {% endblock title %}
+
+{% block dashboard_title1 %} System Users {% endblock dashboard_title1 %}
+
+{% block dashboard_title2 %} System Users {% endblock dashboard_title2 %}
+
+{% block content %}
+
+        {% if messages %}
+
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{message}}
+                </div>
+            {% endfor %}
+        
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% load crispy_forms_tags %}
+
+                        <form action="" method="POST" class="form-group" enctype="multipart/form-data">
+                            {% csrf_token %}
+                              {{ form|crispy }}
+
+                              {% if request.resolver_match.url_name == 'updateproject' %}
+                                <button type="submit" class="btn btn-success">Update Project</button>
+                              {% else %}  
+                                <button type="submit" class="btn btn-success">Add Project</button>
+                              {% endif %}  
+                          </form>
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+
+
+{% endblock content %}
+
+{% block script %}
+<script>
+        $(function () {
+          $('#usersTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+          });
+        });
+      </script>
+{% endblock script %}

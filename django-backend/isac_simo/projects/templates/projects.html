@@ -1,0 +1,98 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Projects {% endblock title %}
+
+{% block dashboard_title1 %} Projects {% endblock dashboard_title1 %}
+
+{% block dashboard_title2 %} Projects {% endblock dashboard_title2 %}
+
+{% block content %}
+
+        {% if messages %}
+
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{message}}
+                </div>
+            {% endfor %}
+
+        {% endif %}
+
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-title ml-3 mt-2">
+                        <a href="{% url 'addproject' %}"  class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Project
+                        </a>
+                    </div>
+                    <div class="card-body">
+                            <table id="usersTable" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Image</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in projects %}
+                                        <tr>
+                                            <td>{{project.id}}</td>
+                                            <td>{{project.project_name}}</td>
+                                            <td>{{project.project_desc}}</td>
+                                            <td>
+                                                <img src="{% if project.image %}{{project.image.url}}{% endif %}" alt="Project Image" width="80" height="80">
+                                            </td>
+                                            
+                                         
+                                            <td>
+
+                                                <a href="{% url 'updateproject' project.id %}" class="btn text-secondary px-0">
+                                                    <i class="far fa-edit fa-lg"></i>
+                                                </a>
+                                                <form action="{% url 'deleteproject' project.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button onclick="return confirm('Are you sure?')" type="submit" class="btn">
+                                                            <i class="fas fa-trash-alt fa-lg text-danger float-right"></i>
+                                                    </button>
+                                                </form>
+
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                               
+                                
+                       
+                                    
+                            </table>
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+
+
+{% endblock content %}
+
+{% block script %}
+<script>
+        $(function () {
+          $('#usersTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+          });
+        });
+      </script>
+{% endblock script %}
