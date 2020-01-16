@@ -21,7 +21,9 @@ def login_user(request):
             login(request, user)
             return redirect('dashboard')
         else:
-            return redirect('login')
+            form = LoginForm(request.POST)
+            messages.error(request, 'Invalid User Credentials')
+            return render(request, 'auth/login.html', {'form':form})
     else:
         if not request.user.is_authenticated:
             form = LoginForm()
@@ -37,6 +39,8 @@ def register(request):
             registerForm.admin = True
             registerForm.save()
             return redirect('login')
+        else:
+            messages.error(request, 'Invalid Form Request')
     
     if not request.user.is_authenticated:
         return render(request, "auth/register.html", {"form": registerForm})
@@ -45,6 +49,7 @@ def register(request):
 
 def logout_user(request):
     logout(request)
+    messages.success(request, 'Logged Out Successfully')
     return redirect('login')
 
 def list_all_users(request):
@@ -112,7 +117,8 @@ def deleteUserByAdmin(request, id):
         messages.success(request, 'User Record Deleted Successfully!')
         return redirect('allusers')
     else:
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        messages.error(request, 'Failed to Delete!')
+        return redirect('allusers')
 
 
 

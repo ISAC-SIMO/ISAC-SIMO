@@ -28,7 +28,7 @@
                             <tbody>
                                 {% for user in users %}
                                     <tr>
-                                        <td>{{user.id}}</td>
+                                        <td style="width:15px;">{{user.id}}</td>
                                         <td>{{user.full_name|default:"-"}}</td>
                                         <td>{{user.email}}</td>
                                         <td>{{user.user_type|capfirst}}</td>

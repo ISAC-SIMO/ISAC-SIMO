@@ -5,6 +5,7 @@ from django.db import models
 
 class LoginForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
+    email = forms.EmailField(error_messages={'unique': 'Email and Password did not match'})
     class Meta:
         model = User     
         fields = ('email', 'password')

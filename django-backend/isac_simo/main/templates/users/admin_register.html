@@ -17,13 +17,11 @@
 {% endblock dashboard_title1 %}
 
 {% block dashboard_title2 %} 
-
   {% if request.resolver_match.url_name == 'update_user' %}
     System Users / Edit
   {% else %}  
     System Users / Add
   {% endif %} 
-
 {% endblock dashboard_title2 %}
 
 {% block content %}

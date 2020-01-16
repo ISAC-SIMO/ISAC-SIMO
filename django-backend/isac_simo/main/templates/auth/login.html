@@ -47,6 +47,17 @@
         <form action="{% url 'login' %}" method="post">
           {% csrf_token %}
 
+          {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{message}}
+                </div>
+            {% endfor %}
+          {% endif %}
+
           {{ form.email|as_crispy_field }}
           {{ form.password|as_crispy_field }}
 
