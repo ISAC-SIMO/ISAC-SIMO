@@ -17,9 +17,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from main import views 
+from main import views
+from api import views as api
+from rest_framework import routers
+from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView,)
+
+router = routers.DefaultRouter()
+# router.register('language', views.LanguageView)
 
 urlpatterns = [
+    # API
+    path('api/auth/', TokenObtainPairView.as_view(), name='auth'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
+    path('api/', include(router.urls)),
+    # WEB
     path('admin/', admin.site.urls),
     path('', views.login_user),
     path('login/', views.login_user, name="login"),
