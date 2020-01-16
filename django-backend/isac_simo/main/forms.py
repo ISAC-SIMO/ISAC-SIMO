@@ -14,13 +14,8 @@ class LoginForm(forms.ModelForm):
             'password': 'Password',
         }
 
-
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-        #self.fields['position'].empty_label = "Select Position"
-        #self.fields['emp_code'].required = False
-        # self.fields['image'].required = False
-
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField()
@@ -38,9 +33,7 @@ class RegisterForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
-        #self.fields['position'].empty_label = "Select Position"
         self.fields['image'].required = False
-        # self.fields['image'].required = False
 
 
 class AdminRegisterForm(UserCreationForm):
@@ -64,6 +57,7 @@ class AdminRegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(AdminRegisterForm, self).__init__(*args, **kwargs)
         self.fields['image'].required = False
+        self.fields['user_type'].help_text = 'Choose User Type Wisely'
 
 
 class AdminEditForm(UserCreationForm):
@@ -89,3 +83,4 @@ class AdminEditForm(UserCreationForm):
         self.fields['image'].required = False
         self.fields['password1'].required = False
         self.fields['password2'].required = False
+        self.fields['user_type'].help_text = 'Choose User Type Wisely'
