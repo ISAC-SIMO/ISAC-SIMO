@@ -1,33 +1,37 @@
 {% extends 'master/base.html' %}
 
-{% block title %} Add Project {% endblock title %}
+{% block title %}
+  {% if request.resolver_match.url_name == 'updateproject' %}
+    Update Project
+  {% else %}  
+    Create Project
+  {% endif %} 
+{% endblock title %}
 
-{% block dashboard_title1 %} Create Project {% endblock dashboard_title1 %}
+{% block dashboard_title1 %}
+  {% if request.resolver_match.url_name == 'updateproject' %}
+    Update Project
+  {% else %}  
+    Create Project
+  {% endif %} 
+{% endblock dashboard_title1 %}
 
-{% block dashboard_title2 %} Add Project {% endblock dashboard_title2 %}
+{% block dashboard_title2 %}
+  {% if request.resolver_match.url_name == 'updateproject' %}
+    Edit Project
+  {% else %}  
+    Add Project
+  {% endif %}
+{% endblock dashboard_title2 %}
 
 {% block content %}
-
-        {% if messages %}
-
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    {{message}}
-                </div>
-            {% endfor %}
-        
-        {% endif %}
-
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         {% load crispy_forms_tags %}
 
-                        <form action="" method="POST" class="form-group" enctype="multipart/form-data">
+                        <form action="{% if request.resolver_match.url_name == 'updateproject' %}{% url 'updateproject' project.id %}{% else %}{% url 'addproject' %}{% endif %}" method="POST" class="form-group" enctype="multipart/form-data">
                             {% csrf_token %}
                               {{ form|crispy }}
 
@@ -36,14 +40,11 @@
                               {% else %}  
                                 <button type="submit" class="btn btn-success">Add Project</button>
                               {% endif %}  
-                          </form>
+                        </form>
                     </div>
                 </div>
             </div>
-           
         </div>
-
-
 {% endblock content %}
 
 {% block script %}

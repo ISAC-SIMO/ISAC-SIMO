@@ -14,52 +14,57 @@ def addProject(request, id = 0):
         form = ProjectForm()
         return render(request,"add_project.html",{'form':form})
     elif request.method == "POST":
-        projectform = Projects()
-        projectform.project_name = request.POST.get('project_name')
-        projectform.project_desc = request.POST.get('project_desc')
-        projectform.user = User.objects.get(id=request.user.id)
+        form = ProjectForm(request.POST or None, request.FILES or None)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = User.objects.get(id=request.user.id)
+            instance.save()
+            messages.success(request, "New Project Added Successfully!")
+        else:
+            messages.error(request, "Invalid Request")
+            return render(request,"add_project.html",{'form':form})
+        # if request.FILES.get('image'):
+        #     myFile = request.FILES.get('image')
+        #     fs = FileSystemStorage(location="main/media/project_images")
+        #     filename = fs.save(myFile.name, myFile)
+        #     projectform.image = 'project_images/'  + myFile.name    
 
-        if request.FILES.get('image'):
-
-            myFile = request.FILES.get('image')
-            fs = FileSystemStorage(location="main/media/project_images")
-            filename = fs.save(myFile.name, myFile)
-            projectform.image = 'project_images/'  + myFile.name    
-
-        projectform.save()
-        messages.success(request, "New Project Added Successfully!")       
-
-        return redirect("viewprojects")
+    return redirect("viewprojects")
 
 def editProject(request, id=0):
-    if request.method == "GET":
+    try:
         project = Projects.objects.get(id=id)
-        form = ProjectForm(instance=project)
-        return render(request,"add_project.html",{'form':form})
-    elif request.method == "POST":
-        projectform = Projects.objects.get(id=id)
 
-        projectform.project_name = request.POST.get('project_name')
-        projectform.project_desc = request.POST.get('project_desc')
-        projectform.project_user = User.objects.get(id=request.user.id)
-        
-        if request.FILES.get('image'):
-            projectform.image.delete()
-            myFile = request.FILES.get('image')
-            fs = FileSystemStorage(location="main/media/project_images")
-            filename = fs.save(myFile.name, myFile)
-            projectform.image = 'project_images/'  + myFile.name     
-        
-        projectform.save()
-        messages.info(request,"Project Record Updated Successfully!")
+        if request.method == "GET":
+            form = ProjectForm(instance=project)
+            return render(request,"add_project.html",{'form':form, 'project':project})
+        elif request.method == "POST":
+            form = ProjectForm(request.POST or None, request.FILES or None, instance=project)
+            if form.is_valid():
+                instance = form.save(commit=False)
+                instance.save()
+                messages.success(request, "Project Updated Successfully!")
+            else:
+                messages.error(request, "Invalid Request")
+                return render(request,"add_project.html",{'form':form, 'project':project})
 
+        return redirect("viewprojects")
+    except(Projects.DoesNotExist):
+        messages.error(request, "Invalid Project attempted to Edit")
         return redirect("viewprojects")
 
 def deleteProject(request, id):
-    project = Projects.objects.get(id=id)
-    project.image.delete()
-    project.delete()
-    messages.error(request, 'Project Deleted Successfully!')
-
-    return redirect('viewprojects')
+    try:
+        if request.method == "POST":
+            project = Projects.objects.get(id=id)
+            project.image.delete()
+            project.delete()
+            messages.success(request, 'Project Deleted Successfully!')
+            return redirect('viewprojects')
+        else:
+            messages.error(request, 'Failed to Delete!')
+            return redirect('viewprojects')
+    except(Projects.DoesNotExist):
+        messages.error(request, "Invalid Project attempted to Delete")
+        return redirect("viewprojects")
 

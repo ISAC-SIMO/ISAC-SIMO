@@ -4,7 +4,6 @@ from django.db import models
 from main.models import User
 
 class ProjectForm(forms.ModelForm):
-    user = forms.IntegerField(widget = forms.HiddenInput())
     class Meta:
         model = Projects     
         fields = ('project_name', 'project_desc', 'image')
@@ -13,7 +12,6 @@ class ProjectForm(forms.ModelForm):
             'project_desc': 'Description',
             'image': "Project Image",
         }
-
 
     def __init__(self, *args, **kwargs):
         super(ProjectForm, self).__init__(*args, **kwargs)

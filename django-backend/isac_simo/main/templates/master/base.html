@@ -189,9 +189,9 @@
             {% endif %}
 
             <li
-              class="nav-item has-treeview {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'addproject' %} menu-open {% endif %}">
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'updateproject' or request.resolver_match.url_name == 'addproject' %} menu-open {% endif %}">
               <a href="#"
-                class="nav-link {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'addproject'  %} active {% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'updateproject' or request.resolver_match.url_name == 'addproject'  %} active {% endif %}">
                 <i class="nav-icon fas fa-database"></i>
                 <p>
                   Projects

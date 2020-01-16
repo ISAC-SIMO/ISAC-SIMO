@@ -25,20 +25,6 @@
 {% endblock dashboard_title2 %}
 
 {% block content %}
-
-        {% if messages %}
-
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    {{message}}
-                </div>
-            {% endfor %}
-        
-        {% endif %}
-
         <div class="row">
             <div class="col-12">
                 <div class="card">
