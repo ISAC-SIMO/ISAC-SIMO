@@ -12,7 +12,7 @@ def viewProjects(request):
 def addProject(request, id = 0):
     if request.method == "GET":
         form = ProjectForm()
-        return render(request,"addProject.html",{'form':form})
+        return render(request,"add_project.html",{'form':form})
     elif request.method == "POST":
         projectform = Projects()
         projectform.project_name = request.POST.get('project_name')
@@ -35,7 +35,7 @@ def editProject(request, id=0):
     if request.method == "GET":
         project = Projects.objects.get(id=id)
         form = ProjectForm(instance=project)
-        return render(request,"addProject.html",{'form':form})
+        return render(request,"add_project.html",{'form':form})
     elif request.method == "POST":
         projectform = Projects.objects.get(id=id)
 

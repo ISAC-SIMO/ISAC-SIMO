@@ -2,9 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 USER_TYPE = [
-    ('admin', "Admin"),
     ('user', "User"),
-    ('engineer', "Engineer")
+    ('engineer', "Engineer"),
+    ('government', "Government"),
+    ('admin', "Admin"),
 ]
 
 class UserManager(BaseUserManager):

@@ -1,5 +1,5 @@
 from django import forms
-from .models import User
+from .models import User, USER_TYPE
 from django.contrib.auth.forms import UserCreationForm
 from django.db import models
 
@@ -39,7 +39,6 @@ class RegisterForm(UserCreationForm):
 class AdminRegisterForm(UserCreationForm):
     email = forms.EmailField()
 
-    USER_TYPE=[('user','User'), ('engineer','Engineer'), ('admin','Admin')]
     user_type = forms.ChoiceField(choices=USER_TYPE, widget=forms.Select, initial = 'user')
 
     class Meta:
@@ -63,7 +62,6 @@ class AdminRegisterForm(UserCreationForm):
 class AdminEditForm(UserCreationForm):
     email = forms.EmailField()
 
-    USER_TYPE=[('user','User'), ('engineer','Engineer'), ('admin','Admin')]
     user_type = forms.ChoiceField(choices=USER_TYPE, widget=forms.Select, initial = 'False')
 
     class Meta:
