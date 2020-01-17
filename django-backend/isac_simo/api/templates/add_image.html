@@ -24,6 +24,8 @@
   {% endif %}
 {% endblock dashboard_title2 %}
 
+{% load static %}
+
 {% block content %}
         <div class="row">
             <div class="col-12">
@@ -41,6 +43,28 @@
                                 <button type="submit" class="btn btn-success">Add Image</button>
                               {% endif %}  
                         </form>
+
+                        {% if request.resolver_match.url_name == 'images.update' %}
+                            <small>Old Images:</small>
+                            {% comment %} {% for image_file in image_files %}
+                                <a style="padding:0 6px;background:#ddd;" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">{{forloop.counter}}</a>
+                            {% endfor %} {% endcomment %}
+                            
+                            <div class="col-sm-8">
+                                <div class="row">
+                                    {% for image_file in image_files %}
+                                        <div class="img-flex">
+                                            <img class="img-card" src="{{image_file.file.url}}" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')" alt="Failed to Load"/>
+                                            <a onclick="deleteData(event,'image_file_{{image_file.id}}','Uploaded Image')" class="text-danger img-delete"><i class="fa fa-trash-alt"></i></a>
+                                            <form action="{% url 'images.image_file.delete' image_file.id %}" id="image_file_{{image_file.id}}" method="POST">
+                                                {% csrf_token %}
+                                            </form>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p><small style="color:Red;">(If Images are Supplied on Update it will be appended)</small></p>
+                        {% endif %}
                     </div>
                 </div>
             </div>

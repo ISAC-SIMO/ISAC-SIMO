@@ -31,10 +31,12 @@
                                 <tr>
                                     <td style="width:15px;">{{image.id}}</td>
                                     <td>{{image.title|title}}</td>
-                                    <td title="{{image.description}}" data-toggle="tooltip" data-placement="top">{{image.description|truncatewords:8}}</td>
+                                    <td style="width:350px;" title="{{image.description}}" data-toggle="tooltip" data-placement="top">{{image.description|truncatewords:8}}</td>
                                     <td>{{image.user.full_name|default:'Anonymous'}}</td>
                                     <td>
-                                        <a href="#!" onclick="showImagePop(event, '{% if image.image %}{{image.image.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">View</a>
+                                        {% for image_file in image.image_files.all %}
+                                            <a style="padding:0 6px;background:#fff;" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">{{forloop.counter}}</a>
+                                        {% endfor %}
                                     </td>
                                     <td class="table-options">
                                         <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'images.update' image.id %}" class="btn text-secondary px-0">

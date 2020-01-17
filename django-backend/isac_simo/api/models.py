@@ -21,9 +21,18 @@ class Image(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=500,blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='user')
-    image = models.ImageField(upload_to=path_and_rename)
+    # image = models.ImageField(upload_to=path_and_rename)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
+
+class ImageFile(models.Model):
+    image = models.ForeignKey(Image, related_name='image_files', on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=path_and_rename)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.file

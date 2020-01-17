@@ -48,6 +48,10 @@
     .fa-trash:hover{opacity:0.8;}
     #id_image{padding-bottom: 35px;}
     .tooltip-inner{max-width: 500px;}
+    .img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:5px;background:#eee;margin:5px;position:relative;}
+    .img-card{width:180px;cursor:pointer;}
+    .img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;}
+    .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
   </style>
   {% block style %}{% endblock style %}
   <script>
