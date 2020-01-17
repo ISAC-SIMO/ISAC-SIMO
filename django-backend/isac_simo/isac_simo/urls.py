@@ -39,7 +39,8 @@ urlpatterns = [
     path('logout/',  views.logout_user, name="logout"),
     path('dashboard', views.home, name="dashboard"),
     path('users/', include('main.urls')),
-    path('projects/', include('projects.urls'))
+    path('projects/', include('projects.urls')),
+    path('app/', include('api.urls'))
 ]
 
 if settings.DEBUG:

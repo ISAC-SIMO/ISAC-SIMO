@@ -1,0 +1,48 @@
+{% extends 'master/base.html' %}
+
+{% block title %}
+  {% if request.resolver_match.url_name == 'images.update' %}
+    Update Image
+  {% else %}  
+    Add Image
+  {% endif %} 
+{% endblock title %}
+
+{% block dashboard_title1 %}
+  {% if request.resolver_match.url_name == 'images.update' %}
+    Update Image
+  {% else %}  
+    Add Image
+  {% endif %} 
+{% endblock dashboard_title1 %}
+
+{% block dashboard_title2 %}
+  {% if request.resolver_match.url_name == 'images.update' %}
+    Edit Image
+  {% else %}  
+    Add Image
+  {% endif %}
+{% endblock dashboard_title2 %}
+
+{% block content %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% load crispy_forms_tags %}
+
+                        <form action="{% if request.resolver_match.url_name == 'images.update' %}{% url 'images.update' id %}{% else %}{% url 'images.add' %}{% endif %}" method="POST" class="form-group" enctype="multipart/form-data">
+                            {% csrf_token %}
+                              {{ form|crispy }}
+
+                              {% if request.resolver_match.url_name == 'images.update' %}
+                                <button type="submit" class="btn btn-success">Update Image</button>
+                              {% else %}  
+                                <button type="submit" class="btn btn-success">Add Image</button>
+                              {% endif %}  
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock content %}

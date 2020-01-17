@@ -45,6 +45,7 @@ class User(AbstractBaseUser):
     full_name = models.CharField(max_length=255, blank=True, null=True)
     active = models.BooleanField(default=True) #can login
     user_type = models.CharField(max_length=50, choices=USER_TYPE, default='user')
+    is_staff = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add = True)
     image = models.ImageField(upload_to='user_images', blank=True)
 
@@ -54,7 +55,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.email
+        return self.full_name+' - '+self.email
     
     def get_full_name(self):
         return self.full_name

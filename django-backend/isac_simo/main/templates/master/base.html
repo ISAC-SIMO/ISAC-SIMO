@@ -47,6 +47,7 @@
     .main-container{opacity: 0;animation: fader 0.5s 0.1s ease forwards;}
     .fa-trash:hover{opacity:0.8;}
     #id_image{padding-bottom: 35px;}
+    .tooltip-inner{max-width: 500px;}
   </style>
   {% block style %}{% endblock style %}
   <script>
@@ -187,6 +188,35 @@
               </ul>
             </li>
             {% endif %}
+
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} active {% endif %}">
+                <i class="nav-icon fas fa-image"></i>
+                <p>
+                  Image
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'images' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>View Images</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'images.add' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-success"></i>
+                    <p>Add Image</p>
+                  </a>
+                </li>
+
+              </ul>
+            </li>
 
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'updateproject' or request.resolver_match.url_name == 'addproject' %} menu-open {% endif %}">
@@ -354,6 +384,7 @@
 
     $(function () {
         $(".table-options a").tooltip();
+        $("[data-toggle='tooltip']").tooltip();
     });
   </script>
 </body>

@@ -1,0 +1,73 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Images {% endblock title %}
+{% block dashboard_title1 %} Images {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Images {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-title ml-3 mt-2">
+                    <a href="{% url 'images.add' %}"  class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Upload/Add Image
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="imagesTable" class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>User</th>
+                                <th>Image</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for image in images %}
+                                <tr>
+                                    <td style="width:15px;">{{image.id}}</td>
+                                    <td>{{image.title|title}}</td>
+                                    <td title="{{image.description}}" data-toggle="tooltip" data-placement="top">{{image.description|truncatewords:8}}</td>
+                                    <td>{{image.user.full_name|default:'Anonymous'}}</td>
+                                    <td>
+                                        <a href="#!" onclick="showImagePop(event, '{% if image.image %}{{image.image.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">View</a>
+                                    </td>
+                                    <td class="table-options">
+                                        <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'images.update' image.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        <a onclick="deleteData(event, 'form-{{ image.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'images.delete' image.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-trash text-danger"></i>
+                                        </a>
+                                        <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody> 
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(function () {
+          $('#imagesTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+          });
+        });
+    </script>
+{% endblock script %}
