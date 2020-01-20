@@ -23,6 +23,7 @@ class ImageSerializer(serializers.ModelSerializer):
         model = Image
         fields = ('id','url','title','description','user_id','user_name','user_type','image_files','created_at','updated_at')
         read_only_fields = ('user_name','user_type','created_at', 'updated_at')
+        
 
     def get_user_name(self, image):
         return image.user.full_name if image.user else None
@@ -42,3 +43,13 @@ class ImageSerializer(serializers.ModelSerializer):
         for image_file in image_files.values():
             ImageFile.objects.create(image=image, file=image_file)
         return image
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+
+        image_files = self.context.get('view').request.FILES
+        for image_file in image_files.values():
+            ImageFile.objects.create(image=instance, file=image_file)
+        instance.save()
+        return instance
