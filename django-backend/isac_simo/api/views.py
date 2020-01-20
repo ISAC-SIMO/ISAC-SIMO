@@ -5,7 +5,9 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from rest_framework import viewsets
 
-from api.serializers import ImageSerializer
+from api.serializers import ImageSerializer, UserSerializer
+from main.models import User
+
 from .forms import ImageForm
 from .models import Image, ImageFile
 
@@ -120,3 +122,8 @@ class ImageView(viewsets.ModelViewSet):
             i.file.delete()
             i.delete()
         return super().destroy(request, *args, **kwargs)
+
+class UserView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    # http_method_names = ['post','options']

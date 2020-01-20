@@ -22,13 +22,11 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'full_name', 'image', 'password1', 'password2')
+        fields = ('email', 'full_name', 'image',)
         labels = {
             'email': 'Email',
             'full_name': 'Full Name',
             'image': 'Profile Picture',
-            'password1': 'Password',
-            'password2': 'Confirm Password'
         }
 
     def __init__(self, *args, **kwargs):

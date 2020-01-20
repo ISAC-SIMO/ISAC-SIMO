@@ -20,11 +20,13 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
+
 from api import views as api
+from api.views import ImageView, UserView
 from main import views
-from api.views import ImageView
 
 router = routers.DefaultRouter()
+router.register('register', UserView)
 router.register('image', ImageView)
 
 urlpatterns = [

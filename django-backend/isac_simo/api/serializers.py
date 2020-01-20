@@ -4,10 +4,19 @@ from .models import Image, ImageFile
 from main.models import User
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     class Meta:
         model = User
-        fields = ('id','full_name','user_type')
-        read_only_fields = ('id','full_name','user_type')
+        fields = ('id','email','password','full_name','user_type','image')
+        read_only_fields = ('id','user_type')
+
+    def create(self, validated_data):
+        user = User.objects.create(email=validated_data['email'],
+                                full_name=validated_data['full_name'],
+                                image=validated_data['image'])
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 class ImageFileSerializer(serializers.ModelSerializer):
     class Meta:

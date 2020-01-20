@@ -35,9 +35,13 @@ def register(request):
     registerForm = RegisterForm(request.POST or None, request.FILES or None)
     if request.method == "POST":
         if registerForm.is_valid():
-            registerForm.staff = True
-            registerForm.admin = True
-            registerForm.save()
+            instance = registerForm.save(commit=False)
+            instance.set_password(request.POST.get('password1'))
+            instance.save()
+
+            storage = messages.get_messages(request)
+            storage.used = True
+            messages.success(request, 'Registration Success. Login Now.')
             return redirect('login')
         else:
             messages.error(request, 'Invalid Form Request')
