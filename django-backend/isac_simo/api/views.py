@@ -1,9 +1,11 @@
 from http.client import HTTPResponse
-from django.http import HttpResponseRedirect
 
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
+from rest_framework import viewsets
 
+from api.serializers import ImageSerializer
 from .forms import ImageForm
 from .models import Image, ImageFile
 
@@ -103,3 +105,18 @@ def deleteImageFile(request, id):
     except(ImageFile.DoesNotExist):
         messages.error(request, "Invalid Image File attempted to Delete")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+#######
+# API #
+#######
+
+class ImageView(viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        image = self.get_object()
+        for i in image.image_files.all():
+            i.file.delete()
+            i.delete()
+        return super().destroy(request, *args, **kwargs)
