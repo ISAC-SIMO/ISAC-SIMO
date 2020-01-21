@@ -5,13 +5,17 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from api.serializers import ImageSerializer, UserSerializer
+from main.authorization import *
 from main.models import User
 
 from .forms import ImageForm
 from .models import Image, ImageFile
-from main.authorization import *
+from main import authorization
+
 
 # View All Images
 @user_passes_test(is_admin, login_url=login_url)
@@ -127,6 +131,22 @@ def deleteImageFile(request, id):
 class ImageView(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
+    # permission_classes = [IsAdminUser]
+
+    # TO LIMIT WHAT USER CAN DO - EDIT,SEE,DELETE
+    def get_queryset(self):
+        if(self.request.user.is_admin):
+            return Image.objects.all()
+        return Image.objects.filter(user_id=self.request.user.id)
+
+    # TO LIMIT PERMISSION - I CREATED CUSTOM PERMISSION IN main/authorization.py
+    # Files contains checker for Authorization as well as passes test
+    # def get_permissions(self):
+    #     if self.action == 'list':
+    #         self.permission_classes = [HasAdminPermission, ]
+    #     elif self.action == 'retrieve':
+    #         self.permission_classes = [HasAdminPermission]
+    #     return super(self.__class__, self).get_permissions()
 
     def destroy(self, request, *args, **kwargs):
         image = self.get_object()

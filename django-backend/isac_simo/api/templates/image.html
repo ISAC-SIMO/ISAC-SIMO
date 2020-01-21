@@ -31,7 +31,7 @@
                                 <tr>
                                     <td style="width:15px;">{{image.id}}</td>
                                     <td>{{image.title|title}}</td>
-                                    <td style="width:350px;" title="{{image.description}}" data-toggle="tooltip" data-placement="top">{{image.description|truncatewords:8}}</td>
+                                    <td style="width:350px;" data-search="{{image.description}}" title="{{image.description}}" data-toggle="tooltip" data-placement="top">{{image.description|truncatewords:8}}</td>
                                     <td>{{image.user.full_name|default:'Anonymous'}}</td>
                                     <td>
                                         {% for image_file in image.image_files.all %}
