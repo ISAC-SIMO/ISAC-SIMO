@@ -93,6 +93,11 @@ class User(AbstractBaseUser):
             return True
 
     @property
+    def is_government(self):
+        if self.user_type == 'government':
+            return True
+
+    @property
     def is_user(self):
         if self.user_type == 'user':
             return True

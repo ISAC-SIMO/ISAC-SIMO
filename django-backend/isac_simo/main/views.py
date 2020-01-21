@@ -26,9 +26,15 @@ def login_user(request):
             return render(request, 'auth/login.html', {'form':form})
     else:
         if not request.user.is_authenticated:
+            if request.GET.get('error') == 'unauthorized':
+                messages.error(request, 'Unauthorized Access. Login to Continue.')
             form = LoginForm()
             return render(request, 'auth/login.html', {'form':form})
         else:
+            storage = messages.get_messages(request)
+            storage.used = True
+            if request.GET.get('error') == 'unauthorized':
+                messages.error(request, 'Unauthorized Access was denied.')
             return redirect('dashboard')
 
 def register(request):

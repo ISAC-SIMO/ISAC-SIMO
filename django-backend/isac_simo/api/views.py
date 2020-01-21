@@ -1,6 +1,7 @@
 from http.client import HTTPResponse
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from rest_framework import viewsets
@@ -10,12 +11,16 @@ from main.models import User
 
 from .forms import ImageForm
 from .models import Image, ImageFile
+from main.authorization import *
 
-
+# View All Images
+@user_passes_test(is_admin, login_url=login_url)
 def images(request):
     images = Image.objects.all().prefetch_related('image_files')
     return render(request, 'image.html',{'images':images})
 
+# Add Image via Dashboard
+@user_passes_test(is_admin, login_url=login_url)
 def addImage(request, id = 0):
     if request.method == "GET":
         form = ImageForm()
@@ -44,6 +49,8 @@ def addImage(request, id = 0):
 
     return redirect("images")
 
+# Update Image + Append File + PATCH
+@user_passes_test(is_admin, login_url=login_url)
 def updateImage(request, id=0):
     try:
         image = Image.objects.get(id=id)
@@ -76,6 +83,8 @@ def updateImage(request, id=0):
         messages.error(request, "Invalid Image attempted to Edit")
         return redirect("images.add")
 
+# Delete Image
+@user_passes_test(is_admin, login_url=login_url)
 def deleteImage(request, id=0):
     try:
         if request.method == "POST":
@@ -93,6 +102,8 @@ def deleteImage(request, id=0):
         messages.error(request, "Invalid Image attempted to Delete")
         return redirect("images")
 
+# Delete Image Specific File
+@user_passes_test(is_admin, login_url=login_url)
 def deleteImageFile(request, id):
     try:
         if request.method == "POST":
@@ -112,6 +123,7 @@ def deleteImageFile(request, id):
 # API #
 #######
 
+# Images API
 class ImageView(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
@@ -126,4 +138,4 @@ class ImageView(viewsets.ModelViewSet):
 class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # http_method_names = ['post','options']
+    http_method_names = ['post','options']

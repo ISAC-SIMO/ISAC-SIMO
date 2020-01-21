@@ -161,8 +161,8 @@
               </a>
             </li>
 
+            {% comment %} IS ADMIN {% endcomment %}
             {% if user.is_admin %}
-
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'allusers' or request.resolver_match.url_name == 'update_user' or request.resolver_match.url_name == 'admin_adduser' %} menu-open {% endif %}">
               <a href="#"
@@ -188,10 +188,8 @@
                     <p>Create Users</p>
                   </a>
                 </li>
-
               </ul>
             </li>
-            {% endif %}
 
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
@@ -218,7 +216,6 @@
                     <p>Add Image</p>
                   </a>
                 </li>
-
               </ul>
             </li>
 
@@ -250,6 +247,8 @@
 
               </ul>
             </li>
+            {% endif %}
+            {% comment %} / IS ADMIN / {% endcomment %}
 
           </ul>
         </nav>
