@@ -5,16 +5,17 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from rest_framework import viewsets
+from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 
 from api.serializers import ImageSerializer, UserSerializer
+from main import authorization
 from main.authorization import *
 from main.models import User
 
 from .forms import ImageForm
 from .models import Image, ImageFile
-from main import authorization
 
 
 # View All Images
@@ -135,7 +136,7 @@ class ImageView(viewsets.ModelViewSet):
 
     # TO LIMIT WHAT USER CAN DO - EDIT,SEE,DELETE
     def get_queryset(self):
-        if(self.request.user.is_admin):
+        if(self.request.user.is_authenticated and self.request.user.is_admin):
             return Image.objects.all()
         return Image.objects.filter(user_id=self.request.user.id)
 
@@ -158,4 +159,25 @@ class ImageView(viewsets.ModelViewSet):
 class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    http_method_names = ['post','options']
+    http_method_names = ['post','options','patch','get']
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        if(self.request.method == "POST"):
+            return User.objects.exclude(active__in=[True,False])
+        return User.objects.filter(id=self.request.user.id)
+
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = [IsAuthenticated]
+        elif self.action == 'retrieve':
+            self.permission_classes = [IsAuthenticated]
+        elif self.action == 'create':
+            self.permission_classes = [HasGuestPermission]
+        elif self.action == 'update':
+            self.permission_classes = [IsAuthenticated]
+        elif self.action == 'partial_update':
+            self.permission_classes = [IsAuthenticated]
+        elif self.action == 'destroy':
+            self.permission_classes = [IsAuthenticated]
+        return super(self.__class__, self).get_permissions()

@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
@@ -45,7 +45,7 @@ urlpatterns = [
     path('dashboard', views.home, name="dashboard"),
     path('users/', include('main.urls')),
     path('projects/', include('projects.urls')),
-    path('app/', include('api.urls'))
+    path('app/', include('api.urls')),
 ]
 
 if settings.DEBUG:

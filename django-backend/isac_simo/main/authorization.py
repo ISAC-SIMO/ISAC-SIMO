@@ -23,6 +23,11 @@ def is_user(user):
         return user.is_active and user.is_user
     return False
 
+def is_guest(user):
+    if user.is_authenticated == False:
+        return True
+    return False
+
 class HasAdminPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user and request.user.is_authenticated:
@@ -42,3 +47,8 @@ class HasUserPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user and request.user.is_authenticated:
             return request.user.is_active and request.user.is_user
+
+class HasGuestPermission(BasePermission):
+    def has_permission(self, request, view):
+        if request.user is None or request.user.is_authenticated is False:
+            return True
