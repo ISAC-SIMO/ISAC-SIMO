@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+  {% load static %}
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build Change - Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra - Web Application">
+  <meta name="keywords" content="ISAC,SIMO,intelligent,supervision,assistant,construction,build,change,dashboard">
+  <meta name="author" content="Build Change,Niush">
+  <meta name="theme-color" content="#343a40">
+  <meta name="msapplication-navbutton-color" content="#343a40">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#343a40">
   <title>
     {% block title %}{% endblock %}
   </title>
 
-  <!-- Tell the browser to be responsive to screen width -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-32x32.png' %}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-16x16.png' %}" sizes="16x16" />
   <!-- Font Awesome -->
-  {% load static %}
-
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
@@ -52,6 +57,8 @@
     .img-card{width:180px;cursor:pointer;}
     .img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;}
     .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
+    .nav-link{border-radius:0 !important;margin-bottom:0 !important;}
+    .nav-sidebar>.nav-item .nav-icon.fa, .nav-sidebar>.nav-item .nav-icon.fab, .nav-sidebar>.nav-item .nav-icon.far, .nav-sidebar>.nav-item .nav-icon.fas, .nav-sidebar>.nav-item .nav-icon.glyphicon, .nav-sidebar>.nav-item .nav-icon.ion{font-size:0.9rem;}
   </style>
   {% block style %}{% endblock style %}
   <script>
@@ -93,7 +100,7 @@
         <!-- Messages Dropdown Menu -->
         {% if user.is_authenticated %}
         <li class="nav-item nav-icon">
-          <a class="nav-link" href="{% url 'logout' %}">
+          <a class="nav-link" onclick="$('.wrapper').animate({ opacity:'0'},{ queue: false, duration: 300 }).hide('slide', {percent:0}, 600);" href="{% url 'logout' %}">
             <i class="fas fa-power-off"></i>
           </a>
         </li>
@@ -127,7 +134,7 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
-      <a href="index3.html" class="brand-link">
+      <a href="{% url 'dashboard' %}" class="brand-link">
         <img src="{% static 'dist/img/logo.png' %}" alt="ISAC SIMO"
           class="brand-image img-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">ISAC-SIMO</span>

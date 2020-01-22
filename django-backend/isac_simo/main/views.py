@@ -20,7 +20,7 @@ from .models import User
 def home(request):
     return render(request, 'dashboard.html')
 
-@user_passes_test(is_guest, login_url=login_url)
+@user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):
     if request.method == "POST":
         user = authenticate(username = request.POST.get('email'), password = request.POST.get('password'))
@@ -46,7 +46,7 @@ def login_user(request):
                 messages.error(request, 'Unauthorized Access was denied.')
             return redirect('dashboard')
 
-@user_passes_test(is_guest, login_url=login_url)
+@user_passes_test(is_guest, login_url=dashboard_url)
 def register(request):
     registerForm = RegisterForm(request.POST or None, request.FILES or None)
     if request.method == "POST":

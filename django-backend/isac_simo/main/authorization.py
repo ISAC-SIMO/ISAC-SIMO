@@ -2,6 +2,7 @@
 from rest_framework.permissions import BasePermission
 
 login_url = '/login/?error=unauthorized'
+dashboard_url = 'dashboard'
 
 def is_admin(user):
     if user and user.is_authenticated:
