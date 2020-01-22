@@ -4,6 +4,7 @@ import uuid
 import os
 from django.conf import settings
 from django.utils.deconstruct import deconstructible
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 @deconstructible
 class PathAndRename(object):
@@ -21,7 +22,8 @@ class Image(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length=500,blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='user')
-    # image = models.ImageField(upload_to=path_and_rename)
+    lat = models.FloatField(validators=[MinValueValidator(-90), MaxValueValidator(90)],max_length=100,null=True,blank=True)
+    lng = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)],max_length=100,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

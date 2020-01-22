@@ -1,5 +1,6 @@
 import json
 from rest_framework import serializers
+from PIL import Image as PILImage
 from .models import Image, ImageFile
 from main.models import User
 
@@ -30,7 +31,7 @@ class ImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ('id','url','title','description','user_id','user_name','user_type','image_files','created_at','updated_at')
+        fields = ('id','url','title','description','lat','lng','user_id','user_name','user_type','image_files','created_at','updated_at')
         read_only_fields = ('user_name','user_type','created_at', 'updated_at')
 
     def get_user_name(self, image):
@@ -45,19 +46,62 @@ class ImageSerializer(serializers.ModelSerializer):
         if request and hasattr(request, "user"):
             user = request.user
         image_files = self.context.get('view').request.FILES
-        image = Image.objects.create(title=validated_data.get('title'),
-                                    description=validated_data.get('description'),
-                                    user_id=user.id)
-        for image_file in image_files.values():
-            ImageFile.objects.create(image=image, file=image_file)
-        return image
+        if len(image_files) > 0 and len(image_files) < 8: # Images count 1 to 7
+            image = Image.objects.create(title=validated_data.get('title'),
+                                        description=validated_data.get('description'),
+                                        lat=validated_data.get('lat'),
+                                        lng=validated_data.get('lng'),
+                                        user_id=user.id)
+
+            e = 0 # Check if files uploaded or Not
+            u = 0 # Uploaded Count
+            for image_file in image_files.values():
+                try:
+                    img = PILImage.open(image_file)
+                    img.verify()
+                    ImageFile.objects.create(image=image, file=image_file)
+                    u = u + 1
+                except:
+                    # print('File Failed to Upload - NOT AN IMAGE')
+                    e = e + 1
+            
+            if(u >= 1): # At least one uploaded good to go
+                return image
+            else: # No Files Upload Throw error
+                image.delete()
+                error = {'message': str(e)+' Files failed to Upload. (Probably, Files are not type Image)'}
+                raise serializers.ValidationError(error)
+        else:
+            error = {'message': 'No Images provided or too much (>7) images provided.'}
+            raise serializers.ValidationError(error)
 
     def update(self, instance, validated_data):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get('description', instance.description)
+        instance.lat = validated_data.get('lat', instance.lat)
+        instance.lng = validated_data.get('lng', instance.lng)
         
         image_files = self.context.get('view').request.FILES
-        for image_file in image_files.values():
-            ImageFile.objects.create(image=instance, file=image_file)
-        instance.save()
-        return instance
+        if len(image_files) > 8:
+            e = 0 # Check if files uploaded or Not
+            u = 0 # Uploaded Count
+            for image_file in image_files.values():
+                try:
+                    img = PILImage.open(image_file)
+                    img.verify()
+                    ImageFile.objects.create(image=instance, file=image_file)
+                    u = u + 1
+                except:
+                    # print('File Failed to Upload - NOT AN IMAGE')
+                    e = e + 1
+            
+            if(u >= 1): # At least one uploaded good to go
+                instance.save()
+                return instance
+            else: # No Files Upload Throw error
+                instance.save()
+                error = {'message': str(e)+' Files failed to Upload. (Probably, Files are not type Image)'}
+                raise serializers.ValidationError(error)
+        else:
+            error = {'message': 'Too much (>7) images provided.'}
+            raise serializers.ValidationError(error)
