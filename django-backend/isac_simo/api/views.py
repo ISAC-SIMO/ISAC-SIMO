@@ -33,6 +33,10 @@ def addImage(request, id = 0):
     elif request.method == "POST":
         form = ImageForm(request.POST or None, request.FILES or None)
         files = request.FILES.getlist('image')
+        if(len(files) <= 0):
+            messages.error(request, "No Image Provided")
+            return render(request,"add_image.html",{'form':form})
+
         if form.is_valid():
             instance = form.save(commit=False)
             if(request.POST.get('user') is None or request.POST.get('user') == ''):
@@ -47,7 +51,7 @@ def addImage(request, id = 0):
                 if(i>=8):
                     break
 
-            messages.success(request, "Image Uploaded Successfully!")
+            messages.success(request, str(i)+" Image(s) Uploaded Successfully!")
         else:
             messages.error(request, "Invalid Request")
             return render(request,"add_image.html",{'form':form}) 

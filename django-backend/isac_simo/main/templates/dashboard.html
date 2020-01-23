@@ -8,10 +8,15 @@
 
 {% block content %}
     {% load static %}
-        <style>.alert{margin: 10px 10px;}</style>
         <!-- Main content -->
         <section class="content">
         <div class="container-fluid">
+            <!-- Map -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div id="imgmap" class="card" style="width:100%;min-height:50vh;"></div>
+                </div>
+            </div>
             <!-- Small boxes (Stat box) -->
             <div class="row">
             <div class="col-lg-3 col-6">
@@ -82,3 +87,40 @@
     </div>
 
 {% endblock content %}
+
+{% block script %}
+    <script>
+        var imgmap = L.map('imgmap',{
+            zoom: 4,
+            minZoom: 2,
+            worldCopyJump: true,
+            maxBounds: L.latLng(-80, 80)
+        }).setView([27.7172, 85.3240]);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(imgmap);
+
+        var markers = L.markerClusterGroup();
+
+        {% for image in images %}
+            {% if image.lat != None and image.lng != None  %}
+                var info = "<b title='{{image.created_at}}'>{{image.title}}</b><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
+                {% for file in image.image_files.all %}
+                    info += "<a style='padding: 2px 5px;background: #4e4e4e;margin-right: 3px;color: white;font-weight: 700;' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\")'>{{forloop.counter}}</a>"
+                {% endfor %}
+                markers.addLayer(L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info));
+            {% endif %}
+        {% endfor %}
+
+        imgmap.addLayer(markers);
+
+        var popup = L.popup();
+        imgmap.on('click', function(e) {
+            popup
+            .setLatLng(e.latlng)
+            .setContent(e.latlng.toString())
+            .openOn(imgmap);
+        });
+    </script>
+{% endblock script %}

@@ -5,7 +5,7 @@ from .models import Image
 
 
 class ImageForm(forms.ModelForm):
-    image = forms.ImageField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=True)
+    image = forms.ImageField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False)
     class Meta:
         model = Image     
         fields = ('title', 'description', 'user', 'lat', 'lng', 'image')

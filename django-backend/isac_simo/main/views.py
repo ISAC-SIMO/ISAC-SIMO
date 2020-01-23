@@ -1,3 +1,5 @@
+import os
+
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -5,11 +7,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.staticfiles.views import serve
 from django.core.files.storage import FileSystemStorage
+from django.db.models.query import prefetch_related_objects
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from rest_framework.generics import get_object_or_404
-import os
 
+from api.models import Image, ImageFile
 from main.authorization import *
 
 from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm
@@ -18,7 +21,8 @@ from .models import User
 
 @login_required
 def home(request):
-    return render(request, 'dashboard.html')
+    images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
+    return render(request, 'dashboard.html', {'images':images})
 
 @user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):

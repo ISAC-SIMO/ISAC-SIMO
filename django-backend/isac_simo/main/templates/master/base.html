@@ -19,6 +19,17 @@
   <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-16x16.png' %}" sizes="16x16" />
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+  <!-- Pace Progress Bar -->
+  <link rel="stylesheet" href="{% static 'plugins/pace-progress/themes/purple/pace-theme-minimal.css' %}">
+  <!-- Sweet Alert Bootstrap4 Theme -->
+  <link rel="stylesheet" href="{% static 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
+  <!-- Select2 Bootstrap4 Theme -->
+  <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Tempusdominus Bbootstrap 4 -->
@@ -28,7 +39,7 @@
   <!-- JQVMap -->
   <link rel="stylesheet" href="{% static 'plugins/jqvmap/jqvmap.min.css' %}">
   <!-- admin lte datatable css -->
-  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
   <!-- overlayScrollbars -->
@@ -59,6 +70,7 @@
     .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
     .nav-link{border-radius:0 !important;margin-bottom:0 !important;}
     .nav-sidebar>.nav-item .nav-icon.fa, .nav-sidebar>.nav-item .nav-icon.fab, .nav-sidebar>.nav-item .nav-icon.far, .nav-sidebar>.nav-item .nav-icon.fas, .nav-sidebar>.nav-item .nav-icon.glyphicon, .nav-sidebar>.nav-item .nav-icon.ion{font-size:0.9rem;}
+    .swal2-icon{transform: scale(.5);margin: 0;padding: 0;opacity: 0.9;}.swal2-styled.swal2-confirm{border:none !important;}
   </style>
   {% block style %}{% endblock style %}
   <script>
@@ -334,7 +346,18 @@
   <!-- Bootstrap 4 -->
   <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <!-- Sweet Alert -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+  <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+  <!-- Select 2 -->
+  <script src="{% static 'plugins/select2/js/select2.min.js' %}"></script>
+  <!-- Pace Progress Bar -->
+  <script src="{% static 'plugins/pace-progress/pace.min.js' %}"></script>
+  <!-- Leaflet Map -->
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin=""></script>
+  <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.Default.css" />
+	<script src="https://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
   <!-- ChartJS -->
   <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
   <!-- Sparkline -->
@@ -353,6 +376,7 @@
   <script src="{% static 'plugins/summernote/summernote-bs4.min.js' %}"></script>
   <!-- overlayScrollbars -->
   <script src="{% static 'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
+  <!-- Data Table -->
   <script src="{% static 'plugins/datatables/jquery.dataTables.js' %}"></script>
   <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
   <!-- AdminLTE App -->
@@ -364,21 +388,21 @@
   <script>
     function showImagePop(event, img, alt){
         event.preventDefault();
+        Pace.restart();
         Swal.fire({
             imageUrl: img,
-            imageAlt: alt?alt:'Image Failed to Load'
+            imageAlt: alt?alt:'Image Failed to Load',
+            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
         })
     }
 
     function deleteData(event, element, name){
         event.preventDefault();
-
         var title = 'Delete This '+(name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g,' ')+'?')
-
         Swal.fire({
             title: title,
             text: "You won't be able to revert this!",
-            icon: 'warning',
+            type: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete it!',
             confirmButtonColor: '#ad2424',
@@ -386,7 +410,8 @@
             cancelButtonText: 'No, cancel!',
             }).then((result) => {
             if (result.value) {
-                $('#'+element).submit();
+              Pace.restart();
+              $('#'+element).submit();
             }
         })
         $('.swal2-cancel').focus();
