@@ -21,7 +21,10 @@ from .models import User
 
 @login_required
 def home(request):
-    images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
+    if(is_admin(request.user)):
+        images = Image.objects.all().prefetch_related('image_files')
+    else:
+        images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
     return render(request, 'dashboard.html', {'images':images})
 
 @user_passes_test(is_guest, login_url=dashboard_url)
