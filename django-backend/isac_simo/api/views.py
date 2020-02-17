@@ -1,3 +1,4 @@
+import os
 from http.client import HTTPResponse
 
 from django.contrib import messages
@@ -9,6 +10,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 
+from api.helpers import test_image
 from api.serializers import ImageSerializer, UserSerializer
 from main import authorization
 from main.authorization import *
@@ -48,6 +50,11 @@ def addImage(request, id = 0):
                 i = i + 1
                 photo = ImageFile(image=instance, file=f)
                 photo.save()
+                ################
+                ### RUN TEST ###
+                ################
+                test_image(photo,request.POST.get('title'),request.POST.get('description'))
+                    
                 if(i>=8):
                     break
 

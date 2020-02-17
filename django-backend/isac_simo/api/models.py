@@ -33,6 +33,7 @@ class Image(models.Model):
 class ImageFile(models.Model):
     image = models.ForeignKey(Image, related_name='image_files', on_delete=models.CASCADE)
     file = models.ImageField(upload_to=path_and_rename)
+    tested = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

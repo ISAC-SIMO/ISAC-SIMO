@@ -228,6 +228,7 @@
                     <p>View Images</p>
                   </a>
                 </li>
+                {% if debug %}
                 <li class="nav-item">
                   <a href="{% url 'images.add' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
@@ -235,6 +236,7 @@
                     <p>Add Image</p>
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
 

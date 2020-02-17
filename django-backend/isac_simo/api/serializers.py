@@ -1,8 +1,15 @@
 import json
-from rest_framework import serializers
+import os
+from django.conf import settings
+from django.http import HttpResponse
 from PIL import Image as PILImage
-from .models import Image, ImageFile
+from rest_framework import serializers
+from api.helpers import test_image
+
 from main.models import User
+
+from .models import Image, ImageFile
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -22,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ImageFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageFile
-        fields = ('file',)
+        fields = ('file','tested')
 
 class ImageSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
@@ -46,6 +53,7 @@ class ImageSerializer(serializers.ModelSerializer):
         if request and hasattr(request, "user"):
             user = request.user
         image_files = self.context.get('view').request.FILES
+
         if len(image_files) > 0 and len(image_files) < 8: # Images count 1 to 7
             image = Image.objects.create(title=validated_data.get('title'),
                                         description=validated_data.get('description'),
@@ -59,13 +67,21 @@ class ImageSerializer(serializers.ModelSerializer):
                 try:
                     img = PILImage.open(image_file)
                     img.verify()
-                    ImageFile.objects.create(image=image, file=image_file)
+                    image_obj = ImageFile.objects.create(image=image, file=image_file)
+                    ################
+                    ### RUN TEST ###
+                    ################
+                    test_image(image_obj,validated_data.get('title'),validated_data.get('description'))
+
                     u = u + 1
-                except:
-                    # print('File Failed to Upload - NOT AN IMAGE')
+                except Exception as e:
+                    print('File Failed to Upload - NOT AN IMAGE')
                     e = e + 1
             
             if(u >= 1): # At least one uploaded good to go
+                ###############################
+                ##### IF FINE TO CONTINUE #####
+                ###############################
                 return image
             else: # No Files Upload Throw error
                 image.delete()
