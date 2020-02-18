@@ -1,1 +1,1 @@
-web: gunicorn projectname.projectname.wsgi
+web: gunicorn isac_simo.wsgi
