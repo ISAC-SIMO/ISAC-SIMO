@@ -11,6 +11,7 @@ django = "*"
 django-crispy-forms = "*"
 djangorestframework = "*"
 psycopg2 = "*"
+djangorestframework-simplejwt = "*"
 
 [requires]
 python_version = "3.8"
