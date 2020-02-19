@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from datetime import timedelta
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,9 +25,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'wl9)(zwv=ut+05148vv5jp_q88qoqz3qgafv$2)z8@+%u)i4-q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DATABASE_URL = ''
+PRODUCTION = False
+try:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    PRODUCTION = True
+except KeyError as e:
+    print('LOCAL')
 
-ALLOWED_HOSTS = []
+DEBUG = not PRODUCTION
+TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = ['isac-simo.herokuapp.com','0.0.0.0','localhost','127.0.0.1']
 
 INTERNAL_IPS = (
     '127.0.0.1',
@@ -85,16 +95,20 @@ WSGI_APPLICATION = 'isac_simo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'isac',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost'
+if PRODUCTION:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL)
     }
-}
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'isac',
+            'USER': 'postgres',
+            'PASSWORD': 'admin',
+            'HOST': 'localhost'
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

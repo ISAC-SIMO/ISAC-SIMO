@@ -13,6 +13,8 @@ djangorestframework = "*"
 psycopg2 = "*"
 djangorestframework-simplejwt = "*"
 pillow = "*"
+django-heroku = "*"
+dj-database-url = "*"
 
 [requires]
 python_version = "3.8"
