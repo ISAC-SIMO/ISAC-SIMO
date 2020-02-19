@@ -15,6 +15,7 @@ djangorestframework-simplejwt = "*"
 pillow = "*"
 django-heroku = "*"
 dj-database-url = "*"
+whitenoise = "*"
 
 [requires]
 python_version = "3.8"
