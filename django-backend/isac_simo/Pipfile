@@ -16,6 +16,7 @@ pillow = "*"
 django-heroku = "*"
 dj-database-url = "*"
 whitenoise = "*"
+watson-developer-cloud = ">=2.4.1"
 
 [requires]
 python_version = "3.8"

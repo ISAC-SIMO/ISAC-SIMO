@@ -388,12 +388,13 @@
 
   {% block script %}{% endblock script %}
   <script>
-    function showImagePop(event, img, alt){
+    function showImagePop(event, img, alt, title){
         event.preventDefault();
         Pace.restart();
         Swal.fire({
             imageUrl: img,
             imageAlt: alt?alt:'Image Failed to Load',
+            title: title?title:'',
             confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
         })
     }
