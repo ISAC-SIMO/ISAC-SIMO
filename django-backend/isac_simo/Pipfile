@@ -10,6 +10,7 @@ requests = "*"
 django = "*"
 django-crispy-forms = "*"
 djangorestframework = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.8"
