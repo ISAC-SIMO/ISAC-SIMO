@@ -13,25 +13,38 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 from datetime import timedelta
 import dj_database_url
+import environ
+env = environ.Env()
+env.read_env(env.str('ENV_PATH', '.env'))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'wl9)(zwv=ut+05148vv5jp_q88qoqz3qgafv$2)z8@+%u)i4-q'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DATABASE_URL = ''
+IBM_TOKEN = ''
 PRODUCTION = False
-try:
-    DATABASE_URL = os.environ['DATABASE_URL']
+
+if env('DATABASE_URL'):
+    DATABASE_URL = env('DATABASE_URL')
     PRODUCTION = True
-except KeyError as e:
+    print('PRODUCTION')
+else:
     print('LOCAL')
+
+if env('IBM_TOKEN'):
+    IBM_TOKEN = env('IBM_TOKEN')
+else:
+    print('NO IBM TOKEN')
+
+if env('ENV') == 'production':
+    PRODUCTION = True
 
 DEBUG = not PRODUCTION
 TEMPLATE_DEBUG = DEBUG
@@ -96,7 +109,7 @@ WSGI_APPLICATION = 'isac_simo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-if PRODUCTION:
+if PRODUCTION and env('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL)
     }
