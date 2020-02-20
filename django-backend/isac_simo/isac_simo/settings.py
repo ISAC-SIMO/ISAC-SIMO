@@ -29,6 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DATABASE_URL = ''
 IBM_TOKEN = ''
+CLASSIFIER_IDS = ''
 PRODUCTION = False
 
 if env('DATABASE_URL'):
@@ -42,6 +43,11 @@ if env('IBM_TOKEN'):
     IBM_TOKEN = env('IBM_TOKEN')
 else:
     print('NO IBM TOKEN')
+
+if env('CLASSIFIER_IDS'):
+    CLASSIFIER_IDS = env('CLASSIFIER_IDS')
+else:
+    print('NO CLASSIFIER_IDS')
 
 if env('ENV') == 'production':
     PRODUCTION = True

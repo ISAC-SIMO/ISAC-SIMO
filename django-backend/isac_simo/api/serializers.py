@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ImageFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageFile
-        fields = ('file','tested')
+        fields = ('file','tested','result','score')
 
 class ImageSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
@@ -74,7 +74,7 @@ class ImageSerializer(serializers.ModelSerializer):
                     test_image(image_obj,validated_data.get('title'),validated_data.get('description'))
 
                     u = u + 1
-                except Exception as e:
+                except Exception as err:
                     print('File Failed to Upload - NOT AN IMAGE')
                     e = e + 1
             
@@ -105,10 +105,14 @@ class ImageSerializer(serializers.ModelSerializer):
                 try:
                     img = PILImage.open(image_file)
                     img.verify()
-                    ImageFile.objects.create(image=instance, file=image_file)
+                    image_obj = ImageFile.objects.create(image=instance, file=image_file)
+                    ################
+                    ### RUN TEST ###
+                    ################
+                    test_image(image_obj,validated_data.get('title'),validated_data.get('description'))
                     u = u + 1
                 except:
-                    # print('File Failed to Upload - NOT AN IMAGE')
+                    print('File Failed to Upload - NOT AN IMAGE')
                     e = e + 1
             
             if(u >= 1): # At least one uploaded good to go

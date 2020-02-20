@@ -112,7 +112,7 @@
         <!-- Messages Dropdown Menu -->
         {% if user.is_authenticated %}
         <li class="nav-item nav-icon">
-          <a class="nav-link" onclick="$('.wrapper').animate({ opacity:'0'},{ queue: false, duration: 300 }).hide('slide', {percent:0}, 600);" href="{% url 'logout' %}">
+          <a title="Logout" data-toggle="tooltip" data-placement="left" class="nav-link" style="padding-left: 3px;padding-right: 3px;" onclick="$('.wrapper').animate({ opacity:'0'},{ queue: false, duration: 300 }).hide('slide', {percent:0}, 600);" href="{% url 'logout' %}">
             <i class="fas fa-power-off"></i>
           </a>
         </li>

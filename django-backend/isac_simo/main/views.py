@@ -17,15 +17,22 @@ from main.authorization import *
 
 from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm
 from .models import User
+from projects.models import Projects
 
 
 @login_required
 def home(request):
     if(is_admin(request.user)):
         images = Image.objects.all().prefetch_related('image_files')
+        image_files_count = ImageFile.objects.filter(tested=True).count()
+        user_count = User.objects.all().count()
+        project_count = Projects.objects.all().count()
     else:
         images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
-    return render(request, 'dashboard.html', {'images':images})
+        user_count = 0
+        image_files_count = 0
+        project_count = 0
+    return render(request, 'dashboard.html', {'images':images,'user_count':user_count,'image_files_count':image_files_count,'project_count':project_count})
 
 @user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):

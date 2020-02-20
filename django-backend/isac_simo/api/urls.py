@@ -8,7 +8,8 @@ urlpatterns = [
     path('image/add', views.addImage, name="images.add"),
     path('image/update/<int:id>', views.updateImage, name="images.update"),
     path('image/delete/<int:id>', views.deleteImage, name="images.delete"),
-    path('image/image_file/delete/<int:id>', views.deleteImageFile, name="images.image_file.delete")
+    path('image/image_file/delete/<int:id>', views.deleteImageFile, name="images.image_file.delete"),
+    path('image/image_file/retest/<int:id>', views.retestImageFile, name="images.image_file.retest")
 ]
 
 if settings.DEBUG:

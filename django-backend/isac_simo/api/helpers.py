@@ -10,9 +10,9 @@ from watson_developer_cloud import VisualRecognitionV3
 ####################
 ### CALL AI TEST ###
 ####################
-def test_image(image_file, title, description):
+def test_image(image_file, title=None, description=None):
     file_url = str(os.path.abspath(os.path.dirname(__name__))) + image_file.file.url
-    if os.path.exists(file_url) and settings.IBM_TOKEN:
+    if os.path.exists(file_url) and settings.IBM_TOKEN and settings.CLASSIFIER_IDS:
         # post_data = {'title': title, 'description': description}
         # post_header = {'X-Do-Not-Track':'true'}
         # post_files = {
@@ -31,8 +31,10 @@ def test_image(image_file, title, description):
         #     image_file.tested = True
         #     image_file.save()
         #     return True
+
         api_token = str(settings.IBM_TOKEN)
-        post_data = {'classifier_ids': 'food', 'threshold': '0.6'}
+        classifier_ids = str(settings.CLASSIFIER_IDS)
+        post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
         post_header = {'Accept':'application/json','Authorization':auth_base}
@@ -76,5 +78,5 @@ def test_image(image_file, title, description):
         #     image_file.save()
         #     return True
     else:
-        print('FAILED TO TEST')
+        print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False
