@@ -18,6 +18,7 @@ dj-database-url = "*"
 whitenoise = "*"
 watson-developer-cloud = ">=2.4.1"
 django-environ = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.8"
