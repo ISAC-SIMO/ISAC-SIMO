@@ -3,12 +3,13 @@ from http.client import HTTPResponse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
-from rest_framework import viewsets
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
+from rest_framework import generics, mixins, viewsets
 from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
 
 from api.helpers import test_image
 from api.serializers import ImageSerializer, UserSerializer
@@ -204,7 +205,7 @@ class UserView(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'list':
-            self.permission_classes = [IsAuthenticated]
+            self.permission_classes = [HasAdminPermission]
         elif self.action == 'retrieve':
             self.permission_classes = [IsAuthenticated]
         elif self.action == 'create':
@@ -216,3 +217,21 @@ class UserView(viewsets.ModelViewSet):
         elif self.action == 'destroy':
             self.permission_classes = [IsAuthenticated]
         return super(self.__class__, self).get_permissions()
+
+class ProfileView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = User.objects.all()
+    http_method_names = ['get']
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
+
+    def list(self, request, *args, **kwargs):
+        user = get_object_or_404(User, pk=self.request.user.id)
+        return Response({
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "user_type": user.user_type,
+            "image":request.scheme + '://' + request.META['HTTP_HOST'] + user.image.url
+        })

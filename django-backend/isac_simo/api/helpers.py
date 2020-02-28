@@ -60,7 +60,7 @@ def test_image(image_file, title=None, description=None):
 
         # visual_recognition = VisualRecognitionV3(
         #     '2018-03-19',
-        #     iam_apikey='cVF3o2AnluJd6Cv9U9xjevAqhqLhbA3snsVM8SvvecYI'
+        #     iam_apikey='KEY_GOES_HERE'
         # )
 
         # with open(file_url, 'rb') as images_file:

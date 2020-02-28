@@ -63,7 +63,7 @@ class User(AbstractBaseUser):
     user_type = models.CharField(max_length=50, choices=USER_TYPE, default='user')
     is_staff = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add = True)
-    image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png')
+    image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png', blank=True)
 
     USERNAME_FIELD='email'
     REQUIRED_FIELDS = []

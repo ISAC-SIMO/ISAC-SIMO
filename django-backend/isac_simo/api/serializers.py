@@ -20,8 +20,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create(email=validated_data['email'],
-                                full_name=validated_data['full_name'],
-                                image=validated_data['image'])
+                                full_name=validated_data['full_name'])
+        if(validated_data.get('image')):
+            user.image = validated_data.get('image')
         user.set_password(validated_data['password'])
         user.save()
         return user
@@ -98,7 +99,8 @@ class ImageSerializer(serializers.ModelSerializer):
         instance.lng = validated_data.get('lng', instance.lng)
         
         image_files = self.context.get('view').request.FILES
-        if len(image_files) > 8:
+
+        if len(image_files) < 8:
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count
             for image_file in image_files.values():

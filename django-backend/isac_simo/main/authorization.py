@@ -53,3 +53,7 @@ class HasGuestPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user is None or request.user.is_authenticated is False:
             return True
+
+class HasNoPermission(BasePermission):
+    def has_permission(self, request, view):
+        return False

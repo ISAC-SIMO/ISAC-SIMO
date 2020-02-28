@@ -22,16 +22,17 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
 from api import views as api
-from api.views import ImageView, UserView
+from api.views import ImageView, UserView, ProfileView
 from main import views
 
 router = routers.DefaultRouter()
 router.register('register', UserView)
 router.register('image', ImageView)
+router.register('profile', ProfileView)
 
 urlpatterns = [
     # API
-    path('api/user/', include('rest_framework.urls')),
+    path('api/user/', include('rest_framework.urls')), # REST_FRAMEWORK_URL_FOR_TEST
     path('api/auth/', TokenObtainPairView.as_view(), name='auth'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
     path('api/', include(router.urls)),
