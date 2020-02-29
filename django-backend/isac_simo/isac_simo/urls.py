@@ -37,7 +37,6 @@ urlpatterns = [
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
     path('api/', include(router.urls)),
     # WEB
-    path('admin/', admin.site.urls),
     path('', views.login_user),
     path('login/', views.login_user, name="login"),
     path('login/<int:id>', views.login_user, name="loginpost"),
@@ -52,3 +51,4 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += path('admin/', admin.site.urls),

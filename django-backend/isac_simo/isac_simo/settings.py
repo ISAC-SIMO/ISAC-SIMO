@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 import dj_database_url
 import environ
+from isac_simo.database_settings import database_config
 env = environ.Env()
 env.read_env(env.str('ENV_PATH', '.env'))
 
@@ -35,9 +36,7 @@ PRODUCTION = False
 if env('DATABASE_URL'):
     DATABASE_URL = env('DATABASE_URL')
     PRODUCTION = True
-    print('PRODUCTION')
-else:
-    print('LOCAL')
+    print('DATABASE_URL STRING PROVIDED (PRODUCTION ASSUMED)')
 
 if env('IBM_TOKEN'):
     IBM_TOKEN = env('IBM_TOKEN')
@@ -51,11 +50,14 @@ else:
 
 if env('ENV') == 'production':
     PRODUCTION = True
+    print('PRODUCTION')
+else:
+    print('LOCAL')
 
 DEBUG = not PRODUCTION
 TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['isac-simo.herokuapp.com','0.0.0.0','localhost','127.0.0.1']
+ALLOWED_HOSTS = ['isac-simo.herokuapp.com','0.0.0.0','localhost','127.0.0.1','niush.pythonanywhere.com']
 
 INTERNAL_IPS = (
     '127.0.0.1',
@@ -121,13 +123,7 @@ if PRODUCTION and env('DATABASE_URL'):
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'isac',
-            'USER': 'postgres',
-            'PASSWORD': 'admin',
-            'HOST': 'localhost'
-        }
+        'default': database_config
     }
 
 # Password validation
@@ -180,6 +176,15 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 
 # API SETTINGS
+DEFAULT_RENDERER_CLASSES = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES = DEFAULT_RENDERER_CLASSES + (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    )
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
@@ -188,7 +193,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    )
+    ),
+    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
 }
 
 SIMPLE_JWT = {
