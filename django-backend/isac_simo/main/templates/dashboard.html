@@ -104,12 +104,13 @@
         }).addTo(imgmap);
 
         var markers = L.markerClusterGroup();
+        var info = '';
 
         {% for image in images %}
             {% if image.lat != None and image.lng != None  %}
-                var info = "<b title='{{image.created_at}}'>{{image.title}}</b><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
+                info = "<a href=\"{% url 'images.update' image.id %}\"><b title='{{image.created_at}}'>{{image.title}}</b></a><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
                 {% for file in image.image_files.all %}
-                    info += "<a style='padding: 2px 5px;background: #4e4e4e;margin-right: 3px;color: white;font-weight: 700;' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\")'>{{forloop.counter}}</a>"
+                    info += "<a style='padding: 2px 5px;background: #4e4e4e;margin-right: 3px;color: white;font-weight: 700;' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
                 {% endfor %}
                 markers.addLayer(L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info));
             {% endif %}

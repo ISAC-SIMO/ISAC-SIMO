@@ -54,7 +54,7 @@
                                 <div class="row">
                                     {% for image_file in image_files %}
                                         <div class="img-flex" style="{% if image_file.tested %}outline:2px solid green;{% else %}outline:2px solid salmon;{% endif %}">
-                                            <img class="img-card" src="{{image_file.file.url}}" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}}{% endif %}')" alt="Failed to Load"/>
+                                            <img class="img-card" src="{{image_file.file.url}}" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}}{% else %}<i style=color:maroon>Not Tested</i>{% endif %}')" alt="Failed to Load"/>
                                             <a title="Delete" data-toggle="tooltip" data-placement="top" onclick="deleteData(event,'image_file_{{image_file.id}}','Uploaded Image')" class="text-danger img-delete"><i class="fa fa-trash-alt"></i></a>
                                             {% if not image_file.result %}
                                             <a title="Re-test" data-toggle="tooltip" data-placement="top" href="{% url 'images.image_file.retest' image_file.id %}" class="img-delete" style="right: 40px;"><i class="fa fa-sync"></i></a>
