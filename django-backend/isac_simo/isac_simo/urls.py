@@ -13,25 +13,30 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from main import views
-from api import views as api
+from django.contrib import admin
+from django.urls import include, path, re_path
 from rest_framework import routers
-from rest_framework_simplejwt.views import (TokenObtainPairView,TokenRefreshView,)
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
+
+from api import views as api
+from api.views import ImageView, UserView, ProfileView
+from main import views
 
 router = routers.DefaultRouter()
-# router.register('language', views.LanguageView)
+router.register('register', UserView)
+router.register('image', ImageView)
+router.register('profile', ProfileView)
 
 urlpatterns = [
     # API
+    path('api/user/', include('rest_framework.urls')), # REST_FRAMEWORK_URL_FOR_TEST
     path('api/auth/', TokenObtainPairView.as_view(), name='auth'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
     path('api/', include(router.urls)),
     # WEB
-    path('admin/', admin.site.urls),
     path('', views.login_user),
     path('login/', views.login_user, name="login"),
     path('login/<int:id>', views.login_user, name="loginpost"),
@@ -40,9 +45,10 @@ urlpatterns = [
     path('dashboard', views.home, name="dashboard"),
     path('users/', include('main.urls')),
     path('projects/', include('projects.urls')),
-    path('app/', include('api.urls'))
+    path('app/', include('api.urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += path('admin/', admin.site.urls),

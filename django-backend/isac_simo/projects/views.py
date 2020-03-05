@@ -1,14 +1,23 @@
-from django.shortcuts import render, redirect
-from .models import Projects
-from .forms import ProjectForm
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
+from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import user_passes_test
+
+from main.authorization import *
 from main.models import User
 
+from .forms import ProjectForm
+from .models import Projects
+
+
+# View All Projects
+@user_passes_test(is_admin, login_url=login_url)
 def viewProjects(request):
     projects = Projects.objects.all()
     return render(request, 'projects.html',{'projects':projects})
 
+# Add Project
+@user_passes_test(is_admin, login_url=login_url)
 def addProject(request, id = 0):
     if request.method == "GET":
         form = ProjectForm()
@@ -31,6 +40,8 @@ def addProject(request, id = 0):
 
     return redirect("viewprojects")
 
+# Edit Projects
+@user_passes_test(is_admin, login_url=login_url)
 def editProject(request, id=0):
     try:
         project = Projects.objects.get(id=id)
@@ -53,6 +64,8 @@ def editProject(request, id=0):
         messages.error(request, "Invalid Project attempted to Edit")
         return redirect("viewprojects")
 
+# Delete Project
+@user_passes_test(is_admin, login_url=login_url)
 def deleteProject(request, id):
     try:
         if request.method == "POST":
@@ -67,4 +80,3 @@ def deleteProject(request, id):
     except(Projects.DoesNotExist):
         messages.error(request, "Invalid Project attempted to Delete")
         return redirect("viewprojects")
-

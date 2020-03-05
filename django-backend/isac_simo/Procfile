@@ -1,0 +1,1 @@
+web: gunicorn isac_simo.wsgi

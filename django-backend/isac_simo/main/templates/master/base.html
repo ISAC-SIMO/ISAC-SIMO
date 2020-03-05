@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+  {% load static %}
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build Change - Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra - Web Application">
+  <meta name="keywords" content="ISAC,SIMO,intelligent,supervision,assistant,construction,build,change,dashboard">
+  <meta name="author" content="Build Change,Niush">
+  <meta name="theme-color" content="#343a40">
+  <meta name="msapplication-navbutton-color" content="#343a40">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#343a40">
   <title>
     {% block title %}{% endblock %}
   </title>
 
-  <!-- Tell the browser to be responsive to screen width -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-32x32.png' %}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-16x16.png' %}" sizes="16x16" />
   <!-- Font Awesome -->
-  {% load static %}
-
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+  <!-- Pace Progress Bar -->
+  <link rel="stylesheet" href="{% static 'plugins/pace-progress/themes/purple/pace-theme-minimal.css' %}">
+  <!-- Sweet Alert Bootstrap4 Theme -->
+  <link rel="stylesheet" href="{% static 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
+  <!-- Select2 Bootstrap4 Theme -->
+  <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Tempusdominus Bbootstrap 4 -->
@@ -23,7 +39,7 @@
   <!-- JQVMap -->
   <link rel="stylesheet" href="{% static 'plugins/jqvmap/jqvmap.min.css' %}">
   <!-- admin lte datatable css -->
-  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
   <!-- overlayScrollbars -->
@@ -48,6 +64,13 @@
     .fa-trash:hover{opacity:0.8;}
     #id_image{padding-bottom: 35px;}
     .tooltip-inner{max-width: 500px;}
+    .img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:5px;background:#eee;margin:5px;position:relative;}
+    .img-card{width:180px;cursor:pointer;}
+    .img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;}
+    .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
+    .nav-link{border-radius:0 !important;margin-bottom:0 !important;}
+    .nav-sidebar>.nav-item .nav-icon.fa, .nav-sidebar>.nav-item .nav-icon.fab, .nav-sidebar>.nav-item .nav-icon.far, .nav-sidebar>.nav-item .nav-icon.fas, .nav-sidebar>.nav-item .nav-icon.glyphicon, .nav-sidebar>.nav-item .nav-icon.ion{font-size:0.9rem;}
+    .swal2-icon{transform: scale(.5);margin: 0;padding: 0;opacity: 0.9;}.swal2-styled.swal2-confirm{border:none !important;}
   </style>
   {% block style %}{% endblock style %}
   <script>
@@ -89,7 +112,7 @@
         <!-- Messages Dropdown Menu -->
         {% if user.is_authenticated %}
         <li class="nav-item nav-icon">
-          <a class="nav-link" href="{% url 'logout' %}">
+          <a title="Logout" data-toggle="tooltip" data-placement="left" class="nav-link" style="padding-left: 3px;padding-right: 3px;" onclick="$('.wrapper').animate({ opacity:'0'},{ queue: false, duration: 300 }).hide('slide', {percent:0}, 600);" href="{% url 'logout' %}">
             <i class="fas fa-power-off"></i>
           </a>
         </li>
@@ -123,7 +146,7 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
-      <a href="index3.html" class="brand-link">
+      <a href="{% url 'dashboard' %}" class="brand-link">
         <img src="{% static 'dist/img/logo.png' %}" alt="ISAC SIMO"
           class="brand-image img-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">ISAC-SIMO</span>
@@ -157,8 +180,8 @@
               </a>
             </li>
 
+            {% comment %} IS ADMIN {% endcomment %}
             {% if user.is_admin %}
-
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'allusers' or request.resolver_match.url_name == 'update_user' or request.resolver_match.url_name == 'admin_adduser' %} menu-open {% endif %}">
               <a href="#"
@@ -184,10 +207,8 @@
                     <p>Create Users</p>
                   </a>
                 </li>
-
               </ul>
             </li>
-            {% endif %}
 
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
@@ -207,6 +228,7 @@
                     <p>View Images</p>
                   </a>
                 </li>
+                {% if debug %}
                 <li class="nav-item">
                   <a href="{% url 'images.add' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
@@ -214,7 +236,7 @@
                     <p>Add Image</p>
                   </a>
                 </li>
-
+                {% endif %}
               </ul>
             </li>
 
@@ -246,6 +268,8 @@
 
               </ul>
             </li>
+            {% endif %}
+            {% comment %} / IS ADMIN / {% endcomment %}
 
           </ul>
         </nav>
@@ -324,7 +348,18 @@
   <!-- Bootstrap 4 -->
   <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <!-- Sweet Alert -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+  <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+  <!-- Select 2 -->
+  <script src="{% static 'plugins/select2/js/select2.min.js' %}"></script>
+  <!-- Pace Progress Bar -->
+  <script src="{% static 'plugins/pace-progress/pace.min.js' %}"></script>
+  <!-- Leaflet Map -->
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin=""></script>
+  <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.Default.css" />
+	<script src="https://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
   <!-- ChartJS -->
   <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
   <!-- Sparkline -->
@@ -343,6 +378,7 @@
   <script src="{% static 'plugins/summernote/summernote-bs4.min.js' %}"></script>
   <!-- overlayScrollbars -->
   <script src="{% static 'plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
+  <!-- Data Table -->
   <script src="{% static 'plugins/datatables/jquery.dataTables.js' %}"></script>
   <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
   <!-- AdminLTE App -->
@@ -352,23 +388,24 @@
 
   {% block script %}{% endblock script %}
   <script>
-    function showImagePop(event, img, alt){
+    function showImagePop(event, img, alt, title){
         event.preventDefault();
+        Pace.restart();
         Swal.fire({
             imageUrl: img,
-            imageAlt: alt?alt:'Image Failed to Load'
+            imageAlt: alt?alt:'Image Failed to Load',
+            title: title?title:'',
+            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
         })
     }
 
     function deleteData(event, element, name){
         event.preventDefault();
-
         var title = 'Delete This '+(name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g,' ')+'?')
-
         Swal.fire({
             title: title,
             text: "You won't be able to revert this!",
-            icon: 'warning',
+            type: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, delete it!',
             confirmButtonColor: '#ad2424',
@@ -376,7 +413,8 @@
             cancelButtonText: 'No, cancel!',
             }).then((result) => {
             if (result.value) {
-                $('#'+element).submit();
+              Pace.restart();
+              $('#'+element).submit();
             }
         })
         $('.swal2-cancel').focus();

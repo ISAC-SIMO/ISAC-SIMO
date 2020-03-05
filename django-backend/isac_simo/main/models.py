@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+import uuid
+import os
+from django.conf import settings
+from django.utils.deconstruct import deconstructible
 
 USER_TYPE = [
     ('user', "User"),
@@ -7,6 +11,18 @@ USER_TYPE = [
     ('government', "Government"),
     ('admin', "Admin"),
 ]
+
+@deconstructible
+class PathAndRename(object):
+    def __init__(self, sub_path):
+        self.path = sub_path
+
+    def __call__(self, instance, filename):
+        ext = filename.split('.')[-1]
+        filename = '{}.{}'.format(uuid.uuid4().hex, ext)
+        return os.path.join(self.path, filename)
+
+path_and_rename = PathAndRename("user_images")
 
 class UserManager(BaseUserManager):
     def create_user(self, email,  password=None, user_type='user', is_active=True):
@@ -47,7 +63,7 @@ class User(AbstractBaseUser):
     user_type = models.CharField(max_length=50, choices=USER_TYPE, default='user')
     is_staff = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add = True)
-    image = models.ImageField(upload_to='user_images', blank=True)
+    image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png', blank=True)
 
     USERNAME_FIELD='email'
     REQUIRED_FIELDS = []
@@ -74,6 +90,11 @@ class User(AbstractBaseUser):
     @property
     def is_engineer(self):
         if self.user_type == 'engineer':
+            return True
+
+    @property
+    def is_government(self):
+        if self.user_type == 'government':
             return True
 
     @property

@@ -11,73 +11,119 @@
         <!-- Main content -->
         <section class="content">
         <div class="container-fluid">
+            <!-- Map -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div id="imgmap" class="card" style="width:100%;min-height:55vh;"></div>
+                </div>
+            </div>
+            {% if user.is_admin %}
             <!-- Small boxes (Stat box) -->
             <div class="row">
-            <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>150</h3>
+                <div class="col-lg-3 col-6">
+                    <!-- small box -->
+                    <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{images.count}}</h3>
 
-                    <p>New Orders</p>
+                        <p>Image(s)</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-image"></i>
+                    </div>
+                    <a href="{% url 'images' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="ion ion-bag"></i>
+                <!-- ./col -->
+                <div class="col-lg-3 col-6">
+                    <!-- small box -->
+                    <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{image_files_count}}<sup style="font-size: 15px">+</sup></h3>
+
+                        <p>Total Tested Images</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-stats-bars"></i>
+                    </div>
+                    <a href="{% url 'images' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
                 </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                <!-- ./col -->
+                <div class="col-lg-3 col-6">
+                    <!-- small box -->
+                    <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{user_count}}</h3>
+
+                        <p>User Registrations</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-person-add"></i>
+                    </div>
+                    <a href="{% url 'allusers' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
                 </div>
-            </div>
+                <!-- ./col -->
+                <div class="col-lg-3 col-6">
+                    <!-- small box -->
+                    <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>{{project_count}}</h3>
+
+                        <p>Projects</p>
+                    </div>
+                    <div class="icon">
+                        <i class="ion ion-pie-graph"></i>
+                    </div>
+                    <a href="{% url 'viewprojects' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
             <!-- ./col -->
-            <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>53<sup style="font-size: 20px">%</sup></h3>
-
-                    <p>Bounce Rate</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
             </div>
-            <!-- ./col -->
-            <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>44</h3>
+            {% endif %}
 
-                    <p>User Registrations</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-person-add"></i>
-                </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-            <!-- ./col -->
-            <div class="col-lg-3 col-6">
-                <!-- small box -->
-                <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>65</h3>
-
-                    <p>Unique Visitors</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-pie-graph"></i>
-                </div>
-                <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-            <!-- ./col -->
-            </div>
-
-            <center><br/><br/><small>In Development (Logged In User Type: {{ user.user_type|upper }})</small></center>
+            <center><small>In Development (Logged In User Type: {{ user.user_type|upper }})</small></center>
             <!-- /.row -->
         <!-- /.content -->
     </div>
 
 {% endblock content %}
+
+{% block script %}
+    <script>
+        var imgmap = L.map('imgmap',{
+            zoom: 4,
+            minZoom: 2,
+            worldCopyJump: true,
+            maxBounds: L.latLng(-80, 80)
+        }).setView([27.7172, 85.3240]);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(imgmap);
+
+        var markers = L.markerClusterGroup();
+        var info = '';
+
+        {% for image in images %}
+            {% if image.lat != None and image.lng != None  %}
+                info = "<a href=\"{% url 'images.update' image.id %}\"><b title='{{image.created_at}}'>{{image.title}}</b></a><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
+                {% for file in image.image_files.all %}
+                    info += "<a style='padding: 2px 5px;background: #4e4e4e;margin-right: 3px;color: white;font-weight: 700;' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
+                {% endfor %}
+                markers.addLayer(L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info));
+            {% endif %}
+        {% endfor %}
+
+        imgmap.addLayer(markers);
+
+        var popup = L.popup();
+        imgmap.on('click', function(e) {
+            popup
+            .setLatLng(e.latlng)
+            .setContent(e.latlng.toString())
+            .openOn(imgmap);
+        });
+    </script>
+{% endblock script %}

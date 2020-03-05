@@ -24,6 +24,8 @@
   {% endif %}
 {% endblock dashboard_title2 %}
 
+{% load static %}
+
 {% block content %}
         <div class="row">
             <div class="col-12">
@@ -41,6 +43,31 @@
                                 <button type="submit" class="btn btn-success">Add Image</button>
                               {% endif %}  
                         </form>
+
+                        {% if request.resolver_match.url_name == 'images.update' %}
+                            <small>Old Images:</small>
+                            {% comment %} {% for image_file in image_files %}
+                                <a style="padding:0 6px;background:#ddd;" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">{{forloop.counter}}</a>
+                            {% endfor %} {% endcomment %}
+                            
+                            <div class="col-sm-8">
+                                <div class="row">
+                                    {% for image_file in image_files %}
+                                        <div class="img-flex" style="{% if image_file.tested %}outline:2px solid green;{% else %}outline:2px solid salmon;{% endif %}">
+                                            <img class="img-card" src="{{image_file.file.url}}" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}}{% else %}<i style=color:maroon>Not Tested</i>{% endif %}')" alt="Failed to Load"/>
+                                            <a title="Delete" data-toggle="tooltip" data-placement="top" onclick="deleteData(event,'image_file_{{image_file.id}}','Uploaded Image')" class="text-danger img-delete"><i class="fa fa-trash-alt"></i></a>
+                                            {% if not image_file.result %}
+                                            <a title="Re-test" data-toggle="tooltip" data-placement="top" href="{% url 'images.image_file.retest' image_file.id %}" class="img-delete" style="right: 40px;"><i class="fa fa-sync"></i></a>
+                                            {% endif %}
+                                            <form action="{% url 'images.image_file.delete' image_file.id %}" id="image_file_{{image_file.id}}" method="POST">
+                                                {% csrf_token %}
+                                            </form>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p><small style="color:Red;">(If Images are Supplied on Update it will be appended)</small></p>
+                        {% endif %}
                     </div>
                 </div>
             </div>

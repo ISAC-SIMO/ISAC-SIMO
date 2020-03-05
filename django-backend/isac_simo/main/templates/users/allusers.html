@@ -26,23 +26,23 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for user in users %}
+                                {% for u in users %}
                                     <tr>
-                                        <td style="width:15px;">{{user.id}}</td>
-                                        <td>{{user.full_name|default:"-"}}</td>
-                                        <td>{{user.email}}</td>
-                                        <td>{{user.user_type|capfirst}}</td>
+                                        <td style="width:15px;">{{u.id}}</td>
+                                        <td>{{u.full_name|default:"-"}} {% if u.id == user.id %}<b>(You)</b>{% endif %}</td>
+                                        <td>{{u.email}}</td>
+                                        <td>{{u.user_type|capfirst}}</td>
                                         <td>
-                                            <a href="#!" onclick="showImagePop(event, '{% if user.image %}{{user.image.url}}{% else %}{% static 'dist/img/avatar5.png' %}{% endif %}','{{ user.full_name|default:"User" }} image failed to load.')">View</a>
+                                            <a href="#!" onclick="showImagePop(event, '{% if u.image %}{{u.image.url}}{% else %}{% static 'dist/img/avatar5.png' %}{% endif %}','{{ u.full_name|default:"User" }} image failed to load.')">View</a>
                                         </td>
                                         <td class="table-options">
-                                            <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'update_user' user.id %}" class="btn text-secondary px-0">
+                                            <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'update_user' u.id %}" class="btn text-secondary px-0">
                                                 <i class="fa fa-edit"></i>
                                             </a>
-                                            <a onclick="deleteData(event, 'form-{{ user.id }}', 'User')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'admin_deleteuser' user.id %}" class="btn text-secondary px-0">
+                                            <a onclick="deleteData(event, 'form-{{ u.id }}', 'User')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'admin_deleteuser' u.id %}" class="btn text-secondary px-0">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
-                                            <form action="{% url 'admin_deleteuser' user.id %}" id="form-{{ user.id }}" method="post" class="d-inline">
+                                            <form action="{% url 'admin_deleteuser' u.id %}" id="form-{{ u.id }}" method="post" class="d-inline">
                                                 {% csrf_token %}
                                             </form>
                                         </td>

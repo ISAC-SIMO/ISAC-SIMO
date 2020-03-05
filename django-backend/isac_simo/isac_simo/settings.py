@@ -12,22 +12,57 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from datetime import timedelta
+import dj_database_url
+import environ
+from isac_simo.database_settings import database_config
+env = environ.Env()
+env.read_env(env.str('ENV_PATH', '.env'))
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'wl9)(zwv=ut+05148vv5jp_q88qoqz3qgafv$2)z8@+%u)i4-q'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DATABASE_URL = ''
+IBM_TOKEN = ''
+CLASSIFIER_IDS = ''
+PRODUCTION = False
 
-ALLOWED_HOSTS = []
+if env('DATABASE_URL'):
+    DATABASE_URL = env('DATABASE_URL')
+    PRODUCTION = True
+    print('DATABASE_URL STRING PROVIDED (PRODUCTION ASSUMED)')
 
+if env('IBM_TOKEN'):
+    IBM_TOKEN = env('IBM_TOKEN')
+else:
+    print('NO IBM TOKEN')
+
+if env('CLASSIFIER_IDS'):
+    CLASSIFIER_IDS = env('CLASSIFIER_IDS')
+else:
+    print('NO CLASSIFIER_IDS')
+
+if env('ENV') == 'production':
+    PRODUCTION = True
+    print('PRODUCTION')
+else:
+    print('LOCAL')
+
+DEBUG = not PRODUCTION
+TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = ['isac-simo.herokuapp.com','0.0.0.0','localhost','127.0.0.1','niush.pythonanywhere.com']
+
+INTERNAL_IPS = (
+    '127.0.0.1',
+    'localhost'
+)
 
 # Application definition
 
@@ -55,6 +90,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'isac_simo.urls'
@@ -81,16 +117,14 @@ WSGI_APPLICATION = 'isac_simo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'isac',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost'
+if PRODUCTION and env('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL)
     }
-}
-
+else:
+    DATABASES = {
+        'default': database_config
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -129,7 +163,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = ""
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
@@ -142,6 +176,15 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 
 # API SETTINGS
+DEFAULT_RENDERER_CLASSES = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES = DEFAULT_RENDERER_CLASSES + (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    )
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
@@ -150,7 +193,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    )
+    ),
+    'DEFAULT_RENDERER_CLASSES': DEFAULT_RENDERER_CLASSES,
 }
 
 SIMPLE_JWT = {
