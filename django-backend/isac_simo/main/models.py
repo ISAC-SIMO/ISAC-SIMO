@@ -71,7 +71,12 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.full_name+' - '+self.email
+        str = self.full_name or ''
+        if str:
+            str = str + ' - '
+
+        str = str + (self.email or '(no email)')
+        return str
     
     def get_full_name(self):
         return self.full_name
