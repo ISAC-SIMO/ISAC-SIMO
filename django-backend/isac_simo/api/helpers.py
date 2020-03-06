@@ -12,6 +12,9 @@ from watson_developer_cloud import VisualRecognitionV3
 ####################
 def test_image(image_file, title=None, description=None):
     file_url = str(os.path.abspath(os.path.dirname(__name__))) + image_file.file.url
+    if not os.path.exists(file_url):
+        file_url = os.environ.get('PROJECT_FOLDER','') + image_file.file.url
+    
     if os.path.exists(file_url) and settings.IBM_TOKEN and settings.CLASSIFIER_IDS:
         # post_data = {'title': title, 'description': description}
         # post_header = {'X-Do-Not-Track':'true'}
