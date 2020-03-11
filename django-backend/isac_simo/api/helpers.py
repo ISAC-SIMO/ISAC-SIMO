@@ -10,12 +10,14 @@ from watson_developer_cloud import VisualRecognitionV3
 ####################
 ### CALL AI TEST ###
 ####################
-def test_image(image_file, title=None, description=None):
+# Default on 1st Image Test check Classifier Ids 1
+# If result is nogo/nogos then run test again with classifier ids 2
+def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS'):
     file_url = str(os.path.abspath(os.path.dirname(__name__))) + image_file.file.url
     if not os.path.exists(file_url):
         file_url = os.environ.get('PROJECT_FOLDER','') + image_file.file.url
     
-    if os.path.exists(file_url) and settings.IBM_TOKEN and settings.CLASSIFIER_IDS:
+    if os.path.exists(file_url) and settings.IBM_TOKEN and getattr(settings, model, False):
         # post_data = {'title': title, 'description': description}
         # post_header = {'X-Do-Not-Track':'true'}
         # post_files = {
@@ -35,8 +37,9 @@ def test_image(image_file, title=None, description=None):
         #     image_file.save()
         #     return True
 
+        # Authenticate the IBM Watson API
         api_token = str(settings.IBM_TOKEN)
-        classifier_ids = str(settings.CLASSIFIER_IDS)
+        classifier_ids = str(getattr(settings, model, ''))
         post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
@@ -44,11 +47,19 @@ def test_image(image_file, title=None, description=None):
         post_files = {
             'images_file': open(file_url, 'rb'),
         }
+        # Call the API
         response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v3/classify?version=2018-03-19', files=post_files, headers=post_header, data=post_data)
         status = response.status_code
-        content = response.json()
+        try:
+            content = response.json()
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD - (e.g. image too large)')
+            return False
+        
         print(status)
         print(content)
+        # If success save the data
         if(status == 200 or status == '200' or status == 201 or status == '201'):
             if(content['images'][0]['classifiers'][0]['classes']):
                 sorted_by_score = sorted(content['images'][0]['classifiers'][0]['classes'], key=lambda k: k['score'], reverse=True)
@@ -59,6 +70,12 @@ def test_image(image_file, title=None, description=None):
                     image_file.result = sorted_by_score[0]['class']
                 image_file.tested = True
                 image_file.save()
+
+                # If nogo/nogos then run with next model pipe (2)
+                if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
+                    if model != 'CLASSIFIER_IDS_2':
+                        return test_image(image_file, title, description, 'CLASSIFIER_IDS_2')
+
                 return True
 
         # visual_recognition = VisualRecognitionV3(
