@@ -31,6 +31,7 @@ SECRET_KEY = env('SECRET_KEY')
 DATABASE_URL = ''
 IBM_API_KEY = ''
 CLASSIFIER_IDS = ''
+CLASSIFIER_IDS_2 = ''
 PRODUCTION = False
 
 if env('DATABASE_URL'):
@@ -47,6 +48,11 @@ if env('CLASSIFIER_IDS'):
     CLASSIFIER_IDS = env('CLASSIFIER_IDS')
 else:
     print('NO CLASSIFIER_IDS')
+
+if env('CLASSIFIER_IDS_2'):
+    CLASSIFIER_IDS_2 = env('CLASSIFIER_IDS_2')
+else:
+    print('NO CLASSIFIER_IDS_2')
 
 if env('ENV') == 'production':
     PRODUCTION = True

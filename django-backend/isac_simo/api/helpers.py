@@ -17,6 +17,7 @@ def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS')
     if not os.path.exists(file_url):
         file_url = os.environ.get('PROJECT_FOLDER','') + image_file.file.url
     
+    print(getattr(settings, model, '-- No CLASSIFIER ID --'))
     if os.path.exists(file_url) and settings.IBM_API_KEY and getattr(settings, model, False):
         # post_data = {'title': title, 'description': description}
         # post_header = {'X-Do-Not-Track':'true'}
