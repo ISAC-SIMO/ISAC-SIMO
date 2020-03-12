@@ -17,7 +17,7 @@ def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS')
     if not os.path.exists(file_url):
         file_url = os.environ.get('PROJECT_FOLDER','') + image_file.file.url
     
-    if os.path.exists(file_url) and settings.IBM_TOKEN and getattr(settings, model, False):
+    if os.path.exists(file_url) and settings.IBM_API_KEY and getattr(settings, model, False):
         # post_data = {'title': title, 'description': description}
         # post_header = {'X-Do-Not-Track':'true'}
         # post_files = {
@@ -38,7 +38,7 @@ def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS')
         #     return True
 
         # Authenticate the IBM Watson API
-        api_token = str(settings.IBM_TOKEN)
+        api_token = str(settings.IBM_API_KEY)
         classifier_ids = str(getattr(settings, model, ''))
         post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
@@ -74,6 +74,7 @@ def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS')
                 # If nogo/nogos then run with next model pipe (2)
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
                     if model != 'CLASSIFIER_IDS_2':
+                        print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #2')
                         return test_image(image_file, title, description, 'CLASSIFIER_IDS_2')
 
                 return True
