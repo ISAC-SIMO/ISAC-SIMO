@@ -15,7 +15,7 @@ from rest_framework.generics import get_object_or_404
 from api.models import Image, ImageFile
 from main.authorization import *
 
-from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm
+from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm, ProfileForm
 from .models import User
 from projects.models import Projects
 
@@ -33,6 +33,43 @@ def home(request):
         image_files_count = 0
         project_count = 0
     return render(request, 'dashboard.html', {'images':images,'user_count':user_count,'image_files_count':image_files_count,'project_count':project_count})
+
+@login_required
+def profile(request):
+    if request.method == "GET":
+        edituser = User.objects.get(id=request.user.id)
+        profileform = ProfileForm(instance=edituser)
+        return render(request, 'auth/profile.html', {'user': request.user, 'form': profileform})
+    elif request.method == "POST":
+        updateUser = User.objects.get(id=request.user.id)
+        updateUser.email = request.POST.get('email')
+        updateUser.full_name = request.POST.get('full_name')
+
+        password1 = request.POST.get('password1') 
+        password2 = request.POST.get('password2')
+
+        if request.FILES.get('image'):
+            if(updateUser.image != 'user_images/default.png'):
+                updateUser.image.delete()
+            myFile = request.FILES.get('image')
+            updateUser.image = myFile
+            # fs = FileSystemStorage(location="mainApp/media/user_images")
+            # filename = fs.save(myFile.name, myFile)
+            # updateUser.image = 'user_images/'  + myFile.name
+        if password1 and password2:
+            if password1 != password2:
+                messages.error(request, "Password Mismatch")
+                return redirect(request.META['HTTP_REFERER'])
+            else:
+                updateUser.set_password(password1)
+        else:
+            if password1 or password2:
+                messages.error(request, "Fill up password in both the fields")
+                return redirect(request.META['HTTP_REFERER'])
+
+        updateUser.save()
+        messages.success(request,"User Info Updated Successfully!")
+        return redirect("dashboard")
 
 @user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):
@@ -121,11 +158,13 @@ def admin_userAddForm(request, id=0):
             password2 = request.POST.get('password2')
 
             if request.FILES.get('image'):
-                updateUser.image.delete()
+                if(updateUser.image != 'user_images/default.png'):
+                    updateUser.image.delete()
                 myFile = request.FILES.get('image')
-                fs = FileSystemStorage(location="mainApp/media/user_images")
-                filename = fs.save(myFile.name, myFile)
-                updateUser.image = 'user_images/'  + myFile.name
+                updateUser.image = myFile
+                # fs = FileSystemStorage(location="mainApp/media/user_images")
+                # filename = fs.save(myFile.name, myFile)
+                # updateUser.image = 'user_images/'  + myFile.name
             if password1 and password2:
                 if password1 != password2:
                     messages.info(request, "Password Mismatch")
@@ -147,7 +186,8 @@ def admin_userAddForm(request, id=0):
 def deleteUserByAdmin(request, id):
     if request.method == "POST":
         user = User.objects.get(id=id)
-        user.image.delete()
+        if(user.image != 'user_images/default.png'):
+            user.image.delete()
         user.delete()
         messages.success(request, 'User Record Deleted Successfully!')
         return redirect('allusers')

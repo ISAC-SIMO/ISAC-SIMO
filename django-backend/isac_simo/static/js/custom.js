@@ -50,27 +50,30 @@ function deleteDataWriteConfirm(event, element, name){
         cancelButtonText: 'No, cancel!',
         inputValidator: (value) => {
           if (!value || value != toType) {
-            return "Write '"+toType+"'"
+            return "Write '"+toType+"' in all caps."
           }
         },
     }).then((result) => {
         if (result.value) {
-        if (result.value == toType) {
-            Pace.restart();
-            $('#'+element).attr('method','POST');
-            $('#'+element).submit();
-        }
+            if (result.value == toType) {
+                Pace.restart();
+                $('#'+element).attr('method','POST');
+                $('#'+element).submit();
+            }
         }
     })
 
     // On drag copy etc disable for CONFIRM text (toType var)
+    // (if allowdrop is set - in debug do nothing)
     $('.swal2-input').css('text-align','center');
-    if(typeof allowdrop === 'undefined' || allowdrop != 'true'){
+    if(typeof allowdrop === 'undefined' || allowdrop != true){
         $('.swal2-input').bind('copy paste drop', function (e) {
-        e.preventDefault();
-        $('.swal2-input').val('');
-        Swal.showValidationMessage('Please Type (Copy/Paste/Drag no allowed)');
+            e.preventDefault();
+            $('.swal2-input').val('');
+            Swal.showValidationMessage('Please Type (Copy/Paste/Drag no allowed)');
         });
+    }else{
+        $('.swal2-input').val(toType);
     }
 }
 

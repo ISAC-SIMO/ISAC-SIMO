@@ -7,5 +7,5 @@ urlpatterns = [
     path('add', views.admin_userAddForm, name="admin_adduser"),
     path('update/<int:id>', views.admin_userAddForm, name="update_user"),
     path('delete/<int:id>', views.deleteUserByAdmin, name="admin_deleteuser"),
-
+    path('profile', views.profile, name="profile"),
 ]
