@@ -387,74 +387,8 @@
   {% comment %} <script src="{% static 'dist/js/demo.js' %}"></script> {% endcomment %}
 
   {% block script %}{% endblock script %}
-  <script>
-    function showImagePop(event, img, alt, title){
-        event.preventDefault();
-        Pace.restart();
-        Swal.fire({
-            imageUrl: img,
-            imageAlt: alt?alt:'Image Failed to Load',
-            title: title?title:'',
-            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
-        })
-    }
-
-    function deleteData(event, element, name){
-        event.preventDefault();
-        var title = 'Delete This '+(name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g,' ')+'?')
-        Swal.fire({
-            title: title,
-            text: "You won't be able to revert this!",
-            type: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            confirmButtonColor: '#ad2424',
-            reverseButtons: true,
-            cancelButtonText: 'No, cancel!',
-            }).then((result) => {
-            if (result.value) {
-              Pace.restart();
-              $('#'+element).submit();
-            }
-        })
-        $('.swal2-cancel').focus();
-    }
-
-    function deleteDataWriteConfirm(event, element, name){
-        event.preventDefault();
-        var title = 'Delete This '+(name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g,' ')+'?')
-        Swal.fire({
-            title: title,
-            html: "You won't be able to revert this!<br/>Write <b>'CONFIRM'</b> below to delete it.",
-            type: 'warning',
-            input: 'text',
-            inputPlaceholder: '. . .',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            confirmButtonColor: '#ad2424',
-            reverseButtons: true,
-            cancelButtonText: 'No, cancel!',
-            inputValidator: (value) => {
-              if (!value || value != 'CONFIRM') {
-                return "Write 'CONFIRM'"
-              }
-            },
-            }).then((result) => {
-              if (result.value) {
-                if (result.value == 'CONFIRM') {
-                  Pace.restart();
-                  $('#'+element).submit();
-                }
-              }
-        })
-        $('.swal2-input').css('text-align','center');
-    }
-
-    $(function () {
-        $(".table-options a").tooltip();
-        $("[data-toggle='tooltip']").tooltip();
-    });
-  </script>
+  {% if debug %}<script>var allowdrop = "true";</script>{% endif %}
+  <script src="{% static '/js/custom.js' %}"></script>
 </body>
 
 </html>

@@ -50,7 +50,7 @@
                                         <a onclick="deleteDataWriteConfirm(event, 'form-{{ image.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'images.delete' image.id %}" class="btn text-secondary px-0">
                                             <i class="fa fa-trash text-danger"></i>
                                         </a>
-                                        <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" method="post" class="d-inline">
+                                        <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" class="d-inline">
                                             {% csrf_token %}
                                         </form>
                                     </td>
