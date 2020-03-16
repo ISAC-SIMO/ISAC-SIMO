@@ -78,6 +78,8 @@ def test_image(image_file, title=None, description=None, model='CLASSIFIER_IDS')
                         print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #2')
                         return test_image(image_file, title, description, 'CLASSIFIER_IDS_2')
 
+                # Other pipe tests append here (before return True)
+
                 return True
 
         # visual_recognition = VisualRecognitionV3(
