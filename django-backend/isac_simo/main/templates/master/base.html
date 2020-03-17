@@ -158,7 +158,40 @@
               </a>
             </li>
 
-            {% comment %} IS ADMIN {% endcomment %}
+            {% comment %} FOR NOW IMAGE SHOW FOR ALL - IF ADMIN SHOW ALL {% endcomment %}
+            {% if user.is_active %}
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} active {% endif %}">
+                <i class="nav-icon fas fa-image"></i>
+                <p>
+                  Image
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'images' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>View Images</p>
+                  </a>
+                </li>
+                {% if debug and user.is_admin %}
+                <li class="nav-item">
+                  <a href="{% url 'images.add' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-success"></i>
+                    <p>Add Image</p>
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% endif %}
+
+            {% comment %} For Admin Only {% endcomment %}
             {% if user.is_admin %}
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'allusers' or request.resolver_match.url_name == 'update_user' or request.resolver_match.url_name == 'admin_adduser' %} menu-open {% endif %}">
@@ -187,37 +220,6 @@
                 </li>
               </ul>
             </li>
-
-            <li
-              class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
-              <a href="#"
-                class="nav-link {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} active {% endif %}">
-                <i class="nav-icon fas fa-image"></i>
-                <p>
-                  Image
-                  <i class="fas fa-angle-left right"></i>
-                </p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="{% url 'images' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'images' %} active {% endif %}">
-                    <i class="nav-icon far fa-circle text-info"></i>
-                    <p>View Images</p>
-                  </a>
-                </li>
-                {% if debug %}
-                <li class="nav-item">
-                  <a href="{% url 'images.add' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
-                    <i class="nav-icon far fa-circle text-success"></i>
-                    <p>Add Image</p>
-                  </a>
-                </li>
-                {% endif %}
-              </ul>
-            </li>
-
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'updateproject' or request.resolver_match.url_name == 'addproject' %} menu-open {% endif %}">
               <a href="#"

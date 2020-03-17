@@ -22,9 +22,14 @@ from .models import Image, ImageFile
 
 
 # View All Images
-@user_passes_test(is_admin, login_url=login_url)
+@login_required(login_url=login_url)
 def images(request):
-    images = Image.objects.all().prefetch_related('image_files')
+    if(is_admin(request.user)):
+        images = Image.objects.all().prefetch_related('image_files')
+    elif(is_government(request.user)):
+        images = Image.objects.all().prefetch_related('image_files')
+    else:
+        images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
     return render(request, 'image.html',{'images':images})
 
 # Add Image via Dashboard

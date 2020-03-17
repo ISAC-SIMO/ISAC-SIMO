@@ -51,13 +51,13 @@
                             {% endfor %} {% endcomment %}
                             
                             <div class="col-sm-8">
-                                <div class="row">
+                                <div class="row" id="img-content-row">
                                     {% for image_file in image_files %}
                                         <div class="img-flex" style="{% if image_file.tested %}outline:2px solid green;{% else %}outline:2px solid salmon;{% endif %}">
                                             <img class="img-card" src="{{image_file.file.url}}" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}}{% else %}<i style=color:maroon>Not Tested</i>{% endif %}')" alt="Failed to Load"/>
-                                            <a title="Delete" data-toggle="tooltip" data-placement="top" onclick="deleteData(event,'image_file_{{image_file.id}}','Uploaded Image')" class="text-danger img-delete"><i class="fa fa-trash-alt"></i></a>
+                                            <a title="Delete" data-toggle="tooltip" data-placement="top" onclick="deleteData(event,'image_file_{{image_file.id}}','Uploaded Image')" class="img-delete" style="color:red !important;"><i class="fa fa-trash-alt"></i></a>
                                             {% if not image_file.result %}
-                                            <a title="Re-test" data-toggle="tooltip" data-placement="top" href="{% url 'images.image_file.retest' image_file.id %}" class="img-delete" style="right: 40px;"><i class="fa fa-sync"></i></a>
+                                            <a title="Re-test" onclick="disableImages(event)" data-toggle="tooltip" data-placement="top" href="{% url 'images.image_file.retest' image_file.id %}" class="img-delete" style="right: 40px;color:lightblue;"><i class="fa fa-sync"></i></a>
                                             {% endif %}
                                             <form action="{% url 'images.image_file.delete' image_file.id %}" id="image_file_{{image_file.id}}" method="POST">
                                                 {% csrf_token %}
@@ -72,4 +72,6 @@
                 </div>
             </div>
         </div>
+
+        <script>function disableImages(t){var e=document.getElementById("img-content-row");e.style.pointerEvents="none",e.style.opacity="0.8",t.target.className+=" fa-spin";var a=t.target.parentNode;a.style.visibility="visible",a.style.opacity="1",a.style.transform="translate(0,0)"}</script>
 {% endblock content %}

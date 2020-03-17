@@ -29,8 +29,10 @@ def home(request):
         project_count = Projects.objects.all().count()
     else:
         images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
-        user_count = 0
         image_files_count = 0
+        for image in images:
+            image_files_count = image_files_count + image.image_files.all().count()
+        user_count = 0
         project_count = 0
     return render(request, 'dashboard.html', {'images':images,'user_count':user_count,'image_files_count':image_files_count,'project_count':project_count})
 
