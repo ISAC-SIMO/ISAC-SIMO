@@ -17,7 +17,7 @@
                         <table id="usersTable" class="table table-bordered table-hover table-striped">
                             <thead>
                                 <tr>
-                                    <th>Id</th>
+                                    <th>#</th>
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Type</th>
@@ -28,7 +28,7 @@
                             <tbody>
                                 {% for u in users %}
                                     <tr>
-                                        <td style="width:15px;">{{u.id}}</td>
+                                        <td style="width:15px;">{{forloop.counter}}</td>
                                         <td>{{u.full_name|default:"-"}} {% if u.id == user.id %}<b>(You)</b>{% endif %}</td>
                                         <td>{{u.email}}</td>
                                         <td>{{u.user_type|capfirst}}</td>
@@ -66,6 +66,7 @@
                 "ordering": true,
                 "info": true,
                 "autoWidth": true,
+                "order": [],
             });
         });
     </script>

@@ -13,7 +13,7 @@ from .models import Projects
 # View All Projects
 @user_passes_test(is_admin, login_url=login_url)
 def viewProjects(request):
-    projects = Projects.objects.all()
+    projects = Projects.objects.all().order_by('project_name')
     return render(request, 'projects.html',{'projects':projects})
 
 # Add Project

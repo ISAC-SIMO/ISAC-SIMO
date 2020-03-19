@@ -68,7 +68,7 @@ class AdminEditForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type')
+        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type','active')
         labels = {
             'email': 'Email',
             'full_name': 'Full Name',

@@ -19,22 +19,25 @@ from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm, Pr
 from .models import User
 from projects.models import Projects
 
-
 @login_required
 def home(request):
     if(is_admin(request.user)):
-        images = Image.objects.all().prefetch_related('image_files')
+        images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
         image_files_count = ImageFile.objects.filter(tested=True).count()
         user_count = User.objects.all().count()
         project_count = Projects.objects.all().count()
     else:
-        images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
+        images = Image.objects.filter(user_id=request.user.id).order_by('-created_at').prefetch_related('image_files')
         image_files_count = 0
         for image in images:
             image_files_count = image_files_count + image.image_files.all().count()
         user_count = 0
         project_count = 0
-    return render(request, 'dashboard.html', {'images':images,'user_count':user_count,'image_files_count':image_files_count,'project_count':project_count})
+
+    focus_at = ''
+    if request.GET.get('focus_at', False):
+        focus_at = request.GET.get('focus_at')
+    return render(request, 'dashboard.html', {'focus_at':focus_at,'images':images,'user_count':user_count,'image_files_count':image_files_count,'project_count':project_count})
 
 @login_required
 def profile(request):
@@ -128,7 +131,7 @@ def logout_user(request):
 
 @user_passes_test(is_admin, login_url=login_url)
 def list_all_users(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('-active')
     return render(request, 'users/allusers.html',{'users':users})
 
 # Add Users via Admin Panel Dashboard
@@ -178,6 +181,10 @@ def admin_userAddForm(request, id=0):
                     messages.info(request, "Fill up password in bsoth the fields")
                     return redirect(request.META['HTTP_REFERER'])
 
+            if request.POST.get('active', False):
+                updateUser.active = True
+            else:
+                updateUser.active = False
             updateUser.save()
             messages.info(request,"User Record Updated Successfully!")
 

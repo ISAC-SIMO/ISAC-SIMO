@@ -25,11 +25,11 @@ from .models import Image, ImageFile
 @login_required(login_url=login_url)
 def images(request):
     if(is_admin(request.user)):
-        images = Image.objects.all().prefetch_related('image_files')
+        images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
     elif(is_government(request.user)):
-        images = Image.objects.all().prefetch_related('image_files')
+        images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
     else:
-        images = Image.objects.filter(user_id=request.user.id).prefetch_related('image_files')
+        images = Image.objects.filter(user_id=request.user.id).order_by('-created_at').prefetch_related('image_files')
     return render(request, 'image.html',{'images':images})
 
 # Add Image via Dashboard

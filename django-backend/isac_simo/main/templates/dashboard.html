@@ -125,6 +125,7 @@
 {% endblock content %}
 
 {% block script %}
+    <!-- Bunch of Image info appending to map -->
     <script>
         var imgmap = L.map('imgmap',{
             zoom: 4,
@@ -140,13 +141,21 @@
         var markers = L.markerClusterGroup();
         var info = '';
 
-        {% for image in images %}
+        {% for image in images|slice:":500" %}
             {% if image.lat != None and image.lng != None  %}
                 info = "<a href=\"{% if user.is_admin %}{% url 'images.update' image.id %}{% else %}#!{% endif %}\"><b title='{{image.created_at}}'>{{image.title}}</b></a><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
                 {% for file in image.image_files.all %}
-                    info += "<a style='padding: 2px 5px;background: #4e4e4e;margin-right: 3px;color: white;font-weight: 700;' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
+                    info += "<a class='map-image-num' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
                 {% endfor %}
-                markers.addLayer(L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info));
+                mark = L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info);
+                {% if focus_at and image.id|stringformat:"i" == focus_at %}
+                    mark.openPopup();
+                    imgmap.flyTo([{{image.lat}},{{image.lng}}], 8, {
+                        "animate": true,
+                        "duration": 2.5
+                    });
+                {% endif %}
+                markers.addLayer(mark);
             {% endif %}
         {% endfor %}
 

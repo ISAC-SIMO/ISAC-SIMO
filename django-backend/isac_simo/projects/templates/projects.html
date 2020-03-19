@@ -30,7 +30,7 @@
                             <tbody>
                                 {% for project in projects %}
                                     <tr>
-                                        <td style="width:15px;">{{project.id}}</td>
+                                        <td style="width:15px;">#{{project.id}}</td>
                                         <td>{{project.project_name|title}}</td>
                                         <td data-search="{{project.project_desc}}" {% if project.project_desc != project.project_desc|truncatewords:30 %} title="{{project.project_desc}}" data-toggle="tooltip" data-placement="top" {% endif %}>{{project.project_desc|truncatewords:30}}</td>
                                         <td>
@@ -68,6 +68,7 @@
             "ordering": true,
             "info": true,
             "autoWidth": true,
+            "order": [],
           });
         });
     </script>
