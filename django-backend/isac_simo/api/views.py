@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from api.helpers import test_image
-from api.serializers import ImageSerializer, UserSerializer
+from api.serializers import ImageSerializer, UserSerializer, VideoFrameSerializer
 from main import authorization
 from main.authorization import *
 from main.models import User
@@ -189,6 +189,23 @@ class ImageView(viewsets.ModelViewSet):
     #     elif self.action == 'retrieve':
     #         self.permission_classes = [HasAdminPermission]
     #     return super(self.__class__, self).get_permissions()
+
+    def destroy(self, request, *args, **kwargs):
+        image = self.get_object()
+        for i in image.image_files.all():
+            i.file.delete()
+            i.delete()
+        return super().destroy(request, *args, **kwargs)
+
+class VideoFrameView(viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = VideoFrameSerializer
+    http_method_names = ['post', 'head', 'options']
+
+    def get_queryset(self):
+        if(self.request.user.is_authenticated and self.request.user.is_admin):
+            return Image.objects.all()
+        return Image.objects.filter(user_id=self.request.user.id)
 
     def destroy(self, request, *args, **kwargs):
         image = self.get_object()

@@ -59,26 +59,29 @@ def detect_image(image_file):
         print(content)
         # If success save the data
         if(status == 200 or status == '200' or status == 201 or status == '201'):
-            if(content['images'][0]['objects']['collections'][0]['objects']):
-                sorted_by_score = sorted(content['images'][0]['objects']['collections'][0]['objects'], key=lambda k: k['score'], reverse=True)
-                print(sorted_by_score)
-                if(sorted_by_score and sorted_by_score[0]): # Set Score
-                    image_file.object_type = sorted_by_score[0]['object']
-                    image_file.save()
-                    print(sorted_by_score[0]['object'])
-                    resized_image_open.close()
-                    
-                    # Return Object detected type
-                    return {
-                        'object_type': sorted_by_score[0]['object'].lower(),
-                        'image_file': image_file,
-                        'temp_image': saveto,
-                    }
+            if "collections" in content['images'][0]['objects']:
+                if(content['images'][0]['objects']['collections'][0]['objects']):
+                    sorted_by_score = sorted(content['images'][0]['objects']['collections'][0]['objects'], key=lambda k: k['score'], reverse=True)
+                    print(sorted_by_score)
+                    if(sorted_by_score and sorted_by_score[0]): # Set Score
+                        image_file.object_type = sorted_by_score[0]['object']
+                        image_file.save()
+                        print(sorted_by_score[0]['object'])
+                        resized_image_open.close()
+                        
+                        # Return Object detected type
+                        return {
+                            'object_type': sorted_by_score[0]['object'].lower(),
+                            'image_file': image_file,
+                            'temp_image': saveto,
+                        }
         
         resized_image_open.close()
+        os.remove(saveto)
         print('Object Detect False, either bad response, no index, bad format array, sorted score empty etc.')
         return False
     else:
+        os.remove(saveto)
         print('FAILED TO Detect Object - Check Token, Object Detect Model id and file existence.')
         return False
 
@@ -90,8 +93,11 @@ def detect_image(image_file):
 def test_image(image_file, title=None, description=None, save_to_path=None, classifier_index=0, detected_as=None):
     if not detected_as:
         detected_as = detect_image(image_file)
-        if not detected_as:
-            return False
+    
+    if not detected_as:
+        if save_to_path:
+            os.remove(save_to_path)
+        return False
     
     object_type = detected_as.get('object_type')
     image_file = detected_as.get('image_file')

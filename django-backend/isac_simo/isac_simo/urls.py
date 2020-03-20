@@ -22,13 +22,14 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
 from api import views as api
-from api.views import ImageView, UserView, ProfileView
+from api.views import ImageView, ProfileView, UserView, VideoFrameView
 from main import views
 
 router = routers.DefaultRouter()
 router.register('register', UserView)
 router.register('image', ImageView)
 router.register('profile', ProfileView)
+router.register('video', VideoFrameView)
 
 urlpatterns = [
     # API

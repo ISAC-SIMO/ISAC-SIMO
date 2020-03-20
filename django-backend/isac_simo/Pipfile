@@ -19,6 +19,8 @@ whitenoise = "*"
 watson-developer-cloud = ">=2.4.1"
 django-environ = "*"
 gunicorn = "*"
+filetype = "*"
+opencv-python = "*"
 
 [requires]
 python_version = "3.8"

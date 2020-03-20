@@ -50,7 +50,7 @@
                                 <a style="padding:0 6px;background:#ddd;" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.')">{{forloop.counter}}</a>
                             {% endfor %} {% endcomment %}
                             
-                            <div class="col-sm-8">
+                            <div class="col-sm-12">
                                 <div class="row" id="img-content-row">
                                     {% for image_file in image_files %}
                                         <div class="img-flex" style="{% if image_file.tested %}outline:2px solid green;{% else %}outline:2px solid salmon;{% endif %}">
