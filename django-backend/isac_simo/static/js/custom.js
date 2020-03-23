@@ -1,13 +1,65 @@
+_globalevent = null
+_popDirection = 'fadeInLeft'
+
+function leftRightHandle(e){
+    if (Swal.isVisible() && _globalevent) {
+        switch (e.keyCode) {
+            case 37:
+                if(_globalevent.target.previousElementSibling){
+                    _popDirection = 'fadeInRight';
+                    _globalevent.target.previousElementSibling.click();
+                }else{
+                    $('.swal2-container.swal2-shown').css('background-color','rgba(0, 0, 0, 0.84)');
+                }
+                break;
+            case 39:
+                if(_globalevent.target.nextElementSibling){
+                    _popDirection = 'fadeInLeft';
+                    _globalevent.target.nextElementSibling.click();
+                }else{
+                    $('.swal2-container.swal2-shown').css('background-color','rgba(0, 0, 0, 0.84)');
+                }
+                break;
+        }
+    }
+}
+
 // IMAGE POP show
-function showImagePop(event, img, alt, title){
+function showImagePop(event, img, alt, title, slide){
     event.preventDefault();
     Pace.restart();
-    Swal.fire({
-        imageUrl: img,
-        imageAlt: alt?alt:'Image Failed to Load',
-        title: title?title:'',
-        confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
-    })
+
+    if(event.target.tagName.toLowerCase() == 'a' || slide){
+        Swal.fire({
+            imageUrl: img,
+            imageAlt: alt?alt:'Image Failed to Load',
+            title: title?title:'',
+            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>',
+            animation: false,
+            customClass: "animated faster "+_popDirection,
+            onOpen: function(toast){
+                if(event.target.tagName.toLowerCase() == 'a'){
+                    _globalevent = event
+                    toast.addEventListener('keydown', leftRightHandle);
+                }
+            },
+            onClose: function(toast){
+                _globalevent = null
+                toast.removeEventListener('keydown', leftRightHandle);
+            }
+        })
+    }else{
+        Swal.fire({
+            imageUrl: img,
+            imageAlt: alt?alt:'Image Failed to Load',
+            title: title?title:'',
+            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>',
+            onClose: function(toast){
+                _globalevent = null
+                toast.removeEventListener('keydown', leftRightHandle);
+            }
+        })
+    }
 }
 
 // Simple Delete Confirm Alert

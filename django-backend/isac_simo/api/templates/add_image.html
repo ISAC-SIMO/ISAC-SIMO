@@ -67,6 +67,11 @@
                                 </div>
                             </div>
                             <p><small style="color:Red;">(If Images are Supplied on Update it will be appended)</small></p>
+                            <p>
+                              <a href="{% url 'dashboard' %}?focus_at={{ id }}" class="btn btn-secondary">
+                                View in Map &nbsp; <i class="fa fa-map-marker-alt"></i>
+                              </a>
+                            </p>
                         {% endif %}
                     </div>
                 </div>
