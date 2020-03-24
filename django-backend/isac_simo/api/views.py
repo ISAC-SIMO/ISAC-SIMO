@@ -165,6 +165,28 @@ def retestImageFile(request, id):
         messages.error(request, "Invalid Image File attempted to Re-test")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
+# Re-Test Image Specific File
+@user_passes_test(is_admin, login_url=login_url)
+def verifyImageFile(request, id):
+    try:
+        image_file = ImageFile.objects.get(id=id)
+        image_file.result = request.POST.get('test-result',image_file.result).lower()
+        image_file.score = request.POST.get('test-score',image_file.score)
+        image_file.object_type = request.POST.get('test-object-type',image_file.object_type).lower()
+        if request.POST.get('test-verified',False):
+            image_file.verified = True
+        else:
+            image_file.verified = False
+        image_file.save()
+
+        # NOW TODO: SEND Images to SPSS or continues or IBM AI model and retrain it or something like that
+
+        messages.success(request, "Image File Updated - It is now " + ('verified' if image_file.verified else 'un-verified'))
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    except(ImageFile.DoesNotExist):
+        messages.error(request, "Invalid Image File attempted to Verify")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
 #######
 # API #
 #######

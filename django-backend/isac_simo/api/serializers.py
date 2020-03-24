@@ -175,7 +175,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
         # If videos exists on upload store Image model to db
         if len(video_files) > 0 and len(video_files) < 8: # Video count 1 to 7
             image = Image.objects.create(title=validated_data.get('title'),
-                                        description=validated_data.get('description'),
+                                        description=(validated_data.get('description')+' - (Via Video Upload)'),
                                         lat=validated_data.get('lat'),
                                         lng=validated_data.get('lng'),
                                         user_id=user.id)

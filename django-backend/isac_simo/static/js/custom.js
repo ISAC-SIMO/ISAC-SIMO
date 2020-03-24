@@ -38,10 +38,8 @@ function showImagePop(event, img, alt, title, slide){
             animation: false,
             customClass: "animated faster "+_popDirection,
             onOpen: function(toast){
-                if(event.target.tagName.toLowerCase() == 'a'){
-                    _globalevent = event
-                    toast.addEventListener('keydown', leftRightHandle);
-                }
+                _globalevent = event
+                toast.addEventListener('keydown', leftRightHandle);
             },
             onClose: function(toast){
                 _globalevent = null
@@ -127,6 +125,34 @@ function deleteDataWriteConfirm(event, element, name){
     }else{
         $('.swal2-input').val(toType);
     }
+}
+
+// TO TIGGER SWAL INPUT FOR go/nogo verify and type
+function verifyImage(event, result, score, object_type, verified, url, csrf){
+    Swal.fire({
+        title: 'Verify Test Results',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Close',
+        html:
+            '<form action="'+url+'" id="image_file_verify" method="POST">'+
+            '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf+'" />'+
+            '<label class="swal2-label">Result:</label>'+
+            '<input id="test-result" name="test-result" placeholder="No Result" class="swal2-input" style="margin: 0.5em auto;" value="'+result+'">' +
+            '<label class="swal2-label">Score:</label>'+
+            '<input id="test-score" name="test-score" placeholder="No Score" class="swal2-input" disabled style="background: #c7c7c7;margin: 0.5em auto;" value="'+score+'">'+
+            '<label class="swal2-label">Object Type:</label>'+
+            '<input id="test-object-type" name="test-object-type" placeholder="Object Not Detected" class="swal2-input" style="margin: 0.5em auto;" value="'+object_type+'">'+
+            '<label class="swal2-label" style="display: inline-block;float: left;">Verified:'+
+            '<input type="checkbox" id="test-verified" name="test-verified" class="swal2-checkbox" style="margin: 0.5em;transform: scale(1.4);display: inline;"'+ (verified?'checked':'') +'>'+
+            '</label>'+
+            '</form>',
+        focusConfirm: false,
+        preConfirm: function(){
+            Pace.restart();
+            $('#image_file_verify').submit();
+        }
+    })
 }
 
 // Tooltip resets (kinda needed)
