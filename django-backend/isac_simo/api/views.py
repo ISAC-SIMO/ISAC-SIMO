@@ -1,5 +1,6 @@
 import os
 from http.client import HTTPResponse
+from django.conf import settings
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -77,10 +78,35 @@ def updateImage(request, id=0):
     try:
         image = Image.objects.get(id=id)
         image_files = ImageFile.objects.filter(image_id=image.id)
+        verified_list = {}
+        can_retrain = False
+        min_images_to_zip = 10
+        if settings.DEBUG:
+            min_images_to_zip = 2
+        #NOTE: 10 minimum zipped images is required to re-train a go,nogo,etc.. model (calculated below)
 
         if request.method == "GET":
+            for image_file in image_files:
+                if image_file.verified and image_file.result and image_file.object_type:
+                    # TO CREATE STRUCTURE OF #
+                    # {
+                    #     "wall":{
+                    #         "go": 10,
+                    #         "nogo":5,
+                    #     },
+                    #     "rebar":{
+                    #         "10mm": 10,
+                    #         "20mm":5,
+                    #     }
+                    # }
+                    verified_list[image_file.object_type.lower()] = verified_list.get(image_file.object_type.lower(),{})
+                    verified_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = verified_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),0) + 1
+                    # print(verified_list)
+                    if verified_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),0) >= min_images_to_zip:
+                        can_retrain = True
+
             form = ImageForm(instance=image)
-            return render(request,"add_image.html",{'form':form, 'id':id, 'image_files':image_files})
+            return render(request,"add_image.html",{'form':form, 'id':id, 'image_files':image_files, 'verified_list':verified_list, 'can_retrain':can_retrain})
         elif request.method == "POST":
             files = request.FILES.getlist('image')
             form = ImageForm(request.POST or None, request.FILES or None, instance=image)
@@ -128,6 +154,61 @@ def deleteImage(request, id=0):
     except(Image.DoesNotExist):
         messages.error(request, "Invalid Image attempted to Delete")
         return redirect("images")
+
+# Retrain Images file and send zip to ibm
+@user_passes_test(is_admin, login_url=login_url)
+def retrainImage(request, id):
+    try:
+        image = Image.objects.get(id=id)
+        image_files = ImageFile.objects.filter(image_id=image.id)
+        verified_list = {}
+        image_file_list = {}
+        image_file_id_list = {}
+        can_retrain = False
+        min_images_to_zip = 10
+        if settings.DEBUG:
+            min_images_to_zip = 2
+        #NOTE: 10 minimum zipped images is required to re-train a go,nogo,etc.. model (calculated below)
+
+        if request.method != "POST":
+            messages.error(request, "Re-Train Request was improperly sent")
+            return redirect("images.add")
+        elif request.method == "POST":
+            for image_file in image_files:
+                if image_file.verified and image_file.result and image_file.file and image_file.object_type:
+                    verified_list[image_file.object_type.lower()] = verified_list.get(image_file.object_type.lower(),{})
+                    verified_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = verified_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),0) + 1
+                    print(verified_list)
+
+                    image_file_list[image_file.object_type.lower()] = image_file_list.get(image_file.object_type.lower(),{})
+                    image_file_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = image_file_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),[]) + [image_file.file.url]
+                    print(image_file_list)
+                    
+                    image_file_id_list[image_file.object_type.lower()] = image_file_id_list.get(image_file.object_type.lower(),{})
+                    image_file_id_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = image_file_id_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),[]) + [image_file.id]
+                    print(image_file_id_list)
+
+                    # verified_list[image_file.result.lower()] = verified_list.get(image_file.result.lower(),0) + 1
+                    # image_file_list[image_file.result.lower()] = image_file_list.get(image_file.result.lower(),[]) + [image_file.file.url]
+                    # image_file_id_list[image_file.result.lower()] = image_file_id_list.get(image_file.result.lower(),[]) + [image_file.id]
+                    # print(image_file_list)
+                    # print(verified_list)
+
+            for p_key, p_value in verified_list.items():
+                print(p_value)
+                for key, value in p_value.items():
+                    if value >= min_images_to_zip:
+                        can_retrain = True
+                        print(image_file_list.get(p_key,{}).get(key,[]))
+
+                        # Use id list to update in db - the retrained boolean status
+                        print(image_file_id_list.get(p_key,{}).get(key,[]))
+        
+        messages.success(request, "Zipped and Sent for Re-Training")
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
+    except(Image.DoesNotExist):
+        messages.error(request, "This Image Model probably does not exist")
+        return redirect("images.add")
 
 # Delete Image Specific File
 @user_passes_test(is_admin, login_url=login_url)

@@ -37,6 +37,7 @@ class ImageFile(models.Model):
     result = models.CharField(blank=True, null=True, max_length=500)
     score = models.FloatField(validators=[MinValueValidator(-1), MaxValueValidator(1)],max_length=10,null=True,blank=True)
     object_type = models.CharField(blank=True, null=True, max_length=500)
+    retrained = models.BooleanField(default=False)
     verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
