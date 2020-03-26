@@ -79,7 +79,7 @@
                               
                               <form action="{% url 'images.retrain' id %}" method="POST" style="display: inline-block;">
                                   {% csrf_token %}
-                                  <button title="Only allowed if 10 verified and tested images for any result exists." class="btn btn-info">
+                                  <button title="Only allowed if 10 verified and tested images for any result exists.<br/> <i>(Test might not work for a while)</i>" data-html="true" data-toggle="tooltip" data-placement="bottom" class="btn btn-info">
                                     Retrain AI model using these Images &nbsp; <i class="fa fa-sync"></i>
                                   </button>
                               </form>

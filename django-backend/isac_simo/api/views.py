@@ -1,7 +1,7 @@
 import os
 from http.client import HTTPResponse
-from django.conf import settings
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
@@ -12,8 +12,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from api.helpers import test_image
-from api.serializers import ImageSerializer, UserSerializer, VideoFrameSerializer
+from api.helpers import retrain_image, test_image
+from api.serializers import (ImageSerializer, UserSerializer,
+                             VideoFrameSerializer)
 from main import authorization
 from main.authorization import *
 from main.models import User
@@ -178,33 +179,43 @@ def retrainImage(request, id):
                 if image_file.verified and image_file.result and image_file.file and image_file.object_type:
                     verified_list[image_file.object_type.lower()] = verified_list.get(image_file.object_type.lower(),{})
                     verified_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = verified_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),0) + 1
-                    print(verified_list)
+                    # print(verified_list)
 
                     image_file_list[image_file.object_type.lower()] = image_file_list.get(image_file.object_type.lower(),{})
                     image_file_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = image_file_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),[]) + [image_file.file.url]
-                    print(image_file_list)
+                    # print(image_file_list)
                     
                     image_file_id_list[image_file.object_type.lower()] = image_file_id_list.get(image_file.object_type.lower(),{})
                     image_file_id_list.get(image_file.object_type.lower(),{})[image_file.result.lower()] = image_file_id_list.get(image_file.object_type.lower(),{}).get(image_file.result.lower(),[]) + [image_file.id]
-                    print(image_file_id_list)
+                    # print(image_file_id_list)
 
                     # verified_list[image_file.result.lower()] = verified_list.get(image_file.result.lower(),0) + 1
                     # image_file_list[image_file.result.lower()] = image_file_list.get(image_file.result.lower(),[]) + [image_file.file.url]
                     # image_file_id_list[image_file.result.lower()] = image_file_id_list.get(image_file.result.lower(),[]) + [image_file.id]
                     # print(image_file_list)
-                    # print(verified_list)
+                    print(verified_list)
 
             for p_key, p_value in verified_list.items():
-                print(p_value)
+                # print(p_value)
                 for key, value in p_value.items():
                     if value >= min_images_to_zip:
                         can_retrain = True
                         print(image_file_list.get(p_key,{}).get(key,[]))
+                        # Image File List(arr), object_type, result
+                        retrain_response = retrain_image(image_file_list.get(p_key,{}).get(key,[]), p_key, key)
 
-                        # Use id list to update in db - the retrained boolean status
-                        print(image_file_id_list.get(p_key,{}).get(key,[]))
+                        if retrain_response:
+                            messages.success(request, "Zipped and Sent for Re-Training")
+                            # Use id list to update in db - the retrained boolean status
+                            print(image_file_id_list.get(p_key,{}).get(key,[]))
+                            for id in image_file_id_list.get(p_key,{}).get(key,[]):
+                                image_file = ImageFile.objects.get(id=id)
+                                image_file.retrained = True
+                                image_file.save()
+                        else:
+                            messages.error(request, "Failed to Re-Train")
+                            print('Failed to re-train')
         
-        messages.success(request, "Zipped and Sent for Re-Training")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
     except(Image.DoesNotExist):
         messages.error(request, "This Image Model probably does not exist")
