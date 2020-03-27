@@ -1,0 +1,74 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Classifiers Details {% endblock title %}
+{% block dashboard_title1 %} Image Clasifier Detail {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Classifiers {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.classifier' %}" id="classifier_form" method="POST" class="col-12" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="object" class="col-sm-5 col-md-4 col-form-label">Object</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="object" class="form-control" id="object" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="model" class="col-sm-5 col-md-4 col-form-label">Model</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="model" class="form-control" id="model" required>
+                                <option disabled="" selected="">No Models Found</option>
+                            </select>
+                        </div>
+                    </div>
+                    <hr/>
+                    {% if detail %}
+                    <h3>Result:</h3>
+                    <small><b>Object: {{object|title}} <br/> Model: {{model}}</b></small>
+                    <pre style="border-left: 2px solid salmon;">{{detail}}</pre>
+                    <hr/>
+                    {% endif %}
+                    <div class="form-group">
+                        <button type="submit" id="classifier_btn" class="ml-2 btn btn-primary">Get Detail</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        var classifier_list = {{classifier_list|safe}}
+
+        $('#object').html('')
+        Object.keys(classifier_list).forEach(function(key){
+            $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+        });
+
+        function updateModel(){
+            var sel = $('#object').val()
+            $('#model').html('')
+            if(sel){
+                for(var i = 0 ; i < classifier_list[sel].length ; i++){
+                    $('#model').append('<option value="'+classifier_list[sel][i]+'">'+classifier_list[sel][i]+'</option>')
+                }
+            }else{
+                $('#model').append('<option disabled="" selected="">No Models Found</option>')
+            }
+        }
+
+        $('#object').on('change', updateModel);
+        updateModel();
+
+        {% if detail %}
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+        {% endif %}
+    </script>
+{% endblock script %}

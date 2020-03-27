@@ -250,6 +250,34 @@
 
               </ul>
             </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier'  %} active {% endif %}">
+                <i class="nav-icon fab fa-cloudversify"></i>
+                <p>
+                  IBM Watson
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'watson.train' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.train' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>Add Train Data</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'watson.classifier' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.classifier' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-success"></i>
+                    <p>Classifier Details</p>
+                  </a>
+                </li>
+
+              </ul>
+            </li>
             {% endif %}
             {% comment %} / IS ADMIN / {% endcomment %}
 

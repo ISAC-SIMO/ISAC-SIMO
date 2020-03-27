@@ -1,0 +1,97 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Train Images {% endblock title %}
+{% block dashboard_title1 %} Train Images {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} IBM Watson Image Classifier {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.train' %}" id="retrain_form" method="POST" class="col-12" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="object" class="col-sm-5 col-md-4 col-form-label">Object</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="object" class="form-control" id="object" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="model" class="col-sm-5 col-md-4 col-form-label">Model (Re-Trains in all these models)</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="model" class="form-control" id="model" required>
+                                <option disabled="" selected="">No Models Found</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="result" class="col-sm-5 col-md-4 col-form-label">Result</label>
+                        <div class="col-sm-12 col-md-4">
+                            <input type="text" name="result" class="form-control" id="result" placeholder="e.g. go/nogo/negative etc." required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="images" class="col-sm-5 col-md-4 col-form-label">Images (At least 10)</label>
+                        <div class="col-sm-12 col-md-4">
+                            <input type="file" name="images" id="images" accept="image/png, image/jpeg" multiple required>
+                        </div>
+                    </div>
+                    <b class="ml-2">Retraining might take some time, so make sure no test will be running during that time.</b>
+                    <hr/>
+                    <div class="form-group">
+                        <button type="submit" id="retrain_btn" class="ml-2 btn btn-primary">Re-Train</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        var classifier_list = {{classifier_list|safe}}
+
+        $('#object').html('')
+        Object.keys(classifier_list).forEach(function(key){
+            $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+        });
+
+        function updateModel(){
+            var sel = $('#object').val()
+            $('#model').html('')
+            if(sel){
+                for(var i = 0 ; i < classifier_list[sel].length ; i++){
+                    $('#model').append('<option value="'+classifier_list[sel][i]+'">'+classifier_list[sel][i]+'</option>')
+                }
+            }else{
+                $('#model').append('<option disabled="" selected="">No Models Found</option>')
+            }
+        }
+
+        $('#object').on('change', updateModel);
+        updateModel();
+
+        function getImagesCount(){
+            var total = document.getElementById('images').files;
+            if(total.length < 10){
+                Swal.fire('At least 10 Images Required','Please select more.')
+                document.getElementById('images').value = ''
+                return false
+            }
+            return true
+        }
+
+        $('#images').on('change', getImagesCount)
+
+        $('#retrain_form').on('submit', function(event){
+            Pace.restart()
+            if(!getImagesCount()){
+                event.preventDefault()
+            }else{
+                $('#retrain_btn').attr('disabled','disabled')
+                $('#retrain_form').submit()
+            }
+        })
+    </script>
+{% endblock script %}

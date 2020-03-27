@@ -190,7 +190,7 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
-def retrain_image(image_file_list, object_type, result):
+def retrain_image(image_file_list, object_type, result, media_folder='image'):
     zipObj = None
     zipPath = None
     try:
@@ -200,7 +200,7 @@ def retrain_image(image_file_list, object_type, result):
         zipObj = ZipFile(zipPath, 'w')
         # Add multiple files to the zip
         for image_file in image_file_list:
-            zipObj.write(os.path.join(settings.BASE_DIR ,settings.MEDIA_ROOT,'image',os.path.basename(image_file)), os.path.basename(image_file))
+            zipObj.write(os.path.join(settings.BASE_DIR ,settings.MEDIA_ROOT,media_folder,os.path.basename(image_file)), os.path.basename(image_file))
         # close the Zip File
         zipObj.close()
     except Exception as e:
@@ -221,9 +221,16 @@ def retrain_image(image_file_list, object_type, result):
         print(auth_base)
         post_header = {'Accept':'application/json','Authorization':auth_base}
         zipObj = open(zipPath, 'rb')
-        post_files = {
-            result+'_positive_examples': zipObj,
-        }
+        post_files = {}
+
+        if result.lower() == 'negative':
+            post_files = {
+                'negative_examples': zipObj,
+            }
+        else:
+            post_files = {
+                result+'_positive_examples': zipObj,
+            }
 
         passed = 0
 
@@ -252,3 +259,31 @@ def retrain_image(image_file_list, object_type, result):
     else:
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False
+
+def classifier_detail(object_type, model):
+    # IF IBM KEY is provided + classifier list exists
+    if ( settings.IBM_API_KEY 
+        and classifier_list.get(object_type,False) and model ):
+
+        # Authenticate the IBM Watson API
+        api_token = str(settings.IBM_API_KEY)
+        auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
+        print(auth_base)
+        post_header = {'Accept':'application/json','Authorization':auth_base}
+
+        # Call the API
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v3/classifiers/'+model+'?version=2018-03-19', headers=post_header)
+        status = response.status_code
+        try:
+            content = response.json()
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD - (e.g. zip might be too large)')
+        
+        print(status)
+        print(content)
+        # If success save the data
+        if(status == 200 or status == '200' or status == 201 or status == '201'):
+            return content
+        else:
+            return False

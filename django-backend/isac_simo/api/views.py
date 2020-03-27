@@ -1,6 +1,9 @@
 import os
+import uuid
+import json
 from http.client import HTTPResponse
 
+import filetype
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -12,9 +15,10 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from api.helpers import retrain_image, test_image
+from api.helpers import classifier_detail, retrain_image, test_image
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
+from isac_simo.classifier_list import classifier_list
 from main import authorization
 from main.authorization import *
 from main.models import User
@@ -278,6 +282,59 @@ def verifyImageFile(request, id):
     except(ImageFile.DoesNotExist):
         messages.error(request, "Invalid Image File attempted to Verify")
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+# Image Custom Train to IBM
+@user_passes_test(is_admin, login_url=login_url)
+def watsonTrain(request):
+    if request.method == "GET":
+        return render(request, 'train.html',{'classifier_list':classifier_list})
+    elif request.method == "POST":
+        zipped = 0
+        image_file_list = []
+        for image in request.FILES.getlist('images'):
+            kind = filetype.guess(image)
+            if kind is None:
+                print('Cannot guess file type!')
+            else:
+                filename = '{}.{}'.format(uuid.uuid4().hex, kind.extension)
+                destination = open(settings.MEDIA_ROOT + '/temp/' + filename, 'wb+')
+                for chunk in image.chunks():
+                    destination.write(chunk)
+                destination.close()
+                image_file_list = image_file_list + [os.path.join('media/temp/', filename)]
+                zipped += 1
+                print(image_file_list)
+
+        # Although, we have "model" in request we are not using it. i.e. all images are re-trained in all models of object type given
+        if zipped >= 10 and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
+            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp')
+            print(retrain_status)
+            if retrain_status:
+                messages.success(request,str(zipped) + ' images zipped and was sent to retrain. (Retraining takes time)')
+            else:
+                messages.error(request,str(zipped) + ' images zipped but failed to retrain')
+        else:
+            messages.error(request,str(zipped) + ' valid Image(s). At least 10 required. Or Invalid input.')
+
+        for image_file in image_file_list:
+            os.remove(image_file)
+
+        return redirect('watson.train')
+    
+    return redirect('dashboard')
+
+# Classifier Details of IBM
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifier(request):
+    if request.method != "POST":
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list})
+    elif request.method == "POST":
+        detail = classifier_detail(request.POST.get('object', False), request.POST.get('model', False))
+        if detail:
+            detail = json.dumps(detail, indent=4)
+        else:
+            detail = 'Could Not Fetch Classifier Detail'
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list, 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
 
 #######
 # API #
