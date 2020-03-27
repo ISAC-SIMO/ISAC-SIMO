@@ -13,14 +13,17 @@ body::-webkit-scrollbar{width:.6em}body::-webkit-scrollbar-track{-webkit-box-sha
 .fa-trash:hover{opacity:0.8;}
 #id_image{padding-bottom: 35px;}
 .tooltip-inner{max-width: 500px;}
-.img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:5px;background:#eee;margin:5px;position:relative;}
+.img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:3px;background:#eee;margin:5px;position:relative;}
+.img-flex:after {position: absolute;content: "";background: #323232;opacity: 0;top: 0;left: 0;right: 0;bottom: 0;z-index: 1;transition: all 0.3s ease;pointer-events: none;}
 .img-card{width:180px;cursor:pointer;}
-.img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;}
+.img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;z-index: 2;}
 .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
+.img-flex:hover:after{visibility:visible;opacity:0.5;}
+.img-id{left: 10px;right: unset;color: white !important;font-weight: 100;pointer-events: none;}
 .nav-link{border-radius:0 !important;margin-bottom:0 !important;}
 .nav-sidebar>.nav-item .nav-icon.fa, .nav-sidebar>.nav-item .nav-icon.fab, .nav-sidebar>.nav-item .nav-icon.far, .nav-sidebar>.nav-item .nav-icon.fas, .nav-sidebar>.nav-item .nav-icon.glyphicon, .nav-sidebar>.nav-item .nav-icon.ion{font-size:0.9rem;}
 .swal2-icon{transform: scale(.5);margin: 0;padding: 0;opacity: 0.9;}.swal2-styled.swal2-confirm{border:none !important;}
 .swal2-image{margin-top:0;margin-bottom: 5px;}
 .swal2-label{display: block;margin: 0;text-align: left;font-size:0.8em;}
 .map-image-num{padding: 2px 5px;display: inline-block;margin-bottom: 3px;background: #4e4e4e;margin-right: 3px;color: white !important;font-weight: 700;}
-.corner-star{position: absolute;right: 8px;font-size: 0.8em;top: 8px;color: #c19015;opacity: 1;transform: none;visibility: visible;}
+.corner-star{position: absolute;right: 8px;font-size: 0.8em;top: 8px;color: #ffb600;opacity: 1;transform: none;visibility: visible;z-index: 2;}

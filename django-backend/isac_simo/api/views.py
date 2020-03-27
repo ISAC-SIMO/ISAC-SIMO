@@ -88,7 +88,7 @@ def updateImage(request, id=0):
 
         if request.method == "GET":
             for image_file in image_files:
-                if image_file.verified and image_file.result and image_file.object_type:
+                if image_file.verified and image_file.result and image_file.object_type and not image_file.retrained:
                     # TO CREATE STRUCTURE OF #
                     # {
                     #     "wall":{

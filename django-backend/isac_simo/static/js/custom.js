@@ -128,9 +128,9 @@ function deleteDataWriteConfirm(event, element, name){
 }
 
 // TO TIGGER SWAL INPUT FOR go/nogo verify and type
-function verifyImage(event, result, score, object_type, verified, url, csrf){
+function verifyImage(event, id, result, score, object_type, verified, url, retrained, csrf){
     Swal.fire({
-        title: 'Verify Test Results',
+        title: 'Verify Test Results - '+id,
         showCancelButton: true,
         confirmButtonText: 'Update',
         cancelButtonText: 'Close',
@@ -146,11 +146,18 @@ function verifyImage(event, result, score, object_type, verified, url, csrf){
             '<label class="swal2-label" style="display: inline-block;float: left;">Verified:'+
             '<input type="checkbox" id="test-verified" name="test-verified" class="swal2-checkbox" style="margin: 0.5em;transform: scale(1.4);display: inline;"'+ (verified?'checked':'') +'>'+
             '</label>'+
+            '<label class="swal2-label" style="display: inline-block;float: right;margin: 0.5em;">Retrained: '+(retrained?'Yes':'No')+'</label>'+
             '</form>',
         focusConfirm: false,
         preConfirm: function(){
             Pace.restart();
-            $('#image_file_verify').submit();
+            if(retrained && !document.getElementById('test-verified').checked){
+                $('#swal2-validation-message').css({'float':'left','width':'100%'});
+                Swal.showValidationMessage('Note: Image was already used to "Re-Train" <br/> & now is "Un-Verified"<br/>Click "Update" again to confirm.');
+                retrained = false;
+            }else{
+                $('#image_file_verify').submit();
+            }
         }
     })
 }
