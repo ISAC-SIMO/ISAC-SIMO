@@ -1,0 +1,32 @@
+{% extends 'master/base.html' %}
+
+{% block title %} List Object Metadata {% endblock title %}
+{% block dashboard_title1 %} List Object Metadata {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Object Detail {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Detect Object Type:</h5>
+                    <hr/>
+                    {% if detail %}
+                        <pre id="object_detail" style="border-left: 2px solid salmon;">{{detail}}</pre>
+                    {% else %}
+                        <pre id="object_detail" style="border-left: 2px solid salmon;">Unable to Fetch Details</pre>
+                    {% endif %}
+                    <hr/>
+
+                    <div class="form-group">
+                        <button onclick="location.reload()" class="ml-2 btn btn-secondary btn-sm">Refresh &nbsp; <i class="fa fa-sync"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('object_detail').innerHTML = document.getElementById('object_detail').innerText.replace(/false/g,'<b style="font-family: verdana;">false</b>').replace(/true/g, '<b style="font-family: verdana;">true</b>')
+    </script>
+{% endblock content %}

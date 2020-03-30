@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% load static %}
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Build Change - Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra - Web Application">
+  <meta name="keywords" content="ISAC,SIMO,intelligent,supervision,assistant,construction,build,change,dashboard">
+  <meta name="author" content="Build Change,Niush">
+  <meta name="theme-color" content="#343a40">
+  <meta name="msapplication-navbutton-color" content="#343a40">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#343a40">
+  <title>
+    {% block title %}{% endblock %}
+  </title>
+  {% load static %}
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-32x32.png' %}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{% static 'dist/img/favicon-16x16.png' %}" sizes="16x16" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+  <!-- Sweet Alert Bootstrap4 Theme -->
+  <link rel="stylesheet" href="{% static 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+  <style>.flash{animation:flash 0.8s ease infinite alternate;}@keyframes flash{0%{opacity:0.2;} 100%{opacity:1;}}</style>
+  {% block style %}{% endblock style %}
+</head>
+<body>
+    
+    <section class="content main-container" style="display: flex;height: 100vh;justify-content: center;align-items: center;background: #323232;color: white !important;">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}{{ 'danger' }}{% else %}{{ message.tags }}{% endif %}" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{message}}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="error-page" style="margin-top: -50px;">
+            <h2 class="headline text-warning">{% block code %}400{% endblock %}</h2>
+
+            <div class="error-content" style="height: 125px;display: flex;flex-flow: wrap;align-items: center;">
+                <h3><i class="fas fa-exclamation-triangle text-warning flash" style="font-size: 0.66em;display: inline-block;transform: translate(0,-2px);"></i> {% block message %}Unable to handle{% endblock %}</h3>
+
+                {% block no_sub_msg %}
+                <p>
+                    Head back to <a style="color:goldenrod;text-decoration: underline;" href="{% url 'dashboard' %}">dashboard</a> or try clearning cache and cookie.
+                </p>
+                {% endblock %}
+            </div>
+            <!-- /.error-content -->
+        </div>
+        <!-- /.error-page -->
+    </section>
+    
+    <!-- jQuery -->
+    <script src="{% static 'plugins/jquery/jquery.min.js'%}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- AdminLTE App -->
+    <script src="{% static 'dist/js/adminlte.js' %}"></script>
+</body>
+</html>

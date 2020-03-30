@@ -12,32 +12,32 @@
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
-                        <label for="object" class="col-sm-5 col-md-4 col-form-label">Object</label>
+                        <label for="object" class="col-sm-12 col-md-6 col-form-label">Object</label>
                         <div class="col-sm-12 col-md-4">
                             <select name="object" class="form-control" id="object" required></select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="model" class="col-sm-5 col-md-4 col-form-label">Model (Re-Trains in all these models)</label>
+                        <label for="model" class="col-sm-12 col-md-6 col-form-label">Model (Select "All" Re-Trains in all these models)</label>
                         <div class="col-sm-12 col-md-4">
                             <select name="model" class="form-control" id="model" required>
-                                <option disabled="" selected="">No Models Found</option>
+                                <option value="all" selected="">All</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="result" class="col-sm-5 col-md-4 col-form-label">Result</label>
+                        <label for="result" class="col-sm-12 col-md-6 col-form-label">Result ("negative" will train these image as negative data)</label>
                         <div class="col-sm-12 col-md-4">
                             <input type="text" name="result" class="form-control" id="result" placeholder="e.g. go/nogo/negative etc." required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="images" class="col-sm-5 col-md-4 col-form-label">Images (At least 10)</label>
+                        <label for="images" class="col-sm-12 col-md-6 col-form-label">Images (At least 10)</label>
                         <div class="col-sm-12 col-md-4">
                             <input type="file" name="images" id="images" accept="image/png, image/jpeg" multiple required>
                         </div>
                     </div>
-                    <b class="ml-2">Retraining might take some time, so make sure no test will be running during that time.</b>
+                    <b class="ml-2 text-primary">Retraining might take some time, so make sure no test will be running during that time.</b>
                     <hr/>
                     <div class="form-group">
                         <button type="submit" id="retrain_btn" class="ml-2 btn btn-primary">Re-Train</button>
@@ -61,6 +61,7 @@
             var sel = $('#object').val()
             $('#model').html('')
             if(sel){
+                $('#model').append('<option value="all" selected="">All</option>')
                 for(var i = 0 ; i < classifier_list[sel].length ; i++){
                     $('#model').append('<option value="'+classifier_list[sel][i]+'">'+classifier_list[sel][i]+'</option>')
                 }

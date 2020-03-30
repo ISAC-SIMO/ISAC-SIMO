@@ -127,6 +127,27 @@ function deleteDataWriteConfirm(event, element, name){
     }
 }
 
+// Simple Ok confirm
+function simpleConfirm(event, to, text){
+    event.preventDefault();
+    Swal.fire({
+        title: "Please Confirm this Action ?",
+        text: text?text:'Proceed to action',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        confirmButtonColor: '#ad2424',
+        reverseButtons: true,
+        cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+        if (result.value) {
+          Pace.restart();
+          location.href = to;
+        }
+    })
+    $('.swal2-cancel').focus();
+}
+
 // TO TIGGER SWAL INPUT FOR go/nogo verify and type
 function verifyImage(event, id, result, score, object_type, verified, url, retrained, csrf){
     Swal.fire({

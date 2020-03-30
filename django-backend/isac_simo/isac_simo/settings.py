@@ -77,6 +77,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'main.User'   #changes the built-in user model to ours
 
 MIDDLEWARE = [
+    'api.middleware.MaintenanceMode',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -1,6 +1,7 @@
-import os
-import uuid
 import json
+import os
+import glob
+import uuid
 from http.client import HTTPResponse
 
 import filetype
@@ -15,7 +16,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from api.helpers import classifier_detail, retrain_image, test_image
+from api.helpers import (classifier_detail, object_detail, retrain_image,
+                         test_image)
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
 from isac_simo.classifier_list import classifier_list
@@ -303,11 +305,11 @@ def watsonTrain(request):
                 destination.close()
                 image_file_list = image_file_list + [os.path.join('media/temp/', filename)]
                 zipped += 1
-                print(image_file_list)
+                # print(image_file_list)
 
         # Although, we have "model" in request we are not using it. i.e. all images are re-trained in all models of object type given
         if zipped >= 10 and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
-            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp')
+            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False))
             print(retrain_status)
             if retrain_status:
                 messages.success(request,str(zipped) + ' images zipped and was sent to retrain. (Retraining takes time)')
@@ -335,6 +337,41 @@ def watsonClassifier(request):
         else:
             detail = 'Could Not Fetch Classifier Detail'
         return render(request, 'classifiers.html',{'classifier_list':classifier_list, 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
+
+# Classifier Details of IBM
+@user_passes_test(is_admin, login_url=login_url)
+def watsonObject(request):
+    detail = object_detail()
+    if detail:
+        detail = json.dumps(detail, indent=4)
+    else:
+        detail = 'Could Not Fetch List Object Detail Metadata'
+    return render(request, 'objects.html',{'detail':detail})
+
+#########################
+# Clean Temporary Files #
+@user_passes_test(is_admin, login_url=login_url)
+def cleanTemp(request):
+    files = glob.glob(os.path.join('media/temp/*'))
+    count = 0
+    for f in files:
+        if "temp" in f:
+            os.remove(f)
+            count += 1
+    messages.success(request, str(count)+' Temporary File(s) removed')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
+
+#########################
+# Clean Temporary Files #
+@user_passes_test(is_admin, login_url=login_url)
+def countImage(request):
+    files = glob.glob(os.path.join('media/image/*'))
+    count = 0
+    for f in files:
+        count += 1
+    messages.success(request, str(count)+' Image File(s) exists in total')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
+
 
 #######
 # API #

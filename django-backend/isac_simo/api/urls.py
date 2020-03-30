@@ -17,6 +17,11 @@ urlpatterns = [
     # Watson
     path('watson/train', views.watsonTrain, name="watson.train"),
     path('watson/classifier', views.watsonClassifier, name="watson.classifier"),
+    path('watson/object', views.watsonObject, name="watson.object"),
+
+    # Other Misc. Actions
+    path('misc/clean/temp', views.cleanTemp, name="watson.cleantemp"),
+    path('misc/count/image', views.countImage, name="watson.countimage"),
 ]
 
 if settings.DEBUG:

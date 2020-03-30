@@ -190,7 +190,7 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
-def retrain_image(image_file_list, object_type, result, media_folder='image'):
+def retrain_image(image_file_list, object_type, result, media_folder='image', classifier=None):
     zipObj = None
     zipPath = None
     try:
@@ -235,6 +235,11 @@ def retrain_image(image_file_list, object_type, result, media_folder='image'):
         passed = 0
 
         for classifier_ids in classifier_list.get(object_type,[]):
+            # Check if specific classifier to re-train on (and continue if not equal to it)
+            if(classifier and classifier != 'all'):
+                if(classifier_ids != classifier):
+                    continue
+
             # Call the API
             response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v3/classifiers/'+classifier_ids+'?version=2018-03-19', files=post_files, headers=post_header)
             status = response.status_code
@@ -260,6 +265,7 @@ def retrain_image(image_file_list, object_type, result, media_folder='image'):
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False
 
+# Fetch Classifier Details #
 def classifier_detail(object_type, model):
     # IF IBM KEY is provided + classifier list exists
     if ( settings.IBM_API_KEY 
@@ -278,7 +284,7 @@ def classifier_detail(object_type, model):
             content = response.json()
         except ValueError:
             # IBM Response is BAD
-            print('IBM Response was BAD - (e.g. zip might be too large)')
+            print('IBM Response was BAD')
         
         print(status)
         print(content)
@@ -287,3 +293,52 @@ def classifier_detail(object_type, model):
             return content
         else:
             return False
+
+# Fetch Object Detection Metadata Details #
+def object_detail():
+    # IF IBM KEY is provided + classifier list exists
+    if ( settings.IBM_API_KEY 
+        and detect_object_model_id ):
+
+        # Authenticate the IBM Watson API
+        api_token = str(settings.IBM_API_KEY)
+        auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
+        print(auth_base)
+        post_header = {'Accept':'application/json','Authorization':auth_base}
+        content = {}
+
+        # Call the API
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'?version=2019-02-11', headers=post_header)
+        status = response.status_code
+        try:
+            content.update(response.json())
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD for collection info')
+
+        # Call the API
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/objects?version=2019-02-11', headers=post_header)
+        status = response.status_code
+        try:
+            content.update(response.json())
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD for objects')
+
+        # Call the API for Images
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
+        status = response.status_code
+        try:
+            content.update(response.json())
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD for images')
+        
+        print(status)
+        print(content)
+
+        # If success save the data
+        if(status == 200 or status == '200' or status == 201 or status == '201'):
+            return content
+            
+    return False
