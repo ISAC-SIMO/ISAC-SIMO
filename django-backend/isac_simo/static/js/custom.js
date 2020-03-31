@@ -128,7 +128,7 @@ function deleteDataWriteConfirm(event, element, name){
 }
 
 // Simple Ok confirm
-function simpleConfirm(event, to, text){
+function simpleConfirm(event, to, text, download){
     event.preventDefault();
     Swal.fire({
         title: "Please Confirm this Action ?",
@@ -142,7 +142,11 @@ function simpleConfirm(event, to, text){
         }).then((result) => {
         if (result.value) {
           Pace.restart();
-          location.href = to;
+          if(download){
+            window.location.assign(to);
+          }else{
+            location.href = to;
+          }
         }
     })
     $('.swal2-cancel').focus();

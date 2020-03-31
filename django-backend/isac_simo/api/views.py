@@ -1,14 +1,17 @@
+import glob
 import json
 import os
-import glob
 import uuid
+from datetime import datetime
 from http.client import HTTPResponse
 
 import filetype
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core import serializers
 from django.http import HttpResponse, HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import generics, mixins, viewsets
 from rest_framework.decorators import permission_classes
@@ -362,7 +365,7 @@ def cleanTemp(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
 #########################
-# Clean Temporary Files #
+# Count Total Image Files #
 @user_passes_test(is_admin, login_url=login_url)
 def countImage(request):
     files = glob.glob(os.path.join('media/image/*'))
@@ -371,6 +374,51 @@ def countImage(request):
         count += 1
     messages.success(request, str(count)+' Image File(s) exists in total')
     return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
+
+##########################
+# Dump JSON of all Image #
+@user_passes_test(is_admin, login_url=login_url)
+def dumpImage(request):
+    try:
+        images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
+        # messages.success(request, 'Image & Image File data dumped')
+        data = {'data': [], 'status': 'success', 'dumped_at': datetime.today().strftime('%Y-%m-%d-%H:%M:%S'), 'dumped_by': request.user.full_name}
+        for i in images:
+            this_image = {
+                'id': str(i.id),
+                'title': str(i.title),
+                'description': str(i.description),
+                'user_id': str(i.user.id),
+                'user_name': str(i.user.full_name),
+                'lat': str(i.lat),
+                'lng': str(i.lng),
+                'created_at': str(i.created_at),
+                'updated_at': str(i.updated_at),
+                'image_files': [],
+            }
+            for j in i.image_files.all():
+                this_image['image_files'] = this_image['image_files'] + [{
+                    'file': 'http://'+request.get_host()+str(j.file.url),
+                    'tested': str(j.tested).lower(),
+                    'result': str(j.result),
+                    'score': str(j.score),
+                    'object_type': str(j.object_type),
+                    'retrained': str(j.retrained).lower(),
+                    'verified': str(j.verified).lower(),
+                    'created_at': str(j.created_at),
+                    'updated_at': str(j.updated_at),
+                }]
+
+            data['data'] = data['data'] + [this_image]
+            # print(data)
+        response = HttpResponse(json.dumps(data, indent=4), content_type="application/json")
+        response['Content-Disposition'] = 'attachment; filename=' + 'image_and_image_files_dump_' + datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '.json'
+        return response
+        # return JsonResponse(data, safe=True)
+    except Exception as e:
+        print(e)
+        messages.error(request,'Failed to Dump & Download Image and Image File Data')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
 
 #######

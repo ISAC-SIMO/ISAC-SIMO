@@ -350,12 +350,18 @@
       <!-- Control sidebar content goes here -->
       <h5>Options</h5>
       <hr class="mb-2 mt-2"/>
+      {% comment %} For Admin Only {% endcomment %}
+      {% if user.is_admin %}
       <div class="mb-1">
         <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.cleantemp' %}','Clean Temporary Files? Make sure no API and process are running at the moment.')"><i class="fas fa-circle text-info mr-2"></i> Clean Temporary Files</a>
       </div>
       <div class="mb-1">
         <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.countimage' %}','Counting total images might take time depending on the amount of files.')"><i class="fas fa-circle text-info mr-2"></i> Count Image Files in Storage</a>
       </div>
+      <div class="mb-1">
+        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.dumpimage' %}','Action will return Dump of all Images data',true)"><i class="fas fa-circle text-info mr-2"></i> Dump All Images JSON Data</a>
+      </div>
+      {% endif %}
       <i class="fas fa-align-left" style="opacity:0.1;pointer-event:none;font-size: 5em;position: absolute;top: 50%;left: 50%;transform: translate(-30%, -50%);"></i>
     </aside>
     <!-- /.control-sidebar -->

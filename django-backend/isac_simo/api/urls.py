@@ -21,7 +21,8 @@ urlpatterns = [
 
     # Other Misc. Actions
     path('misc/clean/temp', views.cleanTemp, name="watson.cleantemp"),
-    path('misc/count/image', views.countImage, name="watson.countimage"),
+    path('misc/count/images', views.countImage, name="watson.countimage"),
+    path('misc/dump/images', views.dumpImage, name="watson.dumpimage"),#dump json of image+image_file models
 ]
 
 if settings.DEBUG:

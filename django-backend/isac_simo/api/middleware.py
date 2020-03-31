@@ -18,5 +18,5 @@ class MaintenanceMode(object):
 
         return self.get_response(request)
 
-    def process_exception(self, request, exception):
-        return HttpResponse("in exception")
+    # def process_exception(self, request, exception):
+    #     return HttpResponse(exception)
