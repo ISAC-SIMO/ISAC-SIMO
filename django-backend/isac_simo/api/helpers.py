@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import uuid
+import filetype
 from zipfile import ZipFile
 
 import requests
@@ -265,6 +266,64 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False
 
+#################################################
+# Create New classifier
+# User uploades proper zip file with classifier name
+def create_classifier(zip_file_list, negative_zip=False, name=False):
+    # IF IBM KEY is provided (also check zip_file_list is ok)
+    if ( settings.IBM_API_KEY and zip_file_list and name ):
+        # Authenticate the IBM Watson API
+        api_token = str(settings.IBM_API_KEY)
+        auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
+        print(auth_base)
+        post_header = {'Accept':'application/json','Authorization':auth_base}
+        post_files = {}
+        bad_zip = 0
+
+        for zip_file in zip_file_list:
+            kind = filetype.guess(zip_file)
+            if kind is None or kind.extension != 'zip' :
+                print(kind.extension)
+                print('Cannot guess file type or is not a ZIP file!')
+                bad_zip += 1
+            else:
+                if not zip_file.name:
+                    print('Zip file has no name, weird but true!')
+                    bad_zip += 1
+                else:
+                    x = open(zip_file.temporary_file_path(), 'rb')
+                    post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
+        
+        print(post_files)
+
+        if negative_zip:
+            x = open(negative_zip.temporary_file_path(), 'rb')
+            post_files['negative_examples'] = x
+
+        print(post_files)
+
+        post_data = {'name': name}
+
+        # Call the API
+        response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v3/classifiers?version=2018-03-19', files=post_files, headers=post_header, data=post_data)
+        status = response.status_code
+        try:
+            content = response.json()
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD - (e.g. zip might be too large or similar problem)')
+        
+        print(status)
+        print(content)
+        # If success save the data
+        if(status == 200 or status == '200' or status == 201 or status == '201'):
+            return {'data': content, 'bad_zip': bad_zip}
+        
+        return False
+    else:
+        print('FAILED TO TEST - Check Token, Classifier Name, Zip files etc. exists or not')
+        return False
+
 # Fetch Classifier Details #
 def classifier_detail(object_type, model):
     # IF IBM KEY is provided + classifier list exists
@@ -326,13 +385,13 @@ def object_detail():
             print('IBM Response was BAD for objects')
 
         # Call the API for Images
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
-        status = response.status_code
-        try:
-            content.update(response.json())
-        except ValueError:
-            # IBM Response is BAD
-            print('IBM Response was BAD for images')
+        # response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
+        # status = response.status_code
+        # try:
+        #     content.update(response.json())
+        # except ValueError:
+        #     # IBM Response is BAD
+        #     print('IBM Response was BAD for images')
         
         print(status)
         print(content)

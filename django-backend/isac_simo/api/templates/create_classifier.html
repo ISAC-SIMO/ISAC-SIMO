@@ -1,0 +1,96 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Create New Classifier {% endblock title %}
+{% block dashboard_title1 %} Create Classifier {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} New Classifier {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.classifier.create' %}" id="classifier_form" method="POST" class="col-12" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    {% if created %}
+                        <h3>Result:</h3>
+                        <pre style="border-left: 2px solid salmon;">{{created}}</pre>
+                        <h4>Note:</h4>
+                        {% if bad_zip and bad_zip != 0 %}
+                            <small style="color:red;font-size: 1em;">{{bad_zip}} Zip files were bad.</small> <br/>
+                        {% endif %}
+                        <b>Make Sure you contact the Server Admin to add this Classifier in this web application</b> <br/>
+                        <small>Send a copy of this response</small>
+                        <script>
+                            window.onbeforeunload = function(){
+                                return 'Are you sure you want to leave?';
+                            };
+                        </script>
+                    {% else %}
+                        <div class="form-group">
+                            <label for="zip" class="col-sm-12 col-md-6 col-form-label">Zip Files*</label>
+                            <div class="col-sm-12 col-md-4">
+                                <input type="file" name="zip" id="zip" accept=".zip" multiple required aria-describedby="fileHelp">
+                            </div>
+                            <small id="fileHelp" class="col-sm-12 form-text text-muted">
+                                At least <b>2 zip</b> files with minimum of <b>10</b> images each <br/>
+                                Make sure the zip file name is exactly what you what the model to be called (go, nogo etc.)
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="negative" class="col-sm-12 col-md-6 col-form-label">Negative Zip Files</label>
+                            <div class="col-sm-12 col-md-4">
+                                <input type="file" name="negative" id="negative" accept=".zip" aria-describedby="negativeHelp">
+                            </div>
+                            <small id="negativeHelp" class="col-sm-12 form-text text-muted">
+                                <b>1 Zip</b> file containing negative data (better to name the zip negative) (Negative data is Not Compulsory)
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="name" class="col-sm-5 col-md-4 col-form-label">Classifier Name*</label>
+                            <div class="col-sm-12 col-md-4">
+                                <input type="text" placeholder="The name of the new classifier" class="form-control" id="name" name="name" required/>
+                            </div>
+                        </div>
+                        <hr/>
+                        <div class="form-group">
+                            <button type="submit" id="classifier_btn" class="ml-2 btn btn-primary">Create Classifier</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        function getZipCount(){
+            var total = document.getElementById('zip').files;
+            if(total.length < 2){
+                Swal.fire('At least 2 Zip Required','Please select more.')
+                document.getElementById('zip').value = ''
+                return false
+            }
+            return true
+        }
+
+        $('#zip').on('change', getZipCount)
+
+        $('#classifier_form').on('submit', function(event){
+            Pace.restart()
+            $('#classifier_btn').attr('disabled','disabled')
+            Swal.fire({
+                'title':'Sending Zip Files to create new classifiers',
+                'html':'Do not close this window until response is received, It might take some time depending on the size and amount of zip files.',
+                'type':'info',
+                'allowOutsideClick': false
+            })
+        })
+
+        {% if created %}
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+        {% endif %}
+    </script>
+{% endblock script %}

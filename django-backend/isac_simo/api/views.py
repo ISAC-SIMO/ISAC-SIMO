@@ -1,4 +1,5 @@
 import glob
+import io
 import json
 import os
 import uuid
@@ -19,8 +20,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from api.helpers import (classifier_detail, object_detail, retrain_image,
-                         test_image)
+from api.helpers import (classifier_detail, create_classifier, object_detail,
+                         retrain_image, test_image)
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
 from isac_simo.classifier_list import classifier_list
@@ -340,6 +341,22 @@ def watsonClassifier(request):
         else:
             detail = 'Could Not Fetch Classifier Detail'
         return render(request, 'classifiers.html',{'classifier_list':classifier_list, 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
+
+# Create Custom Classifiers with zip data
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifierCreate(request):
+    if request.method != "POST":
+        return render(request, 'create_classifier.html')
+    elif request.method == "POST":
+        print(request.FILES.getlist('zip'))
+        created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'))
+        bad_zip = 0
+        if created:
+            bad_zip = created.get('bad_zip', 0)
+            created = json.dumps(created, indent=4)
+        else:
+            created = 'Could Not Create Classifier (Verify zip files are valid and try again)'
+        return render(request, 'create_classifier.html',{'created':created, 'bad_zip':bad_zip})
 
 # Classifier Details of IBM
 @user_passes_test(is_admin, login_url=login_url)

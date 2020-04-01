@@ -17,6 +17,7 @@ urlpatterns = [
     # Watson
     path('watson/train', views.watsonTrain, name="watson.train"),
     path('watson/classifier', views.watsonClassifier, name="watson.classifier"),
+    path('watson/classifier/create', views.watsonClassifierCreate, name="watson.classifier.create"),
     path('watson/object', views.watsonObject, name="watson.object"),
 
     # Other Misc. Actions

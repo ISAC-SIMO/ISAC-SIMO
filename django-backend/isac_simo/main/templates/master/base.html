@@ -251,9 +251,9 @@
               </ul>
             </li>
             <li
-              class="nav-item has-treeview {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object' %} menu-open {% endif %}">
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object' or request.resolver_match.url_name == 'watson.classifier.create' %} menu-open {% endif %}">
               <a href="#"
-                class="nav-link {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object'  %} active {% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object' or request.resolver_match.url_name == 'watson.classifier.create'  %} active {% endif %}">
                 <i class="nav-icon fab fa-cloudversify"></i>
                 <p>
                   IBM Watson
@@ -265,21 +265,28 @@
                   <a href="{% url 'watson.train' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'watson.train' %} active {% endif %}">
                     <i class="nav-icon far fa-circle text-info"></i>
-                    <p>Add Train Data</p>
+                    <p>Re-Train Classifier</p>
+                  </a>
+                </li
+                ><li class="nav-item">
+                  <a href="{% url 'watson.classifier.create' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.classifier.create' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>Create New Classifier</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'watson.classifier' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'watson.classifier' %} active {% endif %}">
                     <i class="nav-icon far fa-circle text-success"></i>
-                    <p>Classifier Details</p>
+                    <p>Get Classifier Details</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="{% url 'watson.object' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'watson.object' %} active {% endif %}">
                     <i class="nav-icon far fa-circle text-warning"></i>
-                    <p>Object Type Details</p>
+                    <p>Get Object Type Details</p>
                   </a>
                 </li>
 
