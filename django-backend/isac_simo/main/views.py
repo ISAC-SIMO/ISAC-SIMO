@@ -210,9 +210,15 @@ def deleteUserByAdmin(request, id):
 # Pull From Git Master via Route
 def pull(request):
     if os.getenv('PASSWORD', False) and os.getenv('PASSWORD', False) == request.GET.get('password', ''):
-        print(os.path.join('pull.sh'))
-        print(os.path.exists('pull.sh'))
-        subprocess.call(os.path.join('pull.sh'), shell=True)
+        print('pull.sh exists: '+ str(os.path.exists('pull.sh')))
+        path = os.path.join('pull.sh')
+
+        if not os.path.exists('pull.sh'):
+            path = os.environ.get('PROJECT_FOLDER','') + '/pull.sh'
+
+        print(path)
+
+        subprocess.call(path, shell=True)
         return JsonResponse({'status':'ok'}, status=200)
 
     return JsonResponse({'status':'bad'}, status=404)

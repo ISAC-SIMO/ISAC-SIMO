@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+cd /home/buildchange/isac
 echo 'PULLING FROM MASTER'
 git pull origin master
 pip3 install --user python-dotenv
