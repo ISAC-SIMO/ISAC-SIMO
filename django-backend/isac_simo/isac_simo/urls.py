@@ -44,6 +44,7 @@ urlpatterns = [
     path('register/', views.register, name="register"),
     path('logout/',  views.logout_user, name="logout"),
     path('dashboard', views.home, name="dashboard"),
+    path('pull', views.pull, name="pull"),
     path('users/', include('main.urls')),
     path('projects/', include('projects.urls')),
     path('app/', include('api.urls')),

@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from django import forms
 from django.conf import settings
@@ -8,16 +9,18 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.staticfiles.views import serve
 from django.core.files.storage import FileSystemStorage
 from django.db.models.query import prefetch_related_objects
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework.generics import get_object_or_404
 
 from api.models import Image, ImageFile
 from main.authorization import *
-
-from .forms import AdminEditForm, AdminRegisterForm, LoginForm, RegisterForm, ProfileForm
-from .models import User
 from projects.models import Projects
+
+from .forms import (AdminEditForm, AdminRegisterForm, LoginForm, ProfileForm,
+                    RegisterForm)
+from .models import User
+
 
 @login_required
 def home(request):
@@ -203,3 +206,13 @@ def deleteUserByAdmin(request, id):
     else:
         messages.error(request, 'Failed to Delete!')
         return redirect('allusers')
+
+# Pull From Git Master via Route
+def pull(request):
+    if os.getenv('PASSWORD', False) and os.getenv('PASSWORD', False) == request.GET.get('password', ''):
+        print(os.path.join('pull.sh'))
+        print(os.path.exists('pull.sh'))
+        subprocess.call(os.path.join('pull.sh'), shell=True)
+        return JsonResponse({'status':'ok'}, status=200)
+
+    return JsonResponse({'status':'bad'}, status=404)
