@@ -3,6 +3,7 @@ cd /home/buildchange/isac
 echo 'PULLING FROM MASTER'
 git pull origin master
 pip3 install --user python-dotenv
+pip3 install --user django
 
 source env/bin/activate
 pip install -r requirements.txt
