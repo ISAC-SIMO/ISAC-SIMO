@@ -159,8 +159,10 @@ class VideoFrameSerializer(serializers.ModelSerializer):
         if hasFrames:
             filename = '{}.{}'.format(uuid.uuid4().hex, 'jpg')
             saveto = os.path.join('media/image/', filename)
+            if not os.path.exists(os.path.join('media/image/', filename)):
+                saveto = os.environ.get('PROJECT_FOLDER','') + '/media/image/'+filename
             cv2.imwrite(saveto, image) # save frame as JPG file
-            image_obj = ImageFile.objects.create(image=image_model, file=saveto.replace('media/',''))
+            image_obj = ImageFile.objects.create(image=image_model, file=str(os.path.join('media/image/', filename)).replace('media/',''))
             ################
             ### RUN TEST ###
             ################
@@ -186,6 +188,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
             u = 0 # Uploaded Count
             count = 1 # Frame generation count
             for video_file in video_files.values():
+                saveto = None
                 try:
                     # Trying the guess the file type (to verify video)
                     kind = filetype.guess(video_file)
@@ -225,6 +228,8 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                             cv2.destroyAllWindows()
                             vidcap.release()
                             os.remove(saveto)
+                        else:
+                            print('Not Valid file video extension.')
                 except Exception as err:
                     print(err)
                     print('File Failed to Upload - Something went wrong while processing image.')
