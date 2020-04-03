@@ -35,6 +35,8 @@ class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
         self.fields['image'].required = False
+        self.fields['password1'].help_text = 'Use strong password with at least 8 characters.'
+        self.fields['password2'].help_text = 'Enter the same password.'
 
 
 class AdminRegisterForm(UserCreationForm):

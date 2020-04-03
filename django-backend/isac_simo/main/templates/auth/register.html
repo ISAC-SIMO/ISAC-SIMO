@@ -34,9 +34,9 @@
 </head>
 
 <body class="hold-transition register-page">
-  <div class="register-box" style="width:600px;">
+  <div class="register-box" style="width:500px;">
     <div class="register-logo" style="font-size: 2.4rem;">
-      <b>ISAC-</b>SIMO
+      <a href="{% url 'index' %}" style="color:initial;"><b>ISAC-</b>SIMO</a>
     </div>
 
     <p class="login-box-msg" style="font-size: 1.5rem;font-weight:700;">Register New Account</p>
@@ -59,7 +59,7 @@
         <hr>
 
         <p class="mt-0 mb-0">
-          <a href="{% url 'login' %}">Login</a>
+          <a href="{% url 'login' %}">Already a User ? Login Here</a>
         </p>
       </div>
       <!-- /.form-box -->

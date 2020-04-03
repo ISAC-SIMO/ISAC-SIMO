@@ -1,0 +1,97 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Object Type {% endblock title %}
+{% block dashboard_title1 %} Object Type {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} View & Create Object Type {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <style>
+        .bs-tooltip-auto[x-placement^=top] .arrow, .bs-tooltip-top .arrow{transform:translate(6px,0)}
+    </style>
+    <div class="row">
+        <div class="col-sm-12 col-md-8">
+            <div class="card">
+                <div class="card-title ml-3 mt-2">
+                    <a href="{% url 'watson.object' %}"  class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Fetch Object Type Details from IBM Watson
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="object_types" class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Added By</th>
+                                <th>Added At</th>
+                                {% if user.is_admin %}<th style="width:25px;">Actions</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for object_type in object_types %}
+                                <tr>
+                                    <td>{{object_type.name|title}}</td>
+                                    <td>{{object_type.created_by.full_name|default:''}}</td>
+                                    <td>{{object_type.created_at}}</td>
+                                    {% if user.is_admin %}
+                                    <td class="table-options" style="min-width: 95px;">
+                                        <a onclick="deleteDataWriteConfirm(event, 'form-{{ object_type.id }}', 'Object Type')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'watson.object.delete' object_type.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-trash text-danger"></i>
+                                        </a>
+                                        <form action="{% url 'watson.object.delete' object_type.id %}" id="form-{{ object_type.id }}" class="d-inline">
+                                            {% csrf_token %}
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody> 
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <div class="card">
+                <div class="card-title ml-3 mt-3">
+                    <h5>Create Object Type</h5>
+                </div>
+                <hr style="margin:0.5rem;"/>
+                <div class="card-body pt-0">
+                    <form action="{% url 'watson.object.create' %}" method="POST" id="object_type_create_form" class="d-inline">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="object_type" class="col-12 col-form-label">Object Type*</label>
+                            <div class="col-sm-12">
+                                <input type="text" placeholder="Object Type (e.g. wall, rebar)" class="form-control" id="object_type" name="object_type" required/>
+                            </div>
+                            <small id="negativeHelp" class="col-sm-12 form-text text-muted">
+                                Must be unique and lowercase
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button class="btn btn-sm btn-primary" type="submit">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(function () {
+          $('#object_types').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [],
+          });
+        });
+    </script>
+{% endblock script %}

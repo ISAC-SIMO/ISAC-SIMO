@@ -44,3 +44,28 @@ class ImageFile(models.Model):
 
     def __str__(self):
         return self.file.url
+
+class ObjectType(models.Model):
+    name = models.CharField(max_length=500, unique=True)
+    created_by = models.ForeignKey(User, related_name='object_types', on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class Classifier(models.Model):
+    name = models.CharField(max_length=500)
+    given_name = models.CharField(max_length=500, blank=True, null=True)
+    classes = models.CharField(max_length=500, blank=True, null=True)
+    object_type = models.ForeignKey(ObjectType, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
+    order = models.IntegerField("Order", default=0, blank=False, null=False)
+    created_by = models.ForeignKey(User, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order']  # order is the field holding the order

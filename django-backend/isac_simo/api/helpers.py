@@ -3,13 +3,20 @@ import json
 import os
 import uuid
 import filetype
+from importlib import reload
 from zipfile import ZipFile
 
 import requests
 from django.conf import settings
 from watson_developer_cloud import VisualRecognitionV3
 from PIL import Image
-from isac_simo.classifier_list import classifier_list, detect_object_model_id
+import isac_simo.classifier_list as classifier_list
+
+def reload_classifier_list():
+    try:
+        reload(classifier_list)
+    except Exception as e:
+        print('--------- [ERROR] FAILED TO RELOAD CLASSIFIER LIST MODULE [ERROR:OOPS] --------')
 
 ###################
 ## Detect Object ##
@@ -22,10 +29,10 @@ def detect_image(image_file):
     
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     print('Detecting Image Object...')
-    if os.path.exists(file_url) and settings.IBM_API_KEY and detect_object_model_id:
+    if os.path.exists(file_url) and settings.IBM_API_KEY and classifier_list.detect_object_model_id:
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
-        post_data = {'collection_ids': detect_object_model_id, 'threshold': '0.6', 'features':'objects'}
+        post_data = {'collection_ids': classifier_list.detect_object_model_id, 'threshold': '0.6', 'features':'objects'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
 
@@ -108,12 +115,12 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
     print('Trying ' + str(classifier_index) + ' No. Classifier for ' + object_type)
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     if ( os.path.exists(save_to_path) and settings.IBM_API_KEY 
-        and classifier_index < len(classifier_list.get(object_type,[]))
-        and classifier_list.get(object_type)[classifier_index] ):
+        and classifier_index < len(classifier_list.data().get(object_type,[]))
+        and classifier_list.data().get(object_type)[classifier_index] ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
-        classifier_ids = classifier_list.get(object_type)[classifier_index]
+        classifier_ids = classifier_list.data().get(object_type)[classifier_index]
         post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
@@ -156,7 +163,7 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
                 # NOTE: later classifier_list.py shall contain the recursion_list to hold results that might require re test
                 # e.g. if recursion_list.get('wall',[]) has nogo/nogos etc. then retest it etc...
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
-                    if classifier_index + 1 < len(classifier_list.get(object_type,[])):
+                    if classifier_index + 1 < len(classifier_list.data().get(object_type,[])):
                         print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
                         test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as) #save_to_path=temp file
 
@@ -214,7 +221,7 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
     zipObj.close()
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     if ( os.path.exists(zipPath) and settings.IBM_API_KEY 
-        and classifier_list.get(object_type,False) ):
+        and classifier_list.data().get(object_type,False) ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
@@ -235,7 +242,7 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
 
         passed = 0
 
-        for classifier_ids in classifier_list.get(object_type,[]):
+        for classifier_ids in classifier_list.data().get(object_type,[]):
             # Check if specific classifier to re-train on (and continue if not equal to it)
             if(classifier and classifier != 'all'):
                 if(classifier_ids != classifier):
@@ -269,9 +276,9 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
 #################################################
 # Create New classifier
 # User uploades proper zip file with classifier name
-def create_classifier(zip_file_list, negative_zip=False, name=False):
+def create_classifier(zip_file_list, negative_zip=False, name=False, object_type=False):
     # IF IBM KEY is provided (also check zip_file_list is ok)
-    if ( settings.IBM_API_KEY and zip_file_list and name ):
+    if ( settings.IBM_API_KEY and zip_file_list and name and object_type ):
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
@@ -317,6 +324,7 @@ def create_classifier(zip_file_list, negative_zip=False, name=False):
         print(content)
         # If success save the data
         if(status == 200 or status == '200' or status == 201 or status == '201'):
+            reload_classifier_list()
             return {'data': content, 'bad_zip': bad_zip}
         
         return False
@@ -328,7 +336,7 @@ def create_classifier(zip_file_list, negative_zip=False, name=False):
 def classifier_detail(object_type, model):
     # IF IBM KEY is provided + classifier list exists
     if ( settings.IBM_API_KEY 
-        and classifier_list.get(object_type,False) and model ):
+        and classifier_list.data().get(object_type,False) and model ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
@@ -357,7 +365,7 @@ def classifier_detail(object_type, model):
 def object_detail():
     # IF IBM KEY is provided + classifier list exists
     if ( settings.IBM_API_KEY 
-        and detect_object_model_id ):
+        and classifier_list.detect_object_model_id ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
@@ -367,7 +375,7 @@ def object_detail():
         content = {}
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'?version=2019-02-11', headers=post_header)
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'?version=2019-02-11', headers=post_header)
         status = response.status_code
         try:
             content.update(response.json())
@@ -376,7 +384,7 @@ def object_detail():
             print('IBM Response was BAD for collection info')
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/objects?version=2019-02-11', headers=post_header)
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'/objects?version=2019-02-11', headers=post_header)
         status = response.status_code
         try:
             content.update(response.json())
@@ -385,7 +393,7 @@ def object_detail():
             print('IBM Response was BAD for objects')
 
         # Call the API for Images
-        # response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
+        # response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
         # status = response.status_code
         # try:
         #     content.update(response.json())

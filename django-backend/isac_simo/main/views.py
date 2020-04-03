@@ -1,5 +1,6 @@
 import os
 import subprocess
+from importlib import reload
 
 from django import forms
 from django.conf import settings
@@ -20,10 +21,21 @@ from projects.models import Projects
 from .forms import (AdminEditForm, AdminRegisterForm, LoginForm, ProfileForm,
                     RegisterForm)
 from .models import User
+import isac_simo.classifier_list as classifier_list
 
+def reload_classifier_list():
+    try:
+        reload(classifier_list)
+    except Exception as e:
+        print('--------- [ERROR] FAILED TO RELOAD CLASSIFIER LIST MODULE [ERROR:OOPS] --------')
+
+# HOME PAGE INDEX FOR NORMAL USER
+def index(request):
+    return render(request, 'index.html')
 
 @login_required
 def home(request):
+    reload_classifier_list()
     if(is_admin(request.user)):
         images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
         image_files_count = ImageFile.objects.filter(tested=True).count()
@@ -82,6 +94,7 @@ def profile(request):
 @user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):
     if request.method == "POST":
+        reload_classifier_list()
         user = authenticate(username = request.POST.get('email'), password = request.POST.get('password'))
         if user is not None:
             if request.POST.get('remember') is not None:    

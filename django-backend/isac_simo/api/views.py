@@ -3,6 +3,7 @@ import io
 import json
 import os
 import uuid
+from importlib import reload
 from datetime import datetime
 from http.client import HTTPResponse
 
@@ -14,6 +15,7 @@ from django.core import serializers
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from requests_toolbelt import user_agent
 from rest_framework import generics, mixins, viewsets
 from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
@@ -22,9 +24,10 @@ from rest_framework.response import Response
 
 from api.helpers import (classifier_detail, create_classifier, object_detail,
                          retrain_image, test_image)
+from api.models import Classifier, ObjectType
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
-from isac_simo.classifier_list import classifier_list
+import isac_simo.classifier_list as classifier_list
 from main import authorization
 from main.authorization import *
 from main.models import User
@@ -32,6 +35,11 @@ from main.models import User
 from .forms import ImageForm
 from .models import Image, ImageFile
 
+def reload_classifier_list():
+    try:
+        reload(classifier_list)
+    except Exception as e:
+        print('--------- [ERROR] FAILED TO RELOAD CLASSIFIER LIST MODULE [ERROR:OOPS] --------')
 
 # View All Images
 @login_required(login_url=login_url)
@@ -293,7 +301,7 @@ def verifyImageFile(request, id):
 @user_passes_test(is_admin, login_url=login_url)
 def watsonTrain(request):
     if request.method == "GET":
-        return render(request, 'train.html',{'classifier_list':classifier_list})
+        return render(request, 'train.html',{'classifier_list':classifier_list.data()})
     elif request.method == "POST":
         zipped = 0
         image_file_list = []
@@ -325,40 +333,119 @@ def watsonTrain(request):
         for image_file in image_file_list:
             os.remove(image_file)
 
+        reload_classifier_list()
         return redirect('watson.train')
     
     return redirect('dashboard')
+
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifierList(request):
+    classifiers = Classifier.objects.order_by('-object_type').order_by('order').all()
+    return render(request, 'list_classifier.html',{'classifiers':classifiers})
 
 # Classifier Details of IBM
 @user_passes_test(is_admin, login_url=login_url)
 def watsonClassifier(request):
     if request.method != "POST":
-        return render(request, 'classifiers.html',{'classifier_list':classifier_list})
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data()})
     elif request.method == "POST":
         detail = classifier_detail(request.POST.get('object', False), request.POST.get('model', False))
         if detail:
             detail = json.dumps(detail, indent=4)
         else:
             detail = 'Could Not Fetch Classifier Detail'
-        return render(request, 'classifiers.html',{'classifier_list':classifier_list, 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
+        
+        reload_classifier_list()
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data(), 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
 
 # Create Custom Classifiers with zip data
 @user_passes_test(is_admin, login_url=login_url)
 def watsonClassifierCreate(request):
-    if request.method != "POST":
-        return render(request, 'create_classifier.html')
+    if request.method == "GET":
+        object_types = ObjectType.objects.order_by('-created_at').all()
+        return render(request, 'create_classifier.html', {'object_types':object_types})
     elif request.method == "POST":
         print(request.FILES.getlist('zip'))
-        created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'))
+        if request.POST.get('justaddit', False) and request.POST.get('name'):
+            created = {'data':{'classifier_id':request.POST.get('name'),'name':request.POST.get('name'),'classes':[]}}
+        else:
+            created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'), request.POST.get('object_type'))
+        
         bad_zip = 0
         if created:
             bad_zip = created.get('bad_zip', 0)
+            name = created.get('data', {}).get('classifier_id','')
+            given_name = created.get('data', {}).get('name',request.POST.get('name'))
+            classes = str(created.get('data', {}).get('classes',[]))
+            object_type = None
+            try:
+                object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
+            except(ObjectType.DoesNotExist):
+                messages.error(request, 'Object Not Was Invalid')
+
+            if name and given_name and classes and object_type:
+                classifier = Classifier()
+                classifier.name = name
+                classifier.given_name = given_name
+                classifier.classes = classes
+                classifier.object_type = object_type
+                classifier.created_by = request.user
+                classifier.order = request.POST.get('order',0)
+                classifier.save()
+            
             created = json.dumps(created, indent=4)
         else:
             created = 'Could Not Create Classifier (Verify zip files are valid and try again)'
+        
+        reload_classifier_list()
         return render(request, 'create_classifier.html',{'created':created, 'bad_zip':bad_zip})
 
-# Classifier Details of IBM
+    messages.error(request, 'Invalid Request')
+    return redirect('dashboard')
+
+# Watson Classifier Edit
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifierEdit(request, id):
+    if(request.method == "POST"):
+        try:
+            classifier = Classifier.objects.get(id=id)
+            classifier.name = request.POST.get('name')
+            classifier.given_name = request.POST.get('given_name')
+            classifier.object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
+            classifier.order = request.POST.get('order', 0)
+            classifier.save()
+            messages.success(request, 'Classifier Updated (Order set to: '+ str(request.POST.get('order', 0)) +')')
+            reload_classifier_list()
+            return redirect('watson.classifier.list')
+        except(Classifier.DoesNotExist):
+            messages.success(request, 'Classifier Not Found')
+            return redirect('watson.classifier.list')
+    elif(request.method == "GET"):
+        classifier = Classifier.objects.get(id=id)
+        object_types = ObjectType.objects.order_by('-created_at').all()
+        return render(request, 'edit_classifier.html', {'classifier':classifier, 'object_types':object_types})
+    else:
+        messages.success(request, 'Classifier Not Edited Bad Request')
+        return redirect('watson.classifier.list')
+
+# Watson Classifier Delete
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifierDelete(request, id):
+    if(request.method == "POST"):
+        try:
+            classifier = Classifier.objects.get(id=id)
+            classifier.delete()
+            messages.success(request, 'Classifier Deleted (Images will not be passed through this again)')
+            reload_classifier_list()
+            return redirect('watson.classifier.list')
+        except(Classifier.DoesNotExist):
+            messages.success(request, 'Classifier Not Found')
+            return redirect('watson.classifier.list')
+    else:
+        messages.success(request, 'Classifier Not Deleted')
+        return redirect('watson.classifier.list')
+
+# Watson object detail fetch from ibm
 @user_passes_test(is_admin, login_url=login_url)
 def watsonObject(request):
     detail = object_detail()
@@ -367,6 +454,44 @@ def watsonObject(request):
     else:
         detail = 'Could Not Fetch List Object Detail Metadata'
     return render(request, 'objects.html',{'detail':detail})
+
+# Watson Object Type List
+@user_passes_test(is_admin, login_url=login_url)
+def watsonObjectList(request):
+    object_types = ObjectType.objects.order_by('-created_at').all()
+    return render(request, 'create_objects.html', {'object_types':object_types})
+
+# Watson Object Type Create local
+@user_passes_test(is_admin, login_url=login_url)
+def watsonObjectCreate(request):
+    if(request.method == "POST" and request.POST.get('object_type', False)):
+        object_type = ObjectType()
+        object_type.name = request.POST.get('object_type').lower()
+        object_type.created_by = request.user
+        object_type.save()
+        messages.success(request, 'Object Type Added')
+        reload_classifier_list()
+        return redirect('watson.object.list')
+    else:
+        messages.success(request, 'Object Not Added')
+        return redirect('watson.object.list')
+
+# Watson Object Type Delete
+@user_passes_test(is_admin, login_url=login_url)
+def watsonObjectDelete(request, id):
+    if(request.method == "POST"):
+        try:
+            object_type = ObjectType.objects.get(id=id)
+            object_type.delete()
+            messages.success(request, 'Object Type Deleted (Related Classifier are now left without object types)')
+            reload_classifier_list()
+            return redirect('watson.object.list')
+        except(ObjectType.DoesNotExist):
+            messages.success(request, 'Object Not Found')
+            return redirect('watson.object.list')
+    else:
+        messages.success(request, 'Object Not Deleted')
+        return redirect('watson.object.list')
 
 #########################
 # Clean Temporary Files #
@@ -379,6 +504,7 @@ def cleanTemp(request):
             os.remove(f)
             count += 1
     messages.success(request, str(count)+' Temporary File(s) removed')
+    reload_classifier_list()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
 #########################

@@ -1,0 +1,57 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Edit Classifier {% endblock title %}
+{% block dashboard_title1 %} Edit Classifier {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Update Classifier {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.classifier.edit' classifier.id %}" id="classifier_form" method="POST" class="col-12">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="name" class="col-sm-5 col-md-4 col-form-label">Classifier Name*</label>
+                        <div class="col-sm-12 col-md-4">
+                            <input type="text" placeholder="The name of the new classifier" class="form-control" id="name" name="name" value="{{classifier.name|default:'Not Provided'}}" required/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="object_type" class="col-sm-5 col-md-4 col-form-label">Object Type*</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="object_type" id="object_type" class="form-control" required>
+                                {% for object_type in object_types %}
+                                <option value="{{object_type.id}}" {% if object_type.id == classifier.object_type.id %}selected{% endif %}>{{object_type.name|title}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <small class="col-sm-12 form-text text-muted">
+                            Select the Object Type for which to create this classifier. <br/>
+                            To Create new Object Type <a href="{% url 'watson.object.list' %}">Go Here</a>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="order" class="col-sm-5 col-md-4 col-form-label">Order*</label>
+                        <div class="col-sm-12 col-md-4">
+                            <input type="number" min="0" max="500" placeholder="Order in which training is done. Check and use carefully" class="form-control" id="order" name="order" value="{{classifier.order|default:'0'}}" required/>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="form-group">
+                        <button type="submit" id="classifier_btn" class="ml-2 btn btn-primary">Update Classifier</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $('#classifier_form').on('submit', function(event){
+            Pace.restart()
+            $('#classifier_btn').attr('disabled','disabled')
+        })
+    </script>
+{% endblock script %}

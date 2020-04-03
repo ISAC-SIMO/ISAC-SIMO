@@ -38,13 +38,13 @@ urlpatterns = [
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='auth_refresh'),
     path('api/', include(router.urls)),
     # WEB
-    path('', views.login_user),
+    path('', views.index, name="index"),
     path('login/', views.login_user, name="login"),
     path('login/<int:id>', views.login_user, name="loginpost"),
     path('register/', views.register, name="register"),
     path('logout/',  views.logout_user, name="logout"),
     path('dashboard', views.home, name="dashboard"),
-    path('pull', views.pull, name="pull"),
+    path('pull', views.pull, name="pull"), # Pull used by circleci trigger to deploy
     path('users/', include('main.urls')),
     path('projects/', include('projects.urls')),
     path('app/', include('api.urls')),

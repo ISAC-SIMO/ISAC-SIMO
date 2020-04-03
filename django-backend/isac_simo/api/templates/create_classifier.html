@@ -18,7 +18,7 @@
                         {% if bad_zip and bad_zip != 0 %}
                             <small style="color:red;font-size: 1em;">{{bad_zip}} Zip files were bad.</small> <br/>
                         {% endif %}
-                        <b>Make Sure you contact the Server Admin to add this Classifier in this web application</b> <br/>
+                        <b>If the Classifier was not added, contact the Server Admin to add this Classifier in this web application</b> <br/>
                         <small>Send a copy of this response</small>
                         <script>
                             window.onbeforeunload = function(){
@@ -26,7 +26,7 @@
                             };
                         </script>
                     {% else %}
-                        <div class="form-group">
+                        <div class="form-group" id="zip-group">
                             <label for="zip" class="col-sm-12 col-md-6 col-form-label">Zip Files*</label>
                             <div class="col-sm-12 col-md-4">
                                 <input type="file" name="zip" id="zip" accept=".zip" multiple required aria-describedby="fileHelp">
@@ -36,7 +36,7 @@
                                 Make sure the zip file name is exactly what you what the model to be called (go, nogo etc.)
                             </small>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="negative-group">
                             <label for="negative" class="col-sm-12 col-md-6 col-form-label">Negative Zip Files</label>
                             <div class="col-sm-12 col-md-4">
                                 <input type="file" name="negative" id="negative" accept=".zip" aria-describedby="negativeHelp">
@@ -46,9 +46,39 @@
                             </small>
                         </div>
                         <div class="form-group">
+                            <label for="justaddit" class="col-sm-12 col-md-6 col-form-label" style="padding-bottom:0;">
+                                <input type="checkbox" name="justaddit" id="justaddit" style="transform: scale(1.3) translate(0px,1px);margin-right: 5px;">
+                                Just Add Classifier Without Training
+                            </label>
+                            <small class="col-sm-12 form-text text-muted" style="margin:0;">
+                                This is only useful if Classifier was already created in IBM Watson and you just want it to be added here
+                            </small>
+                        </div>
+                        <div class="form-group">
                             <label for="name" class="col-sm-5 col-md-4 col-form-label">Classifier Name*</label>
                             <div class="col-sm-12 col-md-4">
                                 <input type="text" placeholder="The name of the new classifier" class="form-control" id="name" name="name" required/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="object_type" class="col-sm-5 col-md-4 col-form-label">Object Type*</label>
+                            <div class="col-sm-12 col-md-4">
+                                <select name="object_type" id="object_type" class="form-control" required>
+                                    {% for object_type in object_types %}
+                                    <option value="{{object_type.id}}">{{object_type.name|title}}</option>
+                                    {% endfor %}
+                                </select>
+                                {% comment %} <input type="text" placeholder="Object Type (e.g. wall, rebar)" class="form-control" id="object_type" name="object_type" required/> {% endcomment %}
+                            </div>
+                            <small class="col-sm-12 form-text text-muted">
+                                Select the Object Type for which to create this classifier. <br/>
+                                To Create new Object Type <a href="{% url 'watson.object.list' %}">Go Here</a>
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="order" class="col-sm-5 col-md-4 col-form-label">Order*</label>
+                            <div class="col-sm-12 col-md-4">
+                                <input type="number" min="0" max="500" placeholder="Order in which training is done. Check and use carefully" class="form-control" id="order" name="order" value="0" required/>
                             </div>
                         </div>
                         <hr/>
@@ -77,6 +107,10 @@
         $('#zip').on('change', getZipCount)
 
         $('#classifier_form').on('submit', function(event){
+            if($('#justaddit').is(":checked")){
+                $('#zip-group').html('');
+                $('#negative-group').html('');
+            }
             Pace.restart()
             $('#classifier_btn').attr('disabled','disabled')
             Swal.fire({
@@ -85,6 +119,18 @@
                 'type':'info',
                 'allowOutsideClick': false
             })
+        })
+
+        $('#justaddit').on('change', function(event){
+            if($('#justaddit').is(":checked")){
+                $('#zip-group').slideUp();
+                $('#zip').removeAttr('required');
+                $('#negative-group').slideUp();
+            }else{
+                $('#zip-group').slideDown();
+                $('#zip').attr('required','required');
+                $('#negative-group').slideDown();
+            }
         })
 
         {% if created %}

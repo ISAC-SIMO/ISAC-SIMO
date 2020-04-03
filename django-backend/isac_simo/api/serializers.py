@@ -79,6 +79,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
                     u = u + 1
                 except Exception as err:
+                    print(err)
                     print('File Failed to Upload - NOT AN IMAGE')
                     e = e + 1
             
@@ -116,7 +117,8 @@ class ImageSerializer(serializers.ModelSerializer):
                     ################
                     test_image(image_obj,validated_data.get('title'),validated_data.get('description'))
                     u = u + 1
-                except:
+                except Exception as err:
+                    print(err)
                     print('File Failed to Upload - NOT AN IMAGE')
                     e = e + 1
             

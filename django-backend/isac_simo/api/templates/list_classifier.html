@@ -1,0 +1,86 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Classifiers List {% endblock title %}
+{% block dashboard_title1 %} Classifiers {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} All Classifiers {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <style>
+        .bs-tooltip-auto[x-placement^=top] .arrow, .bs-tooltip-top .arrow{transform:translate(6px,0)}
+    </style>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-title ml-3 mt-2">
+                    <a href="{% url 'watson.classifier.create' %}"  class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create New Classifier
+                    </a>
+                    <a href="{% url 'watson.classifier' %}"  class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Fetch Classifier Details
+                    </a>
+                    <a href="{% url 'watson.train' %}" style="float:right;"  class="mr-2 btn btn-success">
+                        <i class="fas fa-plus"></i> Re-Train Classifiers
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="classifierTable" class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Object Type</th>
+                                <th>Added By</th>
+                                <th>Added At</th>
+                                <th>Order</th>
+                                {% if user.is_admin %}<th>Actions</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for classifier in classifiers %}
+                                <tr>
+                                    <td title="Given Name: {{classifier.given_name|default:'None'}}">{{classifier.name}}</td>
+                                    <td>{{classifier.object_type.name|title}}</td>
+                                    <td>{{classifier.created_by.full_name|title}}</td>
+                                    <td>{{classifier.created_at}}</td>
+                                    <td>{{classifier.order}}</td>
+                                    {% if user.is_admin %}
+                                    <td class="table-options" style="min-width: 95px;">
+                                        <a onclick="deleteDataWriteConfirm(event, 'classifiers-{{ classifier.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.delete' classifier.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-trash text-danger"></i>
+                                        </a>
+                                        <a onclick="Swal.fire('{{classifier.classes}}')" title="Classes" data-toggle="tooltip" data-placement="left" href="#!" class="btn text-secondary px-0">
+                                            <i class="fa fa-info text-info"></i>
+                                        </a>
+                                        <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.edit' classifier.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-edit text-info"></i>
+                                        </a>
+                                        <form action="{% url 'watson.classifier.delete' classifier.id %}" id="classifiers-{{ classifier.id }}" class="d-inline">
+                                            {% csrf_token %}
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody> 
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(function () {
+          $('#classifierTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [],
+          });
+        });
+    </script>
+{% endblock script %}

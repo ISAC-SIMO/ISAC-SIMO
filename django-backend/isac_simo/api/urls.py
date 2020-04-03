@@ -15,10 +15,18 @@ urlpatterns = [
     path('image/image_file/verify/<int:id>', views.verifyImageFile, name="images.image_file.verify"),
 
     # Watson
-    path('watson/train', views.watsonTrain, name="watson.train"),
-    path('watson/classifier', views.watsonClassifier, name="watson.classifier"),
+    # -----------
+    path('watson/classifier', views.watsonClassifierList, name="watson.classifier.list"),
     path('watson/classifier/create', views.watsonClassifierCreate, name="watson.classifier.create"),
-    path('watson/object', views.watsonObject, name="watson.object"),
+    path('watson/classifier/delete/<int:id>', views.watsonClassifierDelete, name="watson.classifier.delete"),
+    path('watson/classifier/edit/<int:id>', views.watsonClassifierEdit, name="watson.classifier.edit"),
+    path('watson/classifier/detail', views.watsonClassifier, name="watson.classifier"),
+    path('watson/classifier/train', views.watsonTrain, name="watson.train"), # train or re-train
+    # -----------
+    path('watson/object/list', views.watsonObjectList, name="watson.object.list"),
+    path('watson/object/create', views.watsonObjectCreate, name="watson.object.create"),
+    path('watson/object/delete/<int:id>', views.watsonObjectDelete, name="watson.object.delete"),
+    path('watson/object/detail', views.watsonObject, name="watson.object"), # fetch from ibm details
 
     # Other Misc. Actions
     path('misc/clean/temp', views.cleanTemp, name="watson.cleantemp"),
