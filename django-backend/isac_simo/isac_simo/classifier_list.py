@@ -36,6 +36,7 @@ def data():
         return classifier_list
     except Exception as e:
         #########
+        print(e)
         print('Classifier List throwing Model exception - IF KEEPS REPEATING IT IS A BIG DEAL (Once is OK)')
         return classifier_list
 

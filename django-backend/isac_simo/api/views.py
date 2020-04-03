@@ -315,7 +315,10 @@ def watsonTrain(request):
                 for chunk in image.chunks():
                     destination.write(chunk)
                 destination.close()
-                image_file_list = image_file_list + [os.path.join('media/temp/', filename)]
+                if not os.path.exists(os.path.join('media/temp/', filename)):
+                    image_file_list = image_file_list + [os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename]
+                else:
+                    image_file_list = image_file_list + [os.path.join('media/temp/', filename)]
                 zipped += 1
                 # print(image_file_list)
 
@@ -497,7 +500,11 @@ def watsonObjectDelete(request, id):
 # Clean Temporary Files #
 @user_passes_test(is_admin, login_url=login_url)
 def cleanTemp(request):
-    files = glob.glob(os.path.join('media/temp/*'))
+    files = []
+    if not os.path.exists(os.path.join('media/temp/*')):
+        files = glob.glob(os.environ.get('PROJECT_FOLDER','') + '/media/temp/*')
+    else:
+        files = glob.glob(os.path.join('media/temp/*'))
     count = 0
     for f in files:
         if "temp" in f:
@@ -511,7 +518,11 @@ def cleanTemp(request):
 # Count Total Image Files #
 @user_passes_test(is_admin, login_url=login_url)
 def countImage(request):
-    files = glob.glob(os.path.join('media/image/*'))
+    files = []
+    if not os.path.exists(os.path.join('media/image/*')):
+        files = glob.glob(os.environ.get('PROJECT_FOLDER','') + '/media/image/*')
+    else:
+        files = glob.glob(os.path.join('media/image/*'))
     count = 0
     for f in files:
         count += 1

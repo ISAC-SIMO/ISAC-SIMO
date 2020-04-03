@@ -199,6 +199,8 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                             # Save the video to temp folder
                             filename = '{}.{}'.format(uuid.uuid4().hex, kind.extension)
                             saveto = os.path.join('media/temp/', filename)
+                            if not os.path.exists(os.path.join('media/temp/', filename)):
+                                saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
                             fout = open(saveto, 'wb+')
                             # Iterate through the chunks and write to the file
                             for chunk in video_file.chunks():
@@ -206,7 +208,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                             fout.close()
                             print(filename)
                             # To Capture the frames use cv2
-                            vidcap = cv2.VideoCapture(os.path.join('media/temp/', filename))
+                            vidcap = cv2.VideoCapture(saveto)
                             sec = 0
                             frameRate = 2 # it will capture image in each 2 second
                             success = self.getFrame(vidcap,count,sec,image) # Get frame self function made above
