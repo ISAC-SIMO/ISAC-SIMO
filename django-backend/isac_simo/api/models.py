@@ -46,7 +46,7 @@ class ImageFile(models.Model):
         return self.file.url
 
 class ObjectType(models.Model):
-    name = models.CharField(max_length=500, unique=True)
+    name = models.CharField(max_length=200, unique=True)
     created_by = models.ForeignKey(User, related_name='object_types', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
