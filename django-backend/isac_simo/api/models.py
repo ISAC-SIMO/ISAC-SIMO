@@ -55,9 +55,9 @@ class ObjectType(models.Model):
         return self.name
 
 class Classifier(models.Model):
-    name = models.CharField(max_length=500)
-    given_name = models.CharField(max_length=500, blank=True, null=True)
-    classes = models.CharField(max_length=500, blank=True, null=True)
+    name = models.CharField(max_length=200)
+    given_name = models.CharField(max_length=200, blank=True, null=True)
+    classes = models.CharField(max_length=200, blank=True, null=True)
     object_type = models.ForeignKey(ObjectType, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
     order = models.IntegerField("Order", default=0, blank=False, null=False)
     created_by = models.ForeignKey(User, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)

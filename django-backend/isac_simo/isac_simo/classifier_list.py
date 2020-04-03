@@ -1,6 +1,9 @@
 from django.db.models import Prefetch
-
-from api.models import Classifier, ObjectType
+try:
+    from api.models import Classifier, ObjectType
+except ImportError as e:
+    print(e)
+    print('Classifier list model import error')
 
 # LIST OF CLASSIFIERS PIPELINE PASSES THORUGH (IN CASE OF NOGO FOR EXAMPLE)
 # NEEDS TO BE CHANGED AS REQUIRED - IN SERVER, PRODUCTION, STAGE as required
