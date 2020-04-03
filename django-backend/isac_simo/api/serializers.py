@@ -192,44 +192,50 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                 try:
                     # Trying the guess the file type (to verify video)
                     kind = filetype.guess(video_file)
+                    filename = None
+
                     if kind is None:
-                        print('Cannot guess file type of video!')
-                        e = e + 1
+                        print('Cannot guess file type of video (assuming mp4 just cause, 50% video are kind less with this package)!')
+                        filename = '{}.{}'.format(uuid.uuid4().hex, 'mp4')
                     else:
                         print('File extension: %s' % kind.extension)
-                        # print('File MIME type: %s' % kind.mime)
                         if(kind.extension in ['mp4','mkv','flv','m4v','webm','mov','avi','wmv','mpg']):
                             # Save the video to temp folder
                             filename = '{}.{}'.format(uuid.uuid4().hex, kind.extension)
-                            saveto = os.path.join('media/temp/', filename)
-                            if not os.path.exists(os.path.join('media/temp/', filename)):
-                                saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
-                            fout = open(saveto, 'wb+')
-                            # Iterate through the chunks and write to the file
-                            for chunk in video_file.chunks():
-                                fout.write(chunk)
-                            fout.close()
-                            print(filename)
-                            # To Capture the frames use cv2
-                            vidcap = cv2.VideoCapture(saveto)
-                            sec = 0
-                            frameRate = 2 # it will capture image in each 2 second
-                            success = self.getFrame(vidcap,count,sec,image) # Get frame self function made above
-                            while success:
-                                if count >= 10: ###### Max 10 images from one video ######
-                                    break
-                                count = count + 1
-                                sec = sec + frameRate
-                                sec = round(sec, 2)
-                                success = self.getFrame(vidcap,count,sec,image) # Get frame self function made above
-
-                            u = u + 1
-                            # Destroy/Close Video and remove from temp
-                            cv2.destroyAllWindows()
-                            vidcap.release()
-                            os.remove(saveto)
                         else:
-                            print('Not Valid file video extension.')
+                            print('Not Valid file video extension as filetype check in array of extension.')
+                            e = e + 1
+
+                    if filename:
+                        saveto = os.path.join('media/temp/', filename)
+                        if not os.path.exists(os.path.join('media/temp/', filename)):
+                            saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+                        fout = open(saveto, 'wb+')
+                        # Iterate through the chunks and write to the file
+                        for chunk in video_file.chunks():
+                            fout.write(chunk)
+                        fout.close()
+                        print(filename)
+                        # To Capture the frames use cv2
+                        vidcap = cv2.VideoCapture(saveto)
+                        sec = 0
+                        frameRate = 2 # it will capture image in each 2 second
+                        success = self.getFrame(vidcap,count,sec,image) # Get frame self function made above
+                        while success:
+                            if count >= 10: ###### Max 10 images from one video ######
+                                break
+                            count = count + 1
+                            sec = sec + frameRate
+                            sec = round(sec, 2)
+                            success = self.getFrame(vidcap,count,sec,image) # Get frame self function made above
+
+                        u = u + 1
+                        # Destroy/Close Video and remove from temp
+                        cv2.destroyAllWindows()
+                        vidcap.release()
+                        os.remove(saveto)
+                    else:
+                        e = e + 1
                 except Exception as err:
                     print(err)
                     print('File Failed to Upload - Something went wrong while processing image.')
