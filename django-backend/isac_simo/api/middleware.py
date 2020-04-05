@@ -10,7 +10,7 @@ class MaintenanceMode(object):
         self.get_response = get_response
 
     def __call__(self, request):
-        if (hasattr(settings, 'MAINTENANACE') and settings.MAINTENANACE) or ("MAINTENANACE" in os.environ and os.getenv('MAINTENANACE') == 'True'):
+        if (hasattr(settings, 'MAINTENANCE') and settings.MAINTENANCE) or ("MAINTENANCE" in os.environ and os.getenv('MAINTENANCE') == 'True'):
             if '/api/' in str(request.build_absolute_uri()):
                 return JsonResponse({'status':'false','message':'Maintenance Mode is active. Try later.'}, status=503)
             else:
@@ -18,5 +18,6 @@ class MaintenanceMode(object):
 
         return self.get_response(request)
 
+    # To ignore and throw default exception for any errpr
     # def process_exception(self, request, exception):
     #     return HttpResponse(exception)

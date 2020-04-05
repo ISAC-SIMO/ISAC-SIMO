@@ -234,4 +234,5 @@ def pull(request):
         subprocess.call(path, shell=True)
         return JsonResponse({'status':'ok'}, status=200)
 
+    print('--~~ PULL FAILED ~~--')
     return JsonResponse({'status':'bad'}, status=404)

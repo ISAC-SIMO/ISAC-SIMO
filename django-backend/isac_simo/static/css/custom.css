@@ -27,3 +27,5 @@ body::-webkit-scrollbar{width:.6em}body::-webkit-scrollbar-track{-webkit-box-sha
 .swal2-label{display: block;margin: 0;text-align: left;font-size:0.8em;}
 .map-image-num{padding: 2px 5px;display: inline-block;margin-bottom: 3px;background: #4e4e4e;margin-right: 3px;color: white !important;font-weight: 700;}
 .corner-star{position: absolute;right: 8px;font-size: 0.8em;top: 8px;color: #ffb600;opacity: 1;transform: none;visibility: visible;z-index: 2;}
+.number-btn{padding:0 6px;display: inline-block;margin-right:2px;margin-bottom:5px;background:#fff;width: 30px;text-align:center;}
+.number-btn:focus{box-shadow: 0 0 5px 2px rgba(100,60,200,0.7) !important;}

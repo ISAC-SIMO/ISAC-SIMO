@@ -52,7 +52,10 @@
                                             <i class="fa fa-info text-info"></i>
                                         </a>
                                         <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.edit' classifier.id %}" class="btn text-secondary px-0">
-                                            <i class="fa fa-edit text-info"></i>
+                                            <i class="far fa-edit text-info"></i>
+                                        </a>
+                                        <a title="Test Image" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.edit' classifier.id %}" class="btn text-secondary px-0">
+                                            <i class="far fa-file-image text-secondary"></i>
                                         </a>
                                         <form action="{% url 'watson.classifier.delete' classifier.id %}" id="classifiers-{{ classifier.id }}" class="d-inline">
                                             {% csrf_token %}

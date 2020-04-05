@@ -205,6 +205,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                         else:
                             print('Not Valid file video extension as filetype check in array of extension.')
                             e = e + 1
+                            continue
 
                     if filename:
                         saveto = os.path.join('media/temp/', filename)
