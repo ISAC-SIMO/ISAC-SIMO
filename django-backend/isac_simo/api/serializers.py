@@ -159,8 +159,12 @@ class VideoFrameSerializer(serializers.ModelSerializer):
         if hasFrames:
             filename = '{}.{}'.format(uuid.uuid4().hex, 'jpg')
             saveto = os.path.join('media/image/', filename)
-            if not os.path.exists(os.path.join('media/image/', filename)):
+            saveto = None
+            if not os.path.exists(os.path.join('media/image/')):
                 saveto = os.environ.get('PROJECT_FOLDER','') + '/media/image/'+filename
+            else:
+                saveto = os.path.join('media/image/', filename)
+
             cv2.imwrite(saveto, image) # save frame as JPG file
             image_obj = ImageFile.objects.create(image=image_model, file=str(os.path.join('media/image/', filename)).replace('media/',''))
             ################
@@ -209,8 +213,12 @@ class VideoFrameSerializer(serializers.ModelSerializer):
 
                     if filename:
                         saveto = os.path.join('media/temp/', filename)
-                        if not os.path.exists(os.path.join('media/temp/', filename)):
+                        saveto = None
+                        if not os.path.exists(os.path.join('media/temp/')):
                             saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+                        else:
+                            saveto = os.path.join('media/temp/', filename)
+                            
                         fout = open(saveto, 'wb+')
                         # Iterate through the chunks and write to the file
                         for chunk in video_file.chunks():

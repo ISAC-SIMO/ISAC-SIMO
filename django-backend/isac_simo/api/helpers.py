@@ -49,9 +49,15 @@ def detect_image(image_file):
         temp = temp.resize((basewidth,hsize), Image.ANTIALIAS)
         ext = image_file.file.url.split('.')[-1]
         filename = '{}.{}'.format(uuid.uuid4().hex, ext)
-        saveto = os.path.join('media/temp/', filename)
-        if not os.path.exists(os.path.join('media/temp/', filename)):
+
+        saveto = None
+        if not os.path.exists(os.path.join('media/temp/')):
             saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+        else:
+            saveto = os.path.join('media/temp/', filename)
+
+        print(saveto)
+        
         temp.save(saveto)
         resized_image_open = open(saveto, 'rb')
         
@@ -260,8 +266,13 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
         # ZIP THE IMAGES #
         filename = '{}.{}'.format(uuid.uuid4().hex, 'zip')
         zipPath = os.path.join('media/temp/', filename)
-        if not os.path.exists(os.path.join('media/temp/', filename)):
+
+        if not os.path.exists(os.path.join('media/temp/')):
             zipPath = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+        else:
+            zipPath = os.path.join('media/temp/', filename)
+
+        print(zipPath)
         zipObj = ZipFile(zipPath, 'w')
         # Add multiple files to the zip
         for image_file in image_file_list:

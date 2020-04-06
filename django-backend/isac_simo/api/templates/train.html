@@ -91,7 +91,12 @@
                 event.preventDefault()
             }else{
                 $('#retrain_btn').attr('disabled','disabled')
-                $('#retrain_form').submit()
+                Swal.fire({
+                    'title':'Sending Images to retrain the classifier',
+                    'html':'Do not close this window until response is received, It might take some time depending on the size and amount of images.',
+                    'type':'info',
+                    'allowOutsideClick': false
+                })
             }
         })
     </script>

@@ -316,19 +316,20 @@ def watsonTrain(request):
                 for chunk in image.chunks():
                     destination.write(chunk)
                 destination.close()
-                if not os.path.exists(os.path.join('media/temp/', filename)):
+                if not os.path.exists(os.path.join('media/temp/')):
                     image_file_list = image_file_list + [os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename]
                 else:
                     image_file_list = image_file_list + [os.path.join('media/temp/', filename)]
                 zipped += 1
                 # print(image_file_list)
 
-        # Although, we have "model" in request we are not using it. i.e. all images are re-trained in all models of object type given
+        # we have "model" in request. If Model is all or not provided then all images are re-trained in all classifiers of object type given, else only on selected classifier (it is the last parameter in retrain function)
         if zipped >= 10 and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
             retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False))
             print(retrain_status)
             if retrain_status:
                 messages.success(request,str(zipped) + ' images zipped and was sent to retrain. (Retraining takes time)')
+                messages.info(request,'Object: '+request.POST.get('object')+' , Classifier: '+request.POST.get('model')+' , Result: '+request.POST.get('result'))
             else:
                 messages.error(request,str(zipped) + ' images zipped but failed to retrain')
         else:
