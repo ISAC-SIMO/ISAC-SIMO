@@ -48,7 +48,7 @@
                                         <a onclick="deleteDataWriteConfirm(event, 'classifiers-{{ classifier.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.delete' classifier.id %}" class="btn text-secondary px-0">
                                             <i class="fa fa-trash text-danger"></i>
                                         </a>
-                                        <a onclick="Swal.fire('{{classifier.classes}}')" title="Classes" data-toggle="tooltip" data-placement="left" href="#!" class="btn text-secondary px-0">
+                                        <a onclick="Swal.fire("{{classifier.classes}}")" title="Classes" data-toggle="tooltip" data-placement="left" href="#!" class="btn text-secondary px-0">
                                             <i class="fa fa-info text-info"></i>
                                         </a>
                                         <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'watson.classifier.edit' classifier.id %}" class="btn text-secondary px-0">

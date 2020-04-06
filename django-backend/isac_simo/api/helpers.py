@@ -2,15 +2,18 @@ import base64
 import json
 import os
 import uuid
-import filetype
 from importlib import reload
 from zipfile import ZipFile
 
+import filetype
 import requests
 from django.conf import settings
-from watson_developer_cloud import VisualRecognitionV3
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
+from watson_developer_cloud import VisualRecognitionV3
+
 import isac_simo.classifier_list as classifier_list
+
 
 def reload_classifier_list():
     try:
@@ -198,6 +201,7 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
         return False
 
 def quick_test_image(image_file, classifier_ids):
+    image_file_path = None
     if ( settings.IBM_API_KEY and classifier_ids and image_file):
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
@@ -206,8 +210,13 @@ def quick_test_image(image_file, classifier_ids):
         print(auth_base)
 
         post_header = {'Accept':'application/json','Authorization':auth_base}
+        
+        if type(image_file) is InMemoryUploadedFile:
+            image_file_path = image_file.open()
+        else:
+            image_file_path = open(image_file.temporary_file_path(), 'rb')
 
-        image_file_path = open(image_file.temporary_file_path(), 'rb')
+        print(image_file_path)
         
         post_files = {
             'images_file': image_file_path,
@@ -221,6 +230,7 @@ def quick_test_image(image_file, classifier_ids):
         except ValueError:
             # IBM Response is BAD
             print('IBM Response was BAD - (e.g. image too large)')
+            image_file_path.close()
             return False
         
         print(status)
@@ -230,9 +240,11 @@ def quick_test_image(image_file, classifier_ids):
             if(content['images'][0]['classifiers'][0]['classes']):
                 sorted_by_score = sorted(content['images'][0]['classifiers'][0]['classes'], key=lambda k: k['score'], reverse=True)
                 print(sorted_by_score)
+                image_file_path.close()
                 return {'data':sorted_by_score, 'score':sorted_by_score[0]['score'], 'result':sorted_by_score[0]['class']}
             else:
                 print('NO DATA')
+                image_file_path.close()
                 return False
     else:
         print('FAILED TO TEST CLASSIFIER by Admin - Check Token, Classifier ids is ready and file existence is upload temp file.')
@@ -343,13 +355,23 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                     print('Zip file has no name, weird but true!')
                     bad_zip += 1
                 else:
-                    x = open(zip_file.temporary_file_path(), 'rb')
+                    x = None
+                    if type(zip_file) is InMemoryUploadedFile:
+                        x = zip_file.open()
+                    else:
+                        x = open(zip_file.temporary_file_path(), 'rb')
+                        
                     post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
         
         print(post_files)
 
         if negative_zip:
-            x = open(negative_zip.temporary_file_path(), 'rb')
+            x = None
+            if type(negative_zip) is InMemoryUploadedFile:
+                x = negative_zip.open()
+            else:
+                x = open(negative_zip.temporary_file_path(), 'rb')
+            
             post_files['negative_examples'] = x
 
         print(post_files)
