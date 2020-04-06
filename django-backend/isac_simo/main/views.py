@@ -35,7 +35,7 @@ def index(request):
 
 @login_required
 def home(request):
-    reload_classifier_list()
+    # reload_classifier_list()
     if(is_admin(request.user)):
         images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
         image_files_count = ImageFile.objects.filter(tested=True).count()

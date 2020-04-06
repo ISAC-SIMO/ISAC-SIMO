@@ -3,9 +3,9 @@ import io
 import json
 import os
 import uuid
-from importlib import reload
 from datetime import datetime
 from http.client import HTTPResponse
+from importlib import reload
 
 import filetype
 from django.conf import settings
@@ -22,18 +22,19 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+import isac_simo.classifier_list as classifier_list
 from api.helpers import (classifier_detail, create_classifier, object_detail,
-                         retrain_image, test_image)
+                         quick_test_image, retrain_image, test_image)
 from api.models import Classifier, ObjectType
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
-import isac_simo.classifier_list as classifier_list
 from main import authorization
 from main.authorization import *
 from main.models import User
 
 from .forms import ImageForm
 from .models import Image, ImageFile
+
 
 def reload_classifier_list():
     try:
@@ -447,6 +448,31 @@ def watsonClassifierDelete(request, id):
     else:
         messages.success(request, 'Classifier Not Deleted')
         return redirect('watson.classifier.list')
+
+# Watson Classifier Test - Simple image test
+@user_passes_test(is_admin, login_url=login_url)
+def watsonClassifierTest(request, id):
+    if(request.method == "POST"):
+        try:
+            classifier = Classifier.objects.get(id=id)
+            quick_test_image_result = quick_test_image(request.FILES.get('file', False), classifier.name)
+            if quick_test_image_result:
+                request.session['test_result'] = json.dumps(quick_test_image_result.get('data','No Test Data'), indent=4)
+                messages.success(request, 'Classifier Test Success. Score: '+str(quick_test_image_result.get('score','0'))+' and Class: '+quick_test_image_result.get('result','Not Found'))
+            else:
+                messages.error(request, 'Unable to Test (Make sure Classifier is valid and is in ready state)')
+
+            return redirect('watson.classifier.test', id=id)
+        except(Classifier.DoesNotExist):
+            messages.success(request, 'Classifier Not Found')
+            return redirect('watson.classifier.list')
+    elif(request.method == "GET"):
+        classifier = Classifier.objects.get(id=id)
+        test_result = request.session.pop('test_result', False)
+        return render(request, 'test_classifier.html', {'classifier':classifier, 'test_result':test_result})
+    else:
+        messages.success(request, 'Bad Request for CLassifier Test')
+        return redirect('watson.classifier.test')
 
 # Watson object detail fetch from ibm
 @user_passes_test(is_admin, login_url=login_url)

@@ -20,6 +20,7 @@ urlpatterns = [
     path('watson/classifier/create', views.watsonClassifierCreate, name="watson.classifier.create"),
     path('watson/classifier/delete/<int:id>', views.watsonClassifierDelete, name="watson.classifier.delete"),
     path('watson/classifier/edit/<int:id>', views.watsonClassifierEdit, name="watson.classifier.edit"),
+    path('watson/classifier/test/<int:id>', views.watsonClassifierTest, name="watson.classifier.test"),
     path('watson/classifier/detail', views.watsonClassifier, name="watson.classifier"),
     path('watson/classifier/train', views.watsonTrain, name="watson.train"), # train or re-train
     # -----------

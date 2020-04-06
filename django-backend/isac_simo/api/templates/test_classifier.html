@@ -1,0 +1,58 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Test Classifier {% endblock title %}
+{% block dashboard_title1 %} Test Classifier {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Test Classifier {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.classifier.test' classifier.id %}" id="classifier_form" method="POST" class="col-12" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    {% if test_result %}
+                        <hr/>
+                        <pre style="border-left: 2px solid salmon;">{{test_result|default:'No Data'}}</pre>
+                        <hr/>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="name" class="col-sm-5 col-md-4 col-form-label">Classifier Name:</label>
+                        <div class="col-sm-12 col-md-4">
+                            <h5>{{classifier.name}}</h5>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="name" class="col-sm-5 col-md-4 col-form-label">Object Type:</label>
+                        <div class="col-sm-12 col-md-4">
+                            <h5>{{classifier.object_type.name|title}}</h5>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="file" class="col-sm-5 col-md-4 col-form-label">Image*</label>
+                        <div class="col-sm-12 col-md-4">
+                            <input type="file" id="file" name="file" required accept="image/x-png,image/jpeg"/>
+                        </div>
+                    </div>
+                    <small class="col-sm-12 form-text text-muted">
+                        Make sure the Status for this classifier is "ready" <a href="{% url 'watson.classifier' %}">in here</a>.
+                    </small>
+                    <hr/>
+                    <div class="form-group">
+                        <button type="submit" id="classifier_btn" class="ml-2 btn btn-primary">Test Classifier</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $('#classifier_form').on('submit', function(event){
+            Pace.restart()
+            $('#classifier_btn').attr('disabled','disabled')
+        })
+    </script>
+{% endblock script %}

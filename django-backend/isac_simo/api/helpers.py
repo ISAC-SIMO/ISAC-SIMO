@@ -197,6 +197,47 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False
 
+def quick_test_image(image_file, classifier_ids):
+    if ( settings.IBM_API_KEY and classifier_ids and image_file):
+        # Authenticate the IBM Watson API
+        api_token = str(settings.IBM_API_KEY)
+        post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
+        auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
+        print(auth_base)
+
+        post_header = {'Accept':'application/json','Authorization':auth_base}
+
+        image_file_path = open(image_file.temporary_file_path(), 'rb')
+        
+        post_files = {
+            'images_file': image_file_path,
+        }
+
+        # Call the API
+        response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v3/classify?version=2018-03-19', files=post_files, headers=post_header, data=post_data)
+        status = response.status_code
+        try:
+            content = response.json()
+        except ValueError:
+            # IBM Response is BAD
+            print('IBM Response was BAD - (e.g. image too large)')
+            return False
+        
+        print(status)
+        print(content)
+        # If success save the data
+        if(status == 200 or status == '200' or status == 201 or status == '201'):
+            if(content['images'][0]['classifiers'][0]['classes']):
+                sorted_by_score = sorted(content['images'][0]['classifiers'][0]['classes'], key=lambda k: k['score'], reverse=True)
+                print(sorted_by_score)
+                return {'data':sorted_by_score, 'score':sorted_by_score[0]['score'], 'result':sorted_by_score[0]['class']}
+            else:
+                print('NO DATA')
+                return False
+    else:
+        print('FAILED TO TEST CLASSIFIER by Admin - Check Token, Classifier ids is ready and file existence is upload temp file.')
+        return False
+
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
