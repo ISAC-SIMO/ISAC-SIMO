@@ -1,7 +1,11 @@
 from django import forms
-from .models import Projects
 from django.db import models
+from django.forms.widgets import Textarea
+
 from main.models import User
+
+from .models import Projects
+
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -12,9 +16,9 @@ class ProjectForm(forms.ModelForm):
             'project_desc': 'Description',
             'image': "Project Image",
         }
+        widgets = {
+          'project_desc': Textarea(attrs={'rows':4, 'cols':20}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(ProjectForm, self).__init__(*args, **kwargs)
-        #self.fields['position'].empty_label = "Select Position"
-        #self.fields['emp_code'].required = False
-        # self.fields['image'].required = False

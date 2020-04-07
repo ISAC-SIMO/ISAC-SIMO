@@ -41,6 +41,20 @@
                                 <button type="submit" class="btn btn-success">Add Project</button>
                               {% endif %}  
                         </form>
+
+                        {% if request.resolver_match.url_name == 'updateproject' %}
+                          <hr/>
+                          <h4>Users Linked to this Project</h4>
+                          {% if project.users.all %}
+                            <ul>
+                            {% for user in project.users.all %}
+                              <li><a href="{% url 'update_user' user.id %}">{{user.full_name|title}}</a></li>
+                            {% endfor %}
+                            <ul>
+                          {% else %}
+                            No Users for this project yet !!
+                          {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

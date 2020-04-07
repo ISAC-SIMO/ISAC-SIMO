@@ -46,7 +46,7 @@ class AdminRegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type')
+        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type', 'projects')
         labels = {
             'email': 'Email',
             'full_name': 'Full Name',
@@ -54,6 +54,9 @@ class AdminRegisterForm(UserCreationForm):
             'password1': 'Password',
             'password2': 'Confirm Password',
             'user_type': 'User Type'
+        }
+        widgets = {
+            'projects': forms.CheckboxSelectMultiple(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -70,7 +73,7 @@ class AdminEditForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type','active')
+        fields = ('email', 'full_name', 'image', 'password1', 'password2', 'user_type', 'projects', 'active')
         labels = {
             'email': 'Email',
             'full_name': 'Full Name',
@@ -79,6 +82,9 @@ class AdminEditForm(UserCreationForm):
             'password2': 'Confirm Password',
             'user_type': 'User Type'
         }
+        widgets = {
+            'projects': forms.CheckboxSelectMultiple(),
+        }
 
     def __init__(self, *args, **kwargs):
         super(AdminEditForm, self).__init__(*args, **kwargs)
@@ -86,6 +92,10 @@ class AdminEditForm(UserCreationForm):
         self.fields['password1'].required = False
         self.fields['password2'].required = False
         self.fields['user_type'].help_text = 'Choose User Type Wisely'
+        self.fields['projects'].help_text = 'Assign to Multiple Projects (User can view or take action depending on the projects they are assigned on)'
+        if self.instance and self.instance.user_type == 'admin':
+            self.fields['user_type'].help_text = 'Choose User Type Wisely (This user is currently admin)'
+            del self.fields['projects']
 
 class ProfileForm(UserCreationForm):
     email = forms.EmailField()

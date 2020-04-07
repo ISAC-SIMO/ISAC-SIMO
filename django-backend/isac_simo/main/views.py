@@ -147,7 +147,7 @@ def logout_user(request):
 
 @user_passes_test(is_admin, login_url=login_url)
 def list_all_users(request):
-    users = User.objects.all().order_by('-active')
+    users = User.objects.all().order_by('-active').prefetch_related('projects')
     return render(request, 'users/allusers.html',{'users':users})
 
 # Add Users via Admin Panel Dashboard
@@ -165,7 +165,9 @@ def admin_userAddForm(request, id=0):
             form = AdminRegisterForm(request.POST or None, request.FILES or None)
 
             if form.is_valid():
-                form.save()
+                instance = form.save(commit=False)
+                instance.save()
+                form.save_m2m()
                 messages.success(request, "User Added Successfully!")
             else:
                 return render(request, "users/admin_register.html", {"form": form})
@@ -174,6 +176,7 @@ def admin_userAddForm(request, id=0):
             updateUser.email = request.POST.get('email')
             updateUser.full_name = request.POST.get('full_name')
             updateUser.user_type = request.POST.get('user_type')
+            updateUser.projects.set(Projects.objects.filter(id__in=request.POST.getlist('projects')))
 
             password1 = request.POST.get('password1') 
             password2 = request.POST.get('password2')
@@ -194,7 +197,7 @@ def admin_userAddForm(request, id=0):
                     updateUser.set_password(password1)
             else:
                 if password1 or password2:
-                    messages.info(request, "Fill up password in bsoth the fields")
+                    messages.info(request, "Fill up password in both the fields")
                     return redirect(request.META['HTTP_REFERER'])
 
             if request.POST.get('active', False):
@@ -202,7 +205,7 @@ def admin_userAddForm(request, id=0):
             else:
                 updateUser.active = False
             updateUser.save()
-            messages.info(request,"User Record Updated Successfully!")
+            messages.info(request,"User Record Updated Successfully for "+updateUser.full_name+"!")
 
         return redirect("allusers")
 

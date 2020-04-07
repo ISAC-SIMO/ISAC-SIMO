@@ -1,9 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-import uuid
 import os
+import uuid
+
 from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.db import models
 from django.utils.deconstruct import deconstructible
+
+from projects.models import Projects
 
 USER_TYPE = [
     ('user', "User"),
@@ -64,6 +67,7 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add = True)
     image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png', blank=True)
+    projects = models.ManyToManyField('projects.Projects', blank=True, related_name='users')
 
     USERNAME_FIELD='email'
     REQUIRED_FIELDS = []
@@ -80,6 +84,9 @@ class User(AbstractBaseUser):
     
     def get_full_name(self):
         return self.full_name
+
+    def get_project_list(self):
+        return "<br/> ".join(list(map(lambda x: '⮞ '+x.project_name, self.projects.all())))
 
     def has_perm(self, perm, obj=None):
         return True

@@ -44,7 +44,7 @@ def addProject(request, id = 0):
 @user_passes_test(is_admin, login_url=login_url)
 def editProject(request, id=0):
     try:
-        project = Projects.objects.get(id=id)
+        project = Projects.objects.filter(id=id).prefetch_related('users').get()
 
         if request.method == "GET":
             form = ProjectForm(instance=project)
