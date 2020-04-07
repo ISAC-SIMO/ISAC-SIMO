@@ -380,7 +380,7 @@ def watsonClassifierCreate(request):
         if request.POST.get('justaddit', False) and request.POST.get('name'):
             created = {'data':{'classifier_id':request.POST.get('name'),'name':request.POST.get('name'),'classes':[]}}
         else:
-            created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'), request.POST.get('object_type'))
+            created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'), request.POST.get('object_type'), request.POST.get('process', False))
         
         bad_zip = 0
         if created:

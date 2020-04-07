@@ -13,6 +13,8 @@ from PIL import Image
 from watson_developer_cloud import VisualRecognitionV3
 
 import isac_simo.classifier_list as classifier_list
+import cv2
+import pathlib
 
 
 def reload_classifier_list():
@@ -344,7 +346,7 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
 #################################################
 # Create New classifier
 # User uploades proper zip file with classifier name
-def create_classifier(zip_file_list, negative_zip=False, name=False, object_type=False):
+def create_classifier(zip_file_list, negative_zip=False, name=False, object_type=False, process=False):
     # IF IBM KEY is provided (also check zip_file_list is ok)
     if ( settings.IBM_API_KEY and zip_file_list and name and object_type ):
         # Authenticate the IBM Watson API
@@ -354,8 +356,14 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
         post_header = {'Accept':'application/json','Authorization':auth_base}
         post_files = {}
         bad_zip = 0
+        all_unzipped_images = []
+        all_zipped_image = []
+        all_custom_zip = []
+        files_left_to_close = []
+        x = None # ZIP FILE OPEN VARIABLE
 
         for zip_file in zip_file_list:
+            all_unzipped_images = []
             kind = filetype.guess(zip_file)
             if kind is None or kind.extension != 'zip' :
                 print(kind.extension)
@@ -366,13 +374,93 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                     print('Zip file has no name, weird but true!')
                     bad_zip += 1
                 else:
-                    x = None
                     if type(zip_file) is InMemoryUploadedFile:
                         x = zip_file.open()
                     else:
                         x = open(zip_file.temporary_file_path(), 'rb')
+                    
+                    # IF REQUEST CAME ALONG TO PROCESS THE IMAGES i.e. rotate h,v,-1 and zip them all
+                    if process:
+                        print('--CREATE CLASSIFIER PROCESS IMAGE AND ZIP')
+                        ######
+                        z = ZipFile(x)
                         
-                    post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
+                        for zipinfo in z.infolist():
+                            ext = pathlib.Path(zipinfo.filename).suffix if pathlib.Path(zipinfo.filename).suffix else '.jpg'
+                            filename = '{}{}'.format(uuid.uuid4().hex, ext)
+
+                            saveto = None
+                            if not os.path.exists(os.path.join('media/temp/')):
+                                saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'
+                            else:
+                                saveto = os.path.join('media/temp/')
+
+                            zipinfo.filename = filename
+                            extracted = z.extract(zipinfo, saveto)
+
+                            if extracted:
+                                img = cv2.imread(saveto + filename)
+                                all_unzipped_images.append(saveto + filename)
+
+                                # 0 = horizontal
+                                # 1 = vertical
+                                # -1 = both way aka inverse
+                                print('TRANSFORMING IMAGES---')
+                                for i in [0,1,-1]:
+                                    t_image = cv2.flip( img, i )
+                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                                    cv2.imwrite(saveto + filename, t_image) # save frame as IMAGE file
+                                    all_unzipped_images.append(saveto + filename)
+                        
+                        # AFTER ALL ARE PROCESSED AND ZIP in ONE zip file
+                        print(all_unzipped_images)
+                        # IF PROCESSED IMAGES EXISTS THEN ZIP THEM AND SEND TO post_files
+                        if all_unzipped_images and process:
+                            zipObj = None
+                            zipPath = None
+                            try:
+                                # ZIP THE IMAGES #
+                                filename = '{}.{}'.format(uuid.uuid4().hex, 'zip')
+                                zipPath = os.path.join('media/temp/', filename)
+
+                                if not os.path.exists(os.path.join('media/temp/')):
+                                    zipPath = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+                                else:
+                                    zipPath = os.path.join('media/temp/', filename)
+
+                                print(zipPath)
+                                zipObj = ZipFile(zipPath, 'w')
+                                # Add multiple files to the zip
+                                for image_file in all_unzipped_images:
+                                    zipObj.write(os.path.join(settings.BASE_DIR ,settings.MEDIA_ROOT,'temp',os.path.basename(image_file)), os.path.basename(image_file))
+                                # close the Zip File
+                                zipObj.close()
+
+                                x = open(zipPath, 'rb')
+                                all_custom_zip.append(zipPath)
+                                post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
+                                files_left_to_close.append(x)
+                            except Exception as e:
+                                print(e)
+                                if zipObj and zipPath:
+                                    all_zipped_image = all_zipped_image + all_unzipped_images
+                                    zipObj.close()
+                                    os.remove(zipPath)
+                                    x.close()
+                                    for f in files_left_to_close:
+                                        f.close()
+                                    for image in all_zipped_image:
+                                        os.remove(image)
+                                    for zip in all_custom_zip:
+                                        os.remove(zip)
+                                return False
+                            
+                            if zipObj:
+                                zipObj.close()
+
+                            all_zipped_image = all_zipped_image + all_unzipped_images
+                    else: # If process is not provided just upload the zip given by user
+                        post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
         
         print(post_files)
 
@@ -400,6 +488,15 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
         
         print(status)
         print(content)
+
+        x.close()
+        for f in files_left_to_close:
+            f.close()
+        for image in all_zipped_image:
+            os.remove(image)
+        for zip in all_custom_zip:
+            os.remove(zip)
+        
         # If success save the data
         if(status == 200 or status == '200' or status == 201 or status == '201'):
             reload_classifier_list()
