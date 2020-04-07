@@ -34,6 +34,8 @@ from main.models import User
 
 from .forms import ImageForm
 from .models import Image, ImageFile
+from projects.models import Projects
+from django.db.models import Q
 
 
 def reload_classifier_list():
@@ -48,9 +50,13 @@ def images(request):
     if(is_admin(request.user)):
         images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
     elif(is_government(request.user)):
-        images = Image.objects.order_by('-created_at').all().prefetch_related('image_files')
+        # NOTE: SHOW IMAGES UPLOADED BY SELF OR LINKED TO PROJECT WHICH THIS USER IS PART OF
+        projects = Projects.objects.filter(users__id=request.user.id)
+        images = Image.objects.filter(Q(user_id=request.user.id) | Q(project__in=projects)).order_by('-created_at').prefetch_related('image_files').distinct()
     else:
-        images = Image.objects.filter(user_id=request.user.id).order_by('-created_at').prefetch_related('image_files')
+        # NOTE: SHOW IMAGES UPLOADED BY SELF OR LINKED TO PROJECT WHICH THIS USER IS PART OF
+        projects = Projects.objects.filter(users__id=request.user.id)
+        images = Image.objects.filter(Q(user_id=request.user.id) | Q(project__in=projects)).order_by('-created_at').prefetch_related('image_files').distinct()
     return render(request, 'image.html',{'images':images})
 
 # Add Image via Dashboard
@@ -616,7 +622,8 @@ class ImageView(viewsets.ModelViewSet):
     def get_queryset(self):
         if(self.request.user.is_authenticated and self.request.user.is_admin):
             return Image.objects.all()
-        return Image.objects.filter(user_id=self.request.user.id)
+        projects = Projects.objects.filter(users__id=self.request.user.id)
+        return Image.objects.filter(Q(user_id=self.request.user.id) | Q(project__in=projects)).order_by('-created_at').distinct()
 
     # TO LIMIT PERMISSION - I CREATED CUSTOM PERMISSION IN main/authorization.py
     # Files contains checker for Authorization as well as passes test
@@ -692,5 +699,6 @@ class ProfileView(mixins.ListModelMixin, viewsets.GenericViewSet):
             "full_name": user.full_name,
             "email": user.email,
             "user_type": user.user_type,
-            "image":request.scheme + '://' + request.META['HTTP_HOST'] + user.image.url
+            "image": request.scheme + '://' + request.META['HTTP_HOST'] + user.image.url,
+            "projects": user.get_project_json()
         })

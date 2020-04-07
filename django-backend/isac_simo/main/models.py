@@ -68,6 +68,8 @@ class User(AbstractBaseUser):
     timestamp = models.DateTimeField(auto_now_add = True)
     image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png', blank=True)
     projects = models.ManyToManyField('projects.Projects', blank=True, related_name='users')
+    # USER IS LINKED TO PROJECT WITH m2m AND USER CAN UPLOAD IMAGE FOR SPECIFIC PROJECT
+    # AND VIEW THE IMAGES EITHER ADDED BY THIS USER -OR- BELONGS TO THIS USERS m2m PROJECTS
 
     USERNAME_FIELD='email'
     REQUIRED_FIELDS = []
@@ -87,6 +89,16 @@ class User(AbstractBaseUser):
 
     def get_project_list(self):
         return "<br/> ".join(list(map(lambda x: '⮞ '+x.project_name, self.projects.all())))
+    
+    def get_project_json(self):
+        projects = []
+        for project in self.projects.all():
+            projects = projects + [{
+                'id': project.id,
+                'project_name': project.project_name,
+                'project_desc': project.project_desc
+            }]
+        return projects
 
     def has_perm(self, perm, obj=None):
         return True

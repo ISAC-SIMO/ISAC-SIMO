@@ -20,7 +20,7 @@
                     </div>
                 {% endif %}
                 <style>
-                    .this_td{transition: all 0.3s ease;max-height:50px;display:block;overflow:hidden;}
+                    .this_td{transition: all 0.3s ease;max-height:50px;min-height:100%;display:block;overflow:hidden;}
                     .this_td:hover{max-height: 100px !important;}
                 </style>
                 <div class="card-body">
@@ -31,6 +31,7 @@
                                 <th>Title</th>
                                 <th>Description</th>
                                 <th>User</th>
+                                <th>Project</th>
                                 <th style="width:250px;">Image</th>
                                 {% if user.is_admin %}<th>Actions</th>{% endif %}
                             </tr>
@@ -40,8 +41,9 @@
                                 <tr>
                                     <td style="width:40px;">I-{{image.id}}</td>
                                     <td>{{image.title|title}}</td>
-                                    <td style="width:350px;" data-search="{{image.description}}" {% if image.description != image.description|truncatewords:8 %} title="{{image.description}}" data-toggle="tooltip" data-placement="top" {% endif %}>{{image.description|truncatewords:8}}</td>
+                                    <td style="width:150px;" data-search="{{image.description}}" {% if image.description != image.description|truncatewords:5 %} title="{{image.description}}" data-toggle="tooltip" data-placement="top" {% endif %}>{{image.description|truncatewords:8}}</td>
                                     <td>{{image.user.full_name|default:'Anonymous'}}</td>
+                                    <td>{{image.project.project_name|default:'-'}}</td>
                                     <td class="this_td">
                                         {% for image_file in image.image_files.all %}
                                             <a class="number-btn" style="{% if image_file.tested %}outline:1px solid green;{% else %}outline:1px solid salmon;{% endif %}" title="{% if image_file.result %}{{image_file.result|title}} - {{image_file.score}}{% endif %}" data-toggle="tooltip" data-placement="top" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}} <br/> Object: {{image_file.object_type|title}} <br/> Verified: {{image_file.verified|yesno:"Yes,No"}} | Retrained: {{image_file.retrained|yesno:"Yes,No"}}{% endif %}')">{{forloop.counter}}</a>

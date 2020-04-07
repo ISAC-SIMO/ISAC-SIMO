@@ -33,11 +33,7 @@
                                         <td>{{u.full_name|default:"-"}} {% if u.id == user.id %}<b>(You)</b>{% endif %}</td>
                                         <td>{{u.email}}</td>
                                         <td>{{u.user_type|capfirst}}</td>
-                                        {% if u.user_type == 'admin' %}
-                                        <td><i>IS ADMIN</i></td>
-                                        {% else %}
                                         <td>{{u.get_project_list|default:'-'|safe}}</td>
-                                        {% endif %}
                                         <td>
                                             <a href="#!" onclick="showImagePop(event, '{% if u.image %}{{u.image.url}}{% else %}{% static 'dist/img/avatar5.png' %}{% endif %}','{{ u.full_name|default:"User" }} image failed to load.')">View</a>
                                         </td>

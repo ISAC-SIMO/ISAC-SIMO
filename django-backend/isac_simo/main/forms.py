@@ -95,7 +95,7 @@ class AdminEditForm(UserCreationForm):
         self.fields['projects'].help_text = 'Assign to Multiple Projects (User can view or take action depending on the projects they are assigned on)'
         if self.instance and self.instance.user_type == 'admin':
             self.fields['user_type'].help_text = 'Choose User Type Wisely (This user is currently admin)'
-            del self.fields['projects']
+            self.fields['projects'].help_text = 'Admin user can manipulate any projects (but selecting these is useful for api)'
 
 class ProfileForm(UserCreationForm):
     email = forms.EmailField()

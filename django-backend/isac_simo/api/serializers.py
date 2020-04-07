@@ -33,23 +33,27 @@ class UserSerializer(serializers.ModelSerializer):
 class ImageFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageFile
-        fields = ('file','tested','result','score')
+        fields = ('file','tested','result','score','object_type','verified')
 
 class ImageSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     user_type = serializers.SerializerMethodField(read_only=True)
+    project_name = serializers.SerializerMethodField(read_only=True)
     image_files = ImageFileSerializer(many=True, read_only=True)
     
     class Meta:
         model = Image
-        fields = ('id','url','title','description','lat','lng','user_id','user_name','user_type','image_files','created_at','updated_at')
-        read_only_fields = ('user_name','user_type','created_at', 'updated_at')
+        fields = ('id','url','title','description','lat','lng','user_id','user_name','user_type','project_id','project_name','image_files','created_at','updated_at')
+        read_only_fields = ('user_name','user_type','created_at', 'updated_at','project_name')
 
     def get_user_name(self, image):
         return image.user.full_name if image.user else None
     
     def get_user_type(self, image):
         return image.user.user_type if image.user else None
+    
+    def get_project_name(self, image):
+        return image.project.project_name if image.project else None
 
     def create(self, validated_data):
         user = None
@@ -63,7 +67,8 @@ class ImageSerializer(serializers.ModelSerializer):
                                         description=validated_data.get('description'),
                                         lat=validated_data.get('lat'),
                                         lng=validated_data.get('lng'),
-                                        user_id=user.id)
+                                        user_id=user.id,
+                                        project_id=validated_data.get('project_id', None))
 
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count
@@ -101,6 +106,7 @@ class ImageSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
         instance.lat = validated_data.get('lat', instance.lat)
         instance.lng = validated_data.get('lng', instance.lng)
+        instance.project_id = validated_data.get('project_id', instance.project_id)
         
         image_files = self.context.get('view').request.FILES
 
@@ -139,18 +145,22 @@ class ImageSerializer(serializers.ModelSerializer):
 class VideoFrameSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     user_type = serializers.SerializerMethodField(read_only=True)
+    project_name = serializers.SerializerMethodField(read_only=True)
     image_files = ImageFileSerializer(many=True, read_only=True)
     
     class Meta:
         model = Image
-        fields = ('id','url','title','description','lat','lng','user_id','user_name','user_type','image_files','created_at','updated_at')
-        read_only_fields = ('user_name','user_type','created_at', 'updated_at')
+        fields = ('id','url','title','description','lat','lng','user_id','user_name','user_type','project_id','project_name','image_files','created_at','updated_at')
+        read_only_fields = ('user_name','user_type','created_at', 'updated_at', 'project_name')
 
     def get_user_name(self, image):
         return image.user.full_name if image.user else None
     
     def get_user_type(self, image):
         return image.user.user_type if image.user else None
+
+    def get_project_name(self, image):
+        return image.project.project_name if image.project else None
 
     # Function to get the frame image, save to image_file model and test it via ai model
     def getFrame(self, vidcap, count, sec, image_model):
@@ -186,7 +196,8 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                                         description=(validated_data.get('description')+' - (Via Video Upload)'),
                                         lat=validated_data.get('lat'),
                                         lng=validated_data.get('lng'),
-                                        user_id=user.id)
+                                        user_id=user.id,
+                                        project_id=validated_data.get('project_id', None))
 
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count

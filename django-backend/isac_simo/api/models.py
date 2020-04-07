@@ -1,10 +1,14 @@
-from django.db import models
-from main.models import User
-import uuid
 import os
+import uuid
+
 from django.conf import settings
-from django.utils.deconstruct import deconstructible
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils.deconstruct import deconstructible
+
+from main.models import User
+from projects.models import Projects
+
 
 @deconstructible
 class PathAndRename(object):
@@ -24,6 +28,7 @@ class Image(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='user')
     lat = models.FloatField(validators=[MinValueValidator(-90), MaxValueValidator(90)],max_length=100,null=True,blank=True)
     lng = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)],max_length=100,null=True,blank=True)
+    project = models.ForeignKey(Projects, on_delete=models.SET_NULL, blank=True, null=True, related_name='project')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
