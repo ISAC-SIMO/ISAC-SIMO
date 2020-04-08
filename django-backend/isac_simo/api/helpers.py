@@ -15,6 +15,8 @@ from watson_developer_cloud import VisualRecognitionV3
 import isac_simo.classifier_list as classifier_list
 import cv2
 import pathlib
+import numpy as np
+import random
 
 
 def reload_classifier_list():
@@ -346,7 +348,7 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
 #################################################
 # Create New classifier
 # User uploades proper zip file with classifier name
-def create_classifier(zip_file_list, negative_zip=False, name=False, object_type=False, process=False):
+def create_classifier(zip_file_list, negative_zip=False, name=False, object_type=False, process=False, rotate=False, warp=False, inverse=False):
     # IF IBM KEY is provided (also check zip_file_list is ok)
     if ( settings.IBM_API_KEY and zip_file_list and name and object_type ):
         # Authenticate the IBM Watson API
@@ -379,15 +381,16 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                     else:
                         x = open(zip_file.temporary_file_path(), 'rb')
                     
+                    #########PROCESS########
                     # IF REQUEST CAME ALONG TO PROCESS THE IMAGES i.e. rotate h,v,-1 and zip them all
                     if process:
                         print('--CREATE CLASSIFIER PROCESS IMAGE AND ZIP')
                         ######
-                        z = ZipFile(x)
+                        z = ZipFile(x) # zipfile used
                         
-                        for zipinfo in z.infolist():
-                            ext = pathlib.Path(zipinfo.filename).suffix if pathlib.Path(zipinfo.filename).suffix else '.jpg'
-                            filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                        for zipinfo in z.infolist(): # Loop on all zipfile info list content (assume zip file has image files alone)
+                            ext = pathlib.Path(zipinfo.filename).suffix if pathlib.Path(zipinfo.filename).suffix else '.jpg' # get extension
+                            filename = '{}{}'.format(uuid.uuid4().hex, ext) # generate filename
 
                             saveto = None
                             if not os.path.exists(os.path.join('media/temp/')):
@@ -395,23 +398,72 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                             else:
                                 saveto = os.path.join('media/temp/')
 
-                            zipinfo.filename = filename
-                            extracted = z.extract(zipinfo, saveto)
+                            zipinfo.filename = filename # replace filename
+                            extracted = z.extract(zipinfo, saveto) # extract and save to temp
 
                             if extracted:
-                                img = cv2.imread(saveto + filename)
-                                all_unzipped_images.append(saveto + filename)
+                                img = cv2.imread(saveto + filename) # cv2 read image
+                                all_unzipped_images.append(saveto + filename) # add image to array (original image)
 
                                 # 0 = horizontal
                                 # 1 = vertical
-                                # -1 = both way aka inverse
+                                # -1 = both way aka inverse or mirror
                                 print('TRANSFORMING IMAGES---')
                                 for i in [0,1,-1]:
                                     t_image = cv2.flip( img, i )
                                     filename = '{}{}'.format(uuid.uuid4().hex, ext)
                                     cv2.imwrite(saveto + filename, t_image) # save frame as IMAGE file
-                                    all_unzipped_images.append(saveto + filename)
-                        
+                                    all_unzipped_images.append(saveto + filename) # add image to array (transformed)
+                                
+                                if rotate:
+                                    print('ROTATING IMAGES---')
+                                    for i in [30,60,-60,120]: # Rotate in these angles
+                                        (h, w) = img.shape[:2]
+                                        center = (w / 2, h / 2)
+                                        # Perform the rotation
+                                        M = cv2.getRotationMatrix2D(center, i, 1.0)
+                                        rotated = cv2.warpAffine(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0)) # borderMode=cv2.BORDER_TRANSPARENT
+                                        filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                                        cv2.imwrite(saveto + filename, rotated) # save frame as IMAGE file
+                                        all_unzipped_images.append(saveto + filename) # add image to array (rotated)
+
+                                if warp:
+                                    print('WARPING IMAGES---')
+                                    h, w = img.shape[:2]
+                                    rows, cols = img.shape[:2]
+                                    src_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
+                                    des_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
+                                    for j in ['t','l','r','b']:
+                                        if j == 't':
+                                            des_points = np.float32([[1,0], [w-1,0], [int(0.2*w),h-1], [w-int(0.2*w),h-1]])
+                                        elif j == 'l':
+                                            des_points = np.float32([[0,0], [w-10,int(0.2*h)], [0,h], [w-10,h-int(0.2*h)]])
+                                        elif j == 'r':
+                                            des_points = np.float32([[10,int(0.20*h)], [w,0], [10,h-int(0.20*w)], [w,h]])
+                                        elif j == 'b':
+                                            des_points = np.float32([[int(0.2*w),10], [w-int(0.2*w),10], [0,h], [w,h]])
+
+                                        if j:
+                                            M = cv2.getPerspectiveTransform(src_points, des_points)
+                                            out = cv2.warpPerspective(img, M, (w,h),flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
+                                            filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                                            cv2.imwrite(saveto + filename, out) # save frame as IMAGE file
+                                            all_unzipped_images.append(saveto + filename) # add image to array (rotated)
+
+                                if inverse:
+                                    print('INVERTING IMAGES---')
+                                    inverted = ~img # simple invert matrix (uninary)
+                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                                    cv2.imwrite(saveto + filename, inverted) # save frame as IMAGE file
+                                    all_unzipped_images.append(saveto + filename) # add image to array (rotated)
+
+                                    print('CANNY EDGE DETECT IN IMAGES---')
+                                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to gray-ish
+                                    canvas = cv2.Canny(gray, 30, 100) # threshold can be changes (lower gives more detail but also noise)
+                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                                    cv2.imwrite(saveto + filename, canvas) # save frame as IMAGE file
+                                    all_unzipped_images.append(saveto + filename) # add image to array (rotated)
+
                         # AFTER ALL ARE PROCESSED AND ZIP in ONE zip file
                         print(all_unzipped_images)
                         # IF PROCESSED IMAGES EXISTS THEN ZIP THEM AND SEND TO post_files
@@ -437,9 +489,10 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                                 zipObj.close()
 
                                 x = open(zipPath, 'rb')
-                                all_custom_zip.append(zipPath)
+                                all_custom_zip.append(zipPath) # add zip to array (used later to delete from temp)
+                                # add image to post files
                                 post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
-                                files_left_to_close.append(x)
+                                files_left_to_close.append(x) # add files left to close to array (used later to close before deleting)
                             except Exception as e:
                                 print(e)
                                 if zipObj and zipPath:
@@ -459,10 +512,21 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                                 zipObj.close()
 
                             all_zipped_image = all_zipped_image + all_unzipped_images
-                    else: # If process is not provided just upload the zip given by user
+                    else: # If process is not provided via admin just upload the zip given by user
                         post_files[zip_file.name.replace('.zip','')+'_positive_examples'] = x
         
         print(post_files)
+
+        #######################
+        # TO STOP FOR TESTING #
+        # for f in files_left_to_close:
+        #     f.close()
+        # for image in all_zipped_image:
+        #     os.remove(image)
+        # for zip in all_custom_zip:
+        #     os.remove(zip)
+        # return False
+        #######################
 
         if negative_zip:
             x = None

@@ -54,13 +54,40 @@
                                 This is only useful if Classifier was already created in IBM Watson and you just want it to be added here
                             </small>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="process-group">
                             <label for="process" class="col-sm-12 col-md-6 col-form-label" style="padding-bottom:0;">
                                 <input type="checkbox" name="process" id="process" style="transform: scale(1.3) translate(0px,1px);margin-right: 5px;">
                                 Also Process & Transform the Images
                             </label>
                             <small class="col-sm-12 form-text text-muted" style="margin:0;">
                                 This will add transformed, flipped images within the zip file
+                            </small>
+                        </div>
+                        <div class="form-group" id="rotate-group" style="display:none;">
+                            <label for="rotate" class="col-sm-12 col-md-6 col-form-label" style="padding-bottom:0;">
+                                <input type="checkbox" name="rotate" id="rotate" style="transform: scale(1.3) translate(0px,1px);margin-right: 5px;">
+                                And Rotate (30, 60, -60, 120) degree
+                            </label>
+                            <small class="col-sm-12 form-text text-muted" style="margin:0;">
+                                This will add rotated images within the zip file
+                            </small>
+                        </div>
+                        <div class="form-group" id="warp-group" style="display:none;">
+                            <label for="warp" class="col-sm-12 col-md-6 col-form-label" style="padding-bottom:0;">
+                                <input type="checkbox" name="warp" id="warp" style="transform: scale(1.3) translate(0px,1px);margin-right: 5px;">
+                                And Warp Perspective of Images (Left, Right, Bottom, Top)
+                            </label>
+                            <small class="col-sm-12 form-text text-muted" style="margin:0;">
+                                This will add warp perspective images within the zip file
+                            </small>
+                        </div>
+                        <div class="form-group" id="inverse-group" style="display:none;">
+                            <label for="inverse" class="col-sm-12 col-md-6 col-form-label" style="padding-bottom:0;">
+                                <input type="checkbox" name="inverse" id="inverse" style="transform: scale(1.3) translate(0px,1px);margin-right: 5px;">
+                                And Inverse and Canny Images (<a href="https://i.imgur.com/SOgA04Kl.png" target="_blank">Negative</a> & <a href="https://i.imgur.com/8EFrhPPl.png" target="_blank">Edge</a>)
+                            </label>
+                            <small class="col-sm-12 form-text text-muted" style="margin:0;">
+                                This will add Inverted / Negative and Edge of image within the zip file
                             </small>
                         </div>
                         <div class="form-group">
@@ -135,10 +162,39 @@
                 $('#zip-group').slideUp();
                 $('#zip').removeAttr('required');
                 $('#negative-group').slideUp();
+                $('#process').prop('checked', false);
+                $('#rotate').prop('checked', false);
+                $('#warp').prop('checked', false);
+                $('#inverse').prop('checked', false);
+                $('#process-group').slideUp();
+                $('#rotate-group').slideUp();
+                $('#warp-group').slideUp();
+                $('#inverse-group').slideUp();
             }else{
                 $('#zip-group').slideDown();
                 $('#zip').attr('required','required');
                 $('#negative-group').slideDown();
+                $('#process-group').slideDown();
+                $('#warp-group').hide();
+                $('#inverse-group').hide();
+            }
+        })
+
+        $('#process').on('change', function(event){
+            if($('#process').is(":checked")){
+                $('#rotate-group').slideDown();
+                $('#warp-group').slideDown();
+                $('#inverse-group').slideDown();
+                $('#rotate').prop('checked', false);
+                $('#warp').prop('checked', false);
+                $('#inverse').prop('checked', false);
+            }else{
+                $('#rotate-group').slideUp();
+                $('#warp-group').slideUp();
+                $('#inverse-group').slideUp();
+                $('#rotate').prop('checked', false);
+                $('#warp').prop('checked', false);
+                $('#inverse').prop('checked', false);
             }
         })
 

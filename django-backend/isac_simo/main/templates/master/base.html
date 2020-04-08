@@ -430,6 +430,7 @@
   <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
   <!-- AdminLTE App -->
   <script src="{% static 'dist/js/adminlte.js' %}"></script>
+  <script src="{% static '/js/custom.js' %}"></script>
   <!-- Leaflet Map -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
    integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
@@ -441,7 +442,6 @@
   {% comment %} <script src="{% static 'dist/js/demo.js' %}"></script> {% endcomment %}
   {% block script %}{% endblock script %}
   {% if debug %}<script>var allowdrop = true;</script>{% endif %}
-  <script src="{% static '/js/custom.js' %}"></script>
 </body>
 
 </html>
