@@ -181,7 +181,8 @@ def deleteImage(request, id=0):
         messages.error(request, "Invalid Image attempted to Delete")
         return redirect("images")
 
-# Retrain Images file and send zip to ibm
+# This is users image retrain - not from inside IBM watson sidebar menu
+# Retrain Images files uploaded by API after checking verified status and then send zip to ibm
 @user_passes_test(is_admin, login_url=login_url)
 def retrainImage(request, id):
     try:
@@ -305,6 +306,7 @@ def verifyImageFile(request, id):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 # Image Custom Train to IBM
+# OR Retrain Image in uploaded by admin into ibm model selected
 @user_passes_test(is_admin, login_url=login_url)
 def watsonTrain(request):
     if request.method == "GET":
@@ -329,20 +331,26 @@ def watsonTrain(request):
                 zipped += 1
                 # print(image_file_list)
 
+        min_image_required = 10
+        if settings.DEBUG:
+            min_image_required = 2
+
         # we have "model" in request. If Model is all or not provided then all images are re-trained in all classifiers of object type given, else only on selected classifier (it is the last parameter in retrain function)
-        if zipped >= 10 and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
-            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False))
+        if zipped >= min_image_required and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
+            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False))
             print(retrain_status)
             if retrain_status:
-                messages.success(request,str(zipped) + ' images zipped and was sent to retrain. (Retraining takes time)')
+                messages.success(request,str(zipped) + ' images zipped and was sent to retrain in ' + str(retrain_status) + ' classifier(s). (Retraining takes time)')
                 messages.info(request,'Object: '+request.POST.get('object')+' , Classifier: '+request.POST.get('model')+' , Result: '+request.POST.get('result'))
             else:
                 messages.error(request,str(zipped) + ' images zipped but failed to retrain')
         else:
             messages.error(request,str(zipped) + ' valid Image(s). At least 10 required. Or Invalid input.')
 
+        print(str(len(image_file_list)) + ' original images...')
         for image_file in image_file_list:
             os.remove(image_file)
+            pass
 
         reload_classifier_list()
         return redirect('watson.train')

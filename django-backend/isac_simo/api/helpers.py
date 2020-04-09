@@ -25,6 +25,69 @@ def reload_classifier_list():
     except Exception as e:
         print('--------- [ERROR] FAILED TO RELOAD CLASSIFIER LIST MODULE [ERROR:OOPS] --------')
 
+def transform_image(img, ext, saveto, rotate, warp, inverse):
+    all_unzipped_images_list = []
+    # 0 = horizontal
+    # 1 = vertical
+    # -1 = both way aka inverse or mirror
+    print('TRANSFORMING IMAGES---')
+    for i in [0,1,-1]:
+        t_image = cv2.flip( img, i )
+        filename = '{}{}'.format(uuid.uuid4().hex, ext)
+        cv2.imwrite(saveto + filename, t_image) # save frame as IMAGE file
+        all_unzipped_images_list.append(saveto + filename) # add image to array (transformed)
+    
+    if rotate:
+        print('ROTATING IMAGES---')
+        for i in [30,60,-60,120]: # Rotate in these angles
+            (h, w) = img.shape[:2]
+            center = (w / 2, h / 2)
+            # Perform the rotation
+            M = cv2.getRotationMatrix2D(center, i, 1.0)
+            rotated = cv2.warpAffine(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0)) # borderMode=cv2.BORDER_TRANSPARENT
+            filename = '{}{}'.format(uuid.uuid4().hex, ext)
+            cv2.imwrite(saveto + filename, rotated) # save frame as IMAGE file
+            all_unzipped_images_list.append(saveto + filename) # add image to array (rotated)
+
+    if warp:
+        print('WARPING IMAGES---')
+        h, w = img.shape[:2]
+        rows, cols = img.shape[:2]
+        src_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
+        des_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
+        for j in ['t','l','r','b']:
+            if j == 't':
+                des_points = np.float32([[1,0], [w-1,0], [int(0.2*w),h-1], [w-int(0.2*w),h-1]])
+            elif j == 'l':
+                des_points = np.float32([[0,0], [w-10,int(0.2*h)], [0,h], [w-10,h-int(0.2*h)]])
+            elif j == 'r':
+                des_points = np.float32([[10,int(0.20*h)], [w,0], [10,h-int(0.20*w)], [w,h]])
+            elif j == 'b':
+                des_points = np.float32([[int(0.2*w),10], [w-int(0.2*w),10], [0,h], [w,h]])
+
+            if j:
+                M = cv2.getPerspectiveTransform(src_points, des_points)
+                out = cv2.warpPerspective(img, M, (w,h),flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
+                filename = '{}{}'.format(uuid.uuid4().hex, ext)
+                cv2.imwrite(saveto + filename, out) # save frame as IMAGE file
+                all_unzipped_images_list.append(saveto + filename) # add image to array (rotated)
+
+    if inverse:
+        print('INVERTING IMAGES---')
+        inverted = ~img # simple invert matrix (uninary)
+        filename = '{}{}'.format(uuid.uuid4().hex, ext)
+        cv2.imwrite(saveto + filename, inverted) # save frame as IMAGE file
+        all_unzipped_images_list.append(saveto + filename) # add image to array (rotated)
+
+        print('CANNY EDGE DETECT IN IMAGES---')
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to gray-ish
+        canvas = cv2.Canny(gray, 30, 100) # threshold can be changes (lower gives more detail but also noise)
+        filename = '{}{}'.format(uuid.uuid4().hex, ext)
+        cv2.imwrite(saveto + filename, canvas) # save frame as IMAGE file
+        all_unzipped_images_list.append(saveto + filename) # add image to array (rotated)
+
+    return all_unzipped_images_list
+
 ###################
 ## Detect Object ##
 ###################
@@ -263,9 +326,10 @@ def quick_test_image(image_file, classifier_ids):
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
-def retrain_image(image_file_list, object_type, result, media_folder='image', classifier=None):
+def retrain_image(image_file_list, object_type, result, media_folder='image', classifier=None,  process=False, rotate=False, warp=False, inverse=False):
     zipObj = None
     zipPath = None
+    all_transformed_image = []
     try:
         # ZIP THE IMAGES #
         filename = '{}.{}'.format(uuid.uuid4().hex, 'zip')
@@ -278,9 +342,32 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
 
         print(zipPath)
         zipObj = ZipFile(zipPath, 'w')
+
+        ##############
+        saveto = None # for transformed images
+        if not os.path.exists(os.path.join('media/temp/')):
+            saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'
+        else:
+            saveto = os.path.join('media/temp/')
+        ##############
+
         # Add multiple files to the zip
         for image_file in image_file_list:
+            #########PROCESS########
+            # IF REQUEST CAME ALONG TO PROCESS THE IMAGES i.e. rotate h,v,-1 and zip them all
+            if process:
+                img = cv2.imread(image_file) # cv2 read image
+                ext = pathlib.Path(image_file).suffix
+                # print(img)
+                print(ext)
+                print('--CREATE CLASSIFIER PROCESS IMAGE AND RETURN LISTS')
+                transformed_images = transform_image(img, ext, saveto, rotate, warp, inverse) # Call Transform Image function to do image processing with parameter options
+                all_transformed_image = all_transformed_image + transformed_images # Transform IMAGES if requested
+                for image in transformed_images:
+                    zipObj.write(os.path.join(settings.BASE_DIR ,settings.MEDIA_ROOT,media_folder,os.path.basename(image)), os.path.basename(image))
+                
             zipObj.write(os.path.join(settings.BASE_DIR ,settings.MEDIA_ROOT,media_folder,os.path.basename(image_file)), os.path.basename(image_file))
+        
         # close the Zip File
         zipObj.close()
     except Exception as e:
@@ -288,6 +375,8 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
         if zipObj and zipPath:
             zipObj.close()
             os.remove(zipPath)
+        for image in all_transformed_image:
+            os.remove(image)
         return False
     
     zipObj.close()
@@ -337,8 +426,13 @@ def retrain_image(image_file_list, object_type, result, media_folder='image', cl
         
         zipObj.close()
         os.remove(zipPath)
+        print(str(len(all_transformed_image)) + ' transformed images...')
+        for image in all_transformed_image:
+            os.remove(image)
+        
+        # IF PASSED AT LEAST ONE CLASSIFIER THEN "OK"
         if(passed > 0):
-            return True
+            return passed
         else:
             return False
     else:
@@ -404,65 +498,8 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
                             if extracted:
                                 img = cv2.imread(saveto + filename) # cv2 read image
                                 all_unzipped_images.append(saveto + filename) # add image to array (original image)
-
-                                # 0 = horizontal
-                                # 1 = vertical
-                                # -1 = both way aka inverse or mirror
-                                print('TRANSFORMING IMAGES---')
-                                for i in [0,1,-1]:
-                                    t_image = cv2.flip( img, i )
-                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
-                                    cv2.imwrite(saveto + filename, t_image) # save frame as IMAGE file
-                                    all_unzipped_images.append(saveto + filename) # add image to array (transformed)
-                                
-                                if rotate:
-                                    print('ROTATING IMAGES---')
-                                    for i in [30,60,-60,120]: # Rotate in these angles
-                                        (h, w) = img.shape[:2]
-                                        center = (w / 2, h / 2)
-                                        # Perform the rotation
-                                        M = cv2.getRotationMatrix2D(center, i, 1.0)
-                                        rotated = cv2.warpAffine(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0)) # borderMode=cv2.BORDER_TRANSPARENT
-                                        filename = '{}{}'.format(uuid.uuid4().hex, ext)
-                                        cv2.imwrite(saveto + filename, rotated) # save frame as IMAGE file
-                                        all_unzipped_images.append(saveto + filename) # add image to array (rotated)
-
-                                if warp:
-                                    print('WARPING IMAGES---')
-                                    h, w = img.shape[:2]
-                                    rows, cols = img.shape[:2]
-                                    src_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
-                                    des_points = np.float32([[0,0], [w-1,0], [0,h-1], [w-1,h-1]])
-                                    for j in ['t','l','r','b']:
-                                        if j == 't':
-                                            des_points = np.float32([[1,0], [w-1,0], [int(0.2*w),h-1], [w-int(0.2*w),h-1]])
-                                        elif j == 'l':
-                                            des_points = np.float32([[0,0], [w-10,int(0.2*h)], [0,h], [w-10,h-int(0.2*h)]])
-                                        elif j == 'r':
-                                            des_points = np.float32([[10,int(0.20*h)], [w,0], [10,h-int(0.20*w)], [w,h]])
-                                        elif j == 'b':
-                                            des_points = np.float32([[int(0.2*w),10], [w-int(0.2*w),10], [0,h], [w,h]])
-
-                                        if j:
-                                            M = cv2.getPerspectiveTransform(src_points, des_points)
-                                            out = cv2.warpPerspective(img, M, (w,h),flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0))
-                                            filename = '{}{}'.format(uuid.uuid4().hex, ext)
-                                            cv2.imwrite(saveto + filename, out) # save frame as IMAGE file
-                                            all_unzipped_images.append(saveto + filename) # add image to array (rotated)
-
-                                if inverse:
-                                    print('INVERTING IMAGES---')
-                                    inverted = ~img # simple invert matrix (uninary)
-                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
-                                    cv2.imwrite(saveto + filename, inverted) # save frame as IMAGE file
-                                    all_unzipped_images.append(saveto + filename) # add image to array (rotated)
-
-                                    print('CANNY EDGE DETECT IN IMAGES---')
-                                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to gray-ish
-                                    canvas = cv2.Canny(gray, 30, 100) # threshold can be changes (lower gives more detail but also noise)
-                                    filename = '{}{}'.format(uuid.uuid4().hex, ext)
-                                    cv2.imwrite(saveto + filename, canvas) # save frame as IMAGE file
-                                    all_unzipped_images.append(saveto + filename) # add image to array (rotated)
+                                transformed_images = transform_image(img, ext, saveto, rotate, warp, inverse) # Call Transform Image function to do image processing with parameter options
+                                all_unzipped_images = all_unzipped_images + transformed_images
 
                         # AFTER ALL ARE PROCESSED AND ZIP in ONE zip file
                         print(all_unzipped_images)
