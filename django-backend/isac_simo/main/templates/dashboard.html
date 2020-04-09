@@ -127,12 +127,9 @@
 {% block script %}
     <!-- Bunch of Image info appending to map -->
     <script>
-        var imgmap = L.map('imgmap',{
-            zoom: 4,
-            minZoom: 2,
-            worldCopyJump: true,
-            maxBounds: L.latLng(-80, 80)
-        }).setView([27.7172, 85.3240]);
+        var imgmap=L.map("imgmap",{zoom:4,minZoom:2,worldCopyJump:!0,maxBounds:L.latLng(-80,80)}).setView([27.7172,85.324]),
+            redIcon=new L.Icon({iconUrl:"https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",iconSize:[25,41],iconAnchor:[12,41],popupAnchor:[1,-34],shadowSize:[41,41]}),
+            greenIcon=new L.Icon({iconUrl:"https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",shadowUrl:"https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",iconSize:[25,41],iconAnchor:[12,41],popupAnchor:[1,-34],shadowSize:[41,41]});
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -143,11 +140,15 @@
 
         {% for image in images|slice:":500" %}
             {% if image.lat != None and image.lng != None  %}
+                nogo = false;
                 info = "<a href=\"{% if user.is_admin %}{% url 'images.update' image.id %}{% else %}#!{% endif %}\"><b title='{{image.created_at}}'>{{image.title}}</b></a><br/><small><b>{{image.description}}</b></small><br/>({{image.lat}},{{image.lng}})<hr/>";
                 {% for file in image.image_files.all %}
-                    info += "<a class='map-image-num' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}} <br/> Object: {{file.object_type|title}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
+                    info += "<a style='{% if file.result == 'nogo' or file.result == 'nogos' %}background:brown;{% endif %}' class='map-image-num' href='#!' onclick='showImagePop(event,\"{% if file.file %}{{file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}\",\"Image failed to load.\",\"{% if file.result %}Title/Class: {{file.result|title}} <br/> Score: {{file.score}} <br/> Object: {{file.object_type|title}}{% else %}<i style=color:maroon;>Not Tested</i>{% endif %}\")'>{{forloop.counter}}</a>"
+                    {% if file.result == 'nogo' or file.result == 'nogos' %}
+                    nogo = true;
+                    {% endif %}
                 {% endfor %}
-                mark = L.marker(["{{image.lat}}", "{{image.lng}}"]).addTo(imgmap).bindPopup(info);
+                mark = L.marker(["{{image.lat}}", "{{image.lng}}"], {icon: nogo?redIcon:greenIcon}).addTo(imgmap).bindPopup(info);
                 {% if focus_at and image.id|stringformat:"i" == focus_at %}
                     mark.openPopup();
                     imgmap.flyTo([{{image.lat}},{{image.lng}}], 8, {
