@@ -63,6 +63,9 @@
                                         <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" class="d-inline">
                                             {% csrf_token %}
                                         </form>
+                                        <a title="Copy Latitude,Longitude to Clipboard" onclick="window.prompt('Copy to clipboard: Ctrl+C, Enter', '{{image.lat}},{{image.lng}}');" data-toggle="tooltip" data-placement="top" style="color:grey;" class="btn px-0">
+                                            <i class="far fa-copy"></i>
+                                        </a>
                                     </td>
                                     {% endif %}
                                 </tr>

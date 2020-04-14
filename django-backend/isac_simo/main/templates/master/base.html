@@ -307,6 +307,26 @@
 
               </ul>
             </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'map.check' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'map.check'  %} active {% endif %}">
+                <i class="nav-icon fas fa-map-marker-alt"></i>
+                <p>
+                  Google Maps
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'map.check' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'map.check' %} active {% endif %}">
+                    <i class="nav-icon fas fa-street-view text-info"></i>
+                    <p>Check Street View</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
             {% endif %}
             {% comment %} / IS ADMIN / {% endcomment %}
 

@@ -1,0 +1,156 @@
+{% extends 'master/base.html' %}
+{% block title %} Google Map Check with Streetview {% endblock title %}
+{% block dashboard_title1 %} Google Map Street View Check {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Google Map {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <style>.swal2-icon{transform: scale(1) !important;margin: 1.25em auto 1.875em !important;}</style>
+
+    <div class="row">
+        {% comment %} <form action="{% url 'map.check' %}" id="map_check" method="POST" class="col-12"> {% endcomment %}
+        <div id="map_check" class='col-12'>
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div id="map" style="width:100%;height:430px;"></div>
+
+                    <div class="form-group">
+                        <label for="latlng" class="col-sm-12 col-md-6 col-form-label">Latitude/Longitude</label>
+                        <div class="col-sm-12 col-md-6">
+                            <input type="text" name="latlng" class="form-control" id="latlng" placeholder="Click on Map to get Latitude and Longitude or type in e.g.(24.44,54.22)" required/>
+                        </div>
+                        <small class="col-sm-12 form-text mt-1 text-danger" id="latlng_msg" style="margin:0;"></small>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" id="map_check_btn" class="ml-2 btn btn-primary">Check</button>
+                    </div>
+                    <div class="form-group">
+                        <hr/>
+                        <h4 class="ml-2">Image Result:</h4>
+                        <div id="image-container" class="col-sm-12 col-md-6">No Result !!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% comment %} </form> {% endcomment %}
+    </div>
+{% endblock content %}
+
+{% block script %}
+    {% if debug %}
+    <script src="https://maps.googleapis.com/maps/api/js?callback=initMap"
+    async defer></script>
+    {% else %}
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    async defer></script>
+    {% endif %}
+
+    <script>
+        var map;
+        var marker;
+        function validateLatLng(latlng){
+            var lat = latlng.split(',')[0]
+            var lng = latlng.split(',')[1]
+            if(isFinite(lat) && Math.abs(lat) <= 90 && isFinite(lng) && Math.abs(lng) <= 180 && lat != '' && lng != ''){
+                document.getElementById('latlng_msg').innerText = '';
+                document.getElementById('map_check_btn').style.display = 'block';
+                return true;
+            }else{
+                document.getElementById('latlng_msg').innerText = 'Invalid Latitude,Longitude';
+                document.getElementById('map_check_btn').style.display = 'none';
+                return false;
+            }
+        }
+
+        function addMarker(latlng, zoom){
+            if(marker){marker.setMap(null)}
+            marker = new google.maps.Marker({
+                position: latlng,
+                map: map
+            });
+            map.panTo(latlng);
+            if(zoom){
+                map.setZoom(zoom);
+            }
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 15.397, lng: 50.644},
+                zoom: 2,
+                mapTypeControl: true,
+                streetViewControl: true,
+                mapTypeControlOptions: {
+                    mapTypeIds: ['hybrid', 'roadmap', 'satellite']
+                },
+                mapTypeId: 'hybrid'
+            });
+
+            google.maps.event.addListener(map, "click", function (e) {
+                var latlng = e.latLng.lat()+','+e.latLng.lng();
+                if(validateLatLng(latlng)){
+                    document.getElementById('latlng').value = latlng;
+                    addMarker(e.latLng);
+                }
+            });
+
+            document.getElementById('latlng').addEventListener('keyup', function(event){
+                if(event.target.value){
+                    if(validateLatLng(event.target.value.replace(/ /g,''))){
+                        var latlng = event.target.value.replace(/ /g,'');
+                        var latlngObj = new google.maps.LatLng(latlng.split(',')[0], latlng.split(',')[1])
+                        addMarker(latlngObj, 10);
+                        document.getElementById('latlng').value = latlng;
+                    }
+                }else{
+                    document.getElementById('latlng_msg').innerText = 'Provide a valid Latitude,Longitude';
+                }
+            })
+        }
+
+        document.getElementById('map_check_btn').addEventListener('click', function(evt){
+            var latlng = document.getElementById('latlng').value;
+            if(!latlng){
+                Swal.fire({
+                    title: "Latitude/Longitude Not Provided",
+                    text: 'Click on the map to get latlng or type in manually above',
+                    type: 'error',
+                });
+                return;
+            }else{
+                //fetch('https://maps.googleapis.com/maps/api/streetview?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE')  
+                evt.target.innerHTML = 'Check <i class="ml-2 fa fa-sync fa-spin"></i>'
+                $.ajax({
+                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE",
+                    success: function(res){
+                        if(res.status == 'OK'){
+                            console.log('trying to fetch streetview image....');
+                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE";
+                            $.ajax({
+                                url: url,
+                                success: function(result){
+                                    console.log(result)
+                                    document.getElementById('image-container').innerHTML = '<a href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a>'
+                                },
+                                error: function(err){
+                                    console.log(err.responseText)
+                                    Swal.fire("Unable to Fetch Streetview Image",'Something went wrong','error');
+                                }
+                            });
+                        }else if(res.status == 'ZERO_RESULTS' || res.status == 'NOT_FOUND'){
+                            Swal.fire("No Streetview Images available for this location",'No Results','info');
+                        }else{
+                            Swal.fire("Unable to Fetch Streetview Details",res.status,'error');
+                        }
+                        evt.target.innerHTML = 'Check'
+                    },
+                    error: function(err){
+                        Swal.fire("Unable to Fetch Streetview Details",'Something went wrong','error');
+                        evt.target.innerHTML = 'Check'
+                    }
+                });
+            }
+        })
+    </script>
+{% endblock script %}

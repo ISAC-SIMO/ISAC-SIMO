@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'main',
     'projects',
     'api',
+    'map',
     'rest_framework',
 ]
 

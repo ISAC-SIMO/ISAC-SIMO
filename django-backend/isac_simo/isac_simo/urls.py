@@ -48,6 +48,7 @@ urlpatterns = [
     path('users/', include('main.urls')),
     path('projects/', include('projects.urls')),
     path('app/', include('api.urls')),
+    path('map/', include('map.urls')),
 ]
 
 if settings.DEBUG:
