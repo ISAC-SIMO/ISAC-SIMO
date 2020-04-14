@@ -12,5 +12,6 @@ python manage.py migrate
 echo '==MIGRATE AND PULL DONE=='
 
 deactivate
-touch /var/www/buildchange_pythonanywhere_com_wsgi.py
+# touch /var/www/buildchange_pythonanywhere_com_wsgi.py
+touch /var/www/www_isac-simo_net_wsgi.py
 echo '==REQUESTED RELOAD=='
