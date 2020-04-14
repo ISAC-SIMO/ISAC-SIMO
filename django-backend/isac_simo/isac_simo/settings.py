@@ -51,7 +51,7 @@ else:
 DEBUG = not PRODUCTION
 TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['0.0.0.0','localhost','127.0.0.1','buildchange.pythonanywhere.com','isacsimo.pythonanywhere.com']
+ALLOWED_HOSTS = ['0.0.0.0','localhost','127.0.0.1','buildchange.pythonanywhere.com','isac-simo.net','www.isac-simo.net']
 
 INTERNAL_IPS = (
     '127.0.0.1',
