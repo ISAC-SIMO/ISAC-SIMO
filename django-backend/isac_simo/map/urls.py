@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     # Map Google Admin Routes
     path('check', views.check, name="map.check"),
+    path('fetch', views.fetch, name="map.fetch"),
 ]
 
 if settings.DEBUG:

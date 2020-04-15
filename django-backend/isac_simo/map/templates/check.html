@@ -119,31 +119,61 @@
                 });
                 return;
             }else{
-                //fetch('https://maps.googleapis.com/maps/api/streetview?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE')  
                 evt.target.innerHTML = 'Check <i class="ml-2 fa fa-sync fa-spin"></i>'
+                // TRY TO FETCH IMAGES METADATA //
                 $.ajax({
-                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE",
+                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"YOUR_API_KEY"+"&signature="+"YOUR_SIGNATURE",
                     success: function(res){
+                        // IF METADATA FOUND - TRY TO GET STREETVIEW FROM FRONTEND //
                         if(res.status == 'OK'){
                             console.log('trying to fetch streetview image....');
-                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location=78.648401,14.194336&fov=90&heading=235&pitch=10&key=YOUR_API_KEY&signature=YOUR_SIGNATURE";
+                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"YOUR_API_KEY"+"&signature"+"YOUR_SIGNATURE";
                             $.ajax({
                                 url: url,
                                 success: function(result){
                                     console.log(result)
                                     document.getElementById('image-container').innerHTML = '<a href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a>'
+                                
+                                    // NOW CALL BACKEND API TO FETCH ALL CLOSEST IMAGES //
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "{% url 'map.fetch' %}",
+                                        data: {'latlng': latlng, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                                        dataType: "json",
+                                        success: function(res) {
+                                            console.log(res);
+                                            evt.target.innerHTML = 'Check'
+                                            var images = res.data
+                                            var imageHtml = ''
+                                            for(var i = 0 ; i < images.length ; i++){
+                                                imageHtml += '<a href="'+images[i]+'" target="_blank"><img src="'+images[i]+'" alt="streetview image result '+i+'" class="img-fluid"/></a>'
+                                            }
+                                            document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'No Result !!'
+                                            Swal.fire(images.length + ' Images Fetched from Street View','','success');
+                                        },
+                                        error: function(err) {
+                                            if(err.responseJSON){
+                                                Swal.fire("Unable to Save Images from Street View",err.responseJSON.message,'error');
+                                            }else{
+                                                Swal.fire("Unable to Save Images from Street View",err.responseText,'error');
+                                            }
+                                            evt.target.innerHTML = 'Check'
+                                        }
+                                    });
                                 },
                                 error: function(err){
                                     console.log(err.responseText)
                                     Swal.fire("Unable to Fetch Streetview Image",'Something went wrong','error');
                                 }
                             });
+                        // IF METADATA --NOT-- FOUND - THROW ERROR //
                         }else if(res.status == 'ZERO_RESULTS' || res.status == 'NOT_FOUND'){
                             Swal.fire("No Streetview Images available for this location",'No Results','info');
+                            evt.target.innerHTML = 'Check'
                         }else{
                             Swal.fire("Unable to Fetch Streetview Details",res.status,'error');
+                            evt.target.innerHTML = 'Check'
                         }
-                        evt.target.innerHTML = 'Check'
                     },
                     error: function(err){
                         Swal.fire("Unable to Fetch Streetview Details",'Something went wrong','error');

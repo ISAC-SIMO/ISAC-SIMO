@@ -21,6 +21,7 @@ django-environ = "*"
 gunicorn = "*"
 filetype = "*"
 opencv-python = "*"
+streetview = {git = "https://github.com/robolyst/streetview"}
 
 [requires]
 python_version = "3.8"

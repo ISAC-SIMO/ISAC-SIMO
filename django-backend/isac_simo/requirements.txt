@@ -78,3 +78,4 @@ whitenoise==5.0.1
 wrapt==1.11.2
 xlwt==1.3.0
 mysqlclient==1.4.6
+git+https://github.com/robolyst/streetview#egg=streetview
