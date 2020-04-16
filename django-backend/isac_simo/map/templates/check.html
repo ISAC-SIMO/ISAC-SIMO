@@ -158,7 +158,7 @@
                                             var images = res.data
                                             var imageHtml = ''
                                             for(var i = 0 ; i < images.length ; i++){
-                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i]+'" target="_blank" id="img-'+i+'"><img src="'+images[i]+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
+                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" target="_blank" id="img-'+i+'"><img src="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
                                             }
                                             document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'<div class="ml-3">No Result !!</div>'
                                             Swal.fire(images.length + ' Images Fetched from Street View','','success');
