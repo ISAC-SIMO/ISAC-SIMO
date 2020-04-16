@@ -542,7 +542,7 @@ def watsonObjectDelete(request, id):
 @user_passes_test(is_admin, login_url=login_url)
 def cleanTemp(request):
     files = []
-    if not os.path.exists(os.path.join('media/temp/*')):
+    if not os.path.exists(os.path.join('media/temp/')):
         files = glob.glob(os.environ.get('PROJECT_FOLDER','') + '/media/temp/*')
     else:
         files = glob.glob(os.path.join('media/temp/*'))
@@ -553,6 +553,23 @@ def cleanTemp(request):
             count += 1
     messages.success(request, str(count)+' Temporary File(s) removed')
     reload_classifier_list()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
+
+#################################
+# Clean Street View Saved Images #
+@user_passes_test(is_admin, login_url=login_url)
+def cleanTempStreetView(request):
+    files = []
+    if not os.path.exists(os.path.join('media/street_view_images/')):
+        files = glob.glob(os.environ.get('PROJECT_FOLDER','') + '/media/street_view_images/*')
+    else:
+        files = glob.glob(os.path.join('media/street_view_images/*'))
+    count = 0
+    for f in files:
+        if "street_view_images" in f:
+            os.remove(f)
+            count += 1
+    messages.success(request, str(count)+' Saved Street View Images removed')
     return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
 #########################

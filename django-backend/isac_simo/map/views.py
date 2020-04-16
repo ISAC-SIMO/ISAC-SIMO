@@ -2,11 +2,11 @@ import io
 import json
 import os
 import uuid
-import streetview
 from datetime import datetime
 from http.client import HTTPResponse
 from importlib import reload
 
+import streetview
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -16,9 +16,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from requests_toolbelt import user_agent
 
 import isac_simo.classifier_list as classifier_list
+from api.helpers import test_temp_images
 from main import authorization
 from main.authorization import *
 from main.models import User
+
 
 def reload_classifier_list():
     try:
@@ -50,10 +52,10 @@ def fetch(request):
             return JsonResponse({'status':'error','message':'No Google Map API Available'}, status=404)
         
         saveto = None
-        if not os.path.exists(os.path.join('media/temp')):
-            saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp'
+        if not os.path.exists(os.path.join('media/street_view_images')):
+            saveto = os.environ.get('PROJECT_FOLDER','') + '/media/street_view_images'
         else:
-            saveto = os.path.join('media/temp')
+            saveto = os.path.join('media/street_view_images')
 
         filelist = []
         
@@ -69,10 +71,38 @@ def fetch(request):
             # print(streetview.tiles_info(pano.get('panoid')))
             
             # heading recommendation: 0, 90, 180, or 270
-            file = streetview.api_download(pano.get('panoid'), 0, saveto, '', year=pano.get('year','now'))
+            file = streetview.api_download(pano.get('panoid'), 0, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
             if file:
                 filelist.append(file)
 
         return JsonResponse({'status':'ok','message':'Images Saved','data':filelist}, status=200)
     else:
         return JsonResponse({'status':'error','message':'Invalid Request'}, status=404)
+
+# ADMIN TEST IMAGES saved from streetview
+@user_passes_test(is_admin, login_url=login_url)
+def test(request):
+    images = request.POST.get('image_list', False)
+    if not images:
+        return JsonResponse({'status':'error','message':'No Saved Images Found'}, status=404)
+
+    image_list = json.loads(images)
+    data = []
+    print(image_list)
+    for image in image_list:
+        response = test_temp_images(image)
+        if not response:
+            data.append({
+                'image': image,
+                'result': '',
+                'score': ''
+            })
+        else:
+            data.append({
+                'image': image,
+                'result': response.get('result',''),
+                'score': response.get('score','')
+            })
+    
+    print(data)
+    return JsonResponse({'status':'ok','message':'Tested','data':data}, safe=True)

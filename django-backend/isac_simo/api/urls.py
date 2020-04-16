@@ -31,6 +31,7 @@ urlpatterns = [
 
     # Other Misc. Actions
     path('misc/clean/temp', views.cleanTemp, name="watson.cleantemp"),
+    path('misc/clean/temp/streetview', views.cleanTempStreetView, name="watson.cleantempstreetview"),
     path('misc/count/images', views.countImage, name="watson.countimage"),
     path('misc/dump/images', views.dumpImage, name="watson.dumpimage"),#dump json of image+image_file models
 ]

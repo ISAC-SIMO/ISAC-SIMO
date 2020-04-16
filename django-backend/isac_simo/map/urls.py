@@ -7,6 +7,7 @@ urlpatterns = [
     # Map Google Admin Routes
     path('check', views.check, name="map.check"),
     path('fetch', views.fetch, name="map.fetch"),
+    path('test', views.test, name="map.test"),
 ]
 
 if settings.DEBUG:

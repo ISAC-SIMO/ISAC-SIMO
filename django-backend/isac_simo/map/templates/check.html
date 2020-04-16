@@ -28,7 +28,15 @@
                     <div class="form-group">
                         <hr/>
                         <h4 class="ml-2">Image Result:</h4>
-                        <div id="image-container" class="col-sm-12 col-md-6">No Result !!</div>
+                        <div id="image-container" class="row"><div class="ml-3">No Result !!</div></div>
+                    </div>
+                    <div class="form-group">
+                        <input type="hidden" id="image_list" name="image_list" value=''/>
+                        <button type="submit" id="test_images_btn" style="display:none;" class="ml-2 btn btn-primary">Test Images</button>
+                    </div>
+
+                    <div class="form-group mt-1" id="clean-image-btn" style="display:none;">
+                        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.cleantempstreetview' %}','Clean All Temporarily Saved Street View Images?')" class="ml-2 mt-2 btn btn-danger btn-sm">Clean Saved Street View Images</a>
                     </div>
                 </div>
             </div>
@@ -120,6 +128,9 @@
                 return;
             }else{
                 evt.target.innerHTML = 'Check <i class="ml-2 fa fa-sync fa-spin"></i>'
+                evt.target.style.pointerEvents = 'none'
+                document.getElementById('image-container').innerHTML = '<div class="ml-3">No Result !!</div>'
+                document.getElementById('test_images_btn').style.display = 'none';
                 // TRY TO FETCH IMAGES METADATA //
                 $.ajax({
                     url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"YOUR_API_KEY"+"&signature="+"YOUR_SIGNATURE",
@@ -132,7 +143,7 @@
                                 url: url,
                                 success: function(result){
                                     console.log(result)
-                                    document.getElementById('image-container').innerHTML = '<a href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a>'
+                                    document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a>'
                                 
                                     // NOW CALL BACKEND API TO FETCH ALL CLOSEST IMAGES //
                                     $.ajax({
@@ -143,13 +154,19 @@
                                         success: function(res) {
                                             console.log(res);
                                             evt.target.innerHTML = 'Check'
+                                            evt.target.style.pointerEvents = 'all'
                                             var images = res.data
                                             var imageHtml = ''
                                             for(var i = 0 ; i < images.length ; i++){
-                                                imageHtml += '<a href="'+images[i]+'" target="_blank"><img src="'+images[i]+'" alt="streetview image result '+i+'" class="img-fluid"/></a>'
+                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+images[i]+'" target="_blank" id="img-'+i+'"><img src="'+images[i]+'" alt="streetview image result '+i+'" class="img-fluid"/></a>'
                                             }
-                                            document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'No Result !!'
+                                            document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'<div class="ml-3">No Result !!</div>'
                                             Swal.fire(images.length + ' Images Fetched from Street View','','success');
+                                            if(images.length >= 1){
+                                                document.getElementById('test_images_btn').style.display = 'block';
+                                                document.getElementById('image_list').value = JSON.stringify(image_list);
+                                                document.getElementById('clean-image-btn').style.display = 'block';
+                                            }
                                         },
                                         error: function(err) {
                                             if(err.responseJSON){
@@ -158,6 +175,7 @@
                                                 Swal.fire("Unable to Save Images from Street View",err.responseText,'error');
                                             }
                                             evt.target.innerHTML = 'Check'
+                                            evt.target.style.pointerEvents = 'all'
                                         }
                                     });
                                 },
@@ -170,17 +188,60 @@
                         }else if(res.status == 'ZERO_RESULTS' || res.status == 'NOT_FOUND'){
                             Swal.fire("No Streetview Images available for this location",'No Results','info');
                             evt.target.innerHTML = 'Check'
+                            evt.target.style.pointerEvents = 'all'
                         }else{
                             Swal.fire("Unable to Fetch Streetview Details",res.status,'error');
                             evt.target.innerHTML = 'Check'
+                            evt.target.style.pointerEvents = 'all'
                         }
                     },
                     error: function(err){
                         Swal.fire("Unable to Fetch Streetview Details",'Something went wrong','error');
                         evt.target.innerHTML = 'Check'
+                        evt.target.style.pointerEvents = 'all'
                     }
                 });
             }
+        })
+
+        // TEST IMAGES
+        document.getElementById('test_images_btn').addEventListener('click', function(evt){
+            evt.target.innerHTML = 'Test Images <i class="ml-2 fa fa-sync fa-spin"></i>'
+            evt.target.style.pointerEvents = 'none'
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'map.test' %}",
+                data: {'image_list': document.getElementById('image_list').value, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                dataType: "json",
+                success: function(res) {
+                    console.log(res);
+                    evt.target.innerHTML = 'Test Images'
+                    evt.target.style.pointerEvents = 'all'
+
+                    var data = res.data
+                    for(var i = 0 ; i < data.length ; i++){
+                        if(document.getElementById('img-'+i)){
+                            document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                        }else{
+                            console.log(data[i])
+                        }
+                    }
+                    if(data.length >= 1){
+                        document.getElementById('test_images_btn').style.display = 'none';
+                        document.getElementById('image_list').value = '';
+                    }
+                },
+                error: function(err) {
+                    if(err.responseJSON){
+                        Swal.fire("Unable to Test Images",err.responseJSON.message,'error');
+                    }else{
+                        Swal.fire("Unable to Test Images",err.responseText,'error');
+                    }
+                    evt.target.innerHTML = 'Test Images'
+                    evt.target.style.pointerEvents = 'all'
+                }
+            });
         })
     </script>
 {% endblock script %}
