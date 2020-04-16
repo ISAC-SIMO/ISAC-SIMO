@@ -32,7 +32,8 @@ def reload_classifier_list():
 @user_passes_test(is_admin, login_url=login_url)
 def check(request):
     if request.method == "GET":
-        return render(request, 'check.html')
+        GOOGLE_MAP_STREET_API = settings.GOOGLE_MAP_STREET_API
+        return render(request, 'check.html', {'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API})
     elif request.method == "POST":
         redirect('dashboard')
     else:

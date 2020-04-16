@@ -50,7 +50,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?callback=initMap"
     async defer></script>
     {% else %}
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAP_STREET_API}}&callback=initMap"
     async defer></script>
     {% endif %}
 
@@ -133,12 +133,12 @@
                 document.getElementById('test_images_btn').style.display = 'none';
                 // TRY TO FETCH IMAGES METADATA //
                 $.ajax({
-                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"YOUR_API_KEY"+"&signature="+"YOUR_SIGNATURE",
+                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}",
                     success: function(res){
                         // IF METADATA FOUND - TRY TO GET STREETVIEW FROM FRONTEND //
                         if(res.status == 'OK'){
                             console.log('trying to fetch streetview image....');
-                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"YOUR_API_KEY"+"&signature"+"YOUR_SIGNATURE";
+                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}";
                             $.ajax({
                                 url: url,
                                 success: function(result){
