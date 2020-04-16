@@ -705,7 +705,7 @@ def detect_temp_image(file_url):
         post_header = {'Accept':'application/json','Authorization':auth_base}
         
         # Temporary Resized Image (basewidth x calcheight)(save_to_path from param comes if looped through)
-        basewidth = 300
+        basewidth = 500
         temp = Image.open(file_url)
         wpercent = (basewidth/float(temp.size[0]))
         hsize = int((float(temp.size[1])*float(wpercent)))

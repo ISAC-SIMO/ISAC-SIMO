@@ -33,6 +33,7 @@
                     <div class="form-group">
                         <input type="hidden" id="image_list" name="image_list" value=''/>
                         <button type="submit" id="test_images_btn" style="display:none;" class="ml-2 btn btn-primary">Test Images</button>
+                        <p id="test_images_btn_text" style="display:none;margin-left: 8px;margin-top: 2px;">Might take some time depending on the total images...</p>
                     </div>
 
                     <div class="form-group mt-1" id="clean-image-btn" style="display:none;">
@@ -142,8 +143,7 @@
                             $.ajax({
                                 url: url,
                                 success: function(result){
-                                    console.log(result)
-                                    document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a>'
+                                    document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a><small>Trying to load more...</small>'
                                 
                                     // NOW CALL BACKEND API TO FETCH ALL CLOSEST IMAGES //
                                     $.ajax({
@@ -158,13 +158,13 @@
                                             var images = res.data
                                             var imageHtml = ''
                                             for(var i = 0 ; i < images.length ; i++){
-                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+images[i]+'" target="_blank" id="img-'+i+'"><img src="'+images[i]+'" alt="streetview image result '+i+'" class="img-fluid"/></a>'
+                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i]+'" target="_blank" id="img-'+i+'"><img src="'+images[i]+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
                                             }
                                             document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'<div class="ml-3">No Result !!</div>'
                                             Swal.fire(images.length + ' Images Fetched from Street View','','success');
                                             if(images.length >= 1){
                                                 document.getElementById('test_images_btn').style.display = 'block';
-                                                document.getElementById('image_list').value = JSON.stringify(image_list);
+                                                document.getElementById('image_list').value = JSON.stringify(images);
                                                 document.getElementById('clean-image-btn').style.display = 'block';
                                             }
                                         },
@@ -208,6 +208,8 @@
         document.getElementById('test_images_btn').addEventListener('click', function(evt){
             evt.target.innerHTML = 'Test Images <i class="ml-2 fa fa-sync fa-spin"></i>'
             evt.target.style.pointerEvents = 'none'
+            document.getElementById('clean-image-btn').style.display = 'none';
+            document.getElementById('test_images_btn_text').style.display = 'block';
 
             $.ajax({
                 type: "POST",
@@ -222,7 +224,7 @@
                     var data = res.data
                     for(var i = 0 ; i < data.length ; i++){
                         if(document.getElementById('img-'+i)){
-                            document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                            document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
                         }else{
                             console.log(data[i])
                         }
@@ -231,6 +233,7 @@
                         document.getElementById('test_images_btn').style.display = 'none';
                         document.getElementById('image_list').value = '';
                     }
+                    document.getElementById('clean-image-btn').style.display = 'block';
                 },
                 error: function(err) {
                     if(err.responseJSON){
@@ -240,6 +243,7 @@
                     }
                     evt.target.innerHTML = 'Test Images'
                     evt.target.style.pointerEvents = 'all'
+                    document.getElementById('clean-image-btn').style.display = 'block';
                 }
             });
         })
