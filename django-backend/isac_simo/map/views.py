@@ -33,8 +33,9 @@ def reload_classifier_list():
 def check(request):
     if request.method == "GET":
         GOOGLE_MAP_STREET_API = settings.GOOGLE_MAP_STREET_API
+        GOOGLE_MAP_API = settings.GOOGLE_MAP_API
         PROJECT_FOLDER = os.environ.get('PROJECT_FOLDER','')
-        return render(request, 'check.html', {'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER})
+        return render(request, 'check.html', {'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API})
     elif request.method == "POST":
         redirect('dashboard')
     else:

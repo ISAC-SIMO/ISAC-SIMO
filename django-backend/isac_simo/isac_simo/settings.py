@@ -52,6 +52,7 @@ DEBUG = not PRODUCTION
 TEMPLATE_DEBUG = DEBUG
 
 GOOGLE_MAP_STREET_API = os.getenv('GOOGLE_MAP_STREET_API')
+GOOGLE_MAP_API = os.getenv('GOOGLE_MAP_API')
 
 ALLOWED_HOSTS = ['0.0.0.0','localhost','127.0.0.1','buildchange.pythonanywhere.com','isac-simo.net','www.isac-simo.net']
 
