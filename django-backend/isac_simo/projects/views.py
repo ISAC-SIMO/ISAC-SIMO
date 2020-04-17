@@ -8,13 +8,15 @@ from main.models import User
 
 from .forms import ProjectForm
 from .models import Projects
+from isac_simo.classifier_list import detect_object_model_id
 
 
 # View All Projects
 @user_passes_test(is_admin, login_url=login_url)
 def viewProjects(request):
     projects = Projects.objects.all().order_by('project_name')
-    return render(request, 'projects.html',{'projects':projects})
+    detect_model = detect_object_model_id + ' (Default)'
+    return render(request, 'projects.html',{'projects':projects, 'detect_model':detect_model})
 
 # Add Project
 @user_passes_test(is_admin, login_url=login_url)

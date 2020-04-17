@@ -1,8 +1,8 @@
 {% extends 'master/base.html' %}
 
-{% block title %} Classifiers List {% endblock title %}
-{% block dashboard_title1 %} Classifiers {% endblock dashboard_title1 %}
-{% block dashboard_title2 %} All Classifiers {% endblock dashboard_title2 %}
+{% block title %} Classifiers List {% if object_type %}for {{object_type|title}}{% endif %} {% endblock title %}
+{% block dashboard_title1 %} Classifiers {% if object_type %}for {{object_type|title}}{% endif %} {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} All Classifiers {% if object_type %} ({{object_type|title}}{% endif %}) {% endblock dashboard_title2 %}
 {% load static %}
 
 {% block content %}
@@ -83,6 +83,9 @@
             "info": true,
             "autoWidth": true,
             "order": [],
+            "language": {
+			    "emptyTable": "No Classifiers Available {% if object_type %}for {{object_type|title}}{% endif %}"
+			}
           });
         });
     </script>

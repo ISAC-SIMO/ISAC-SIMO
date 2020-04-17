@@ -78,6 +78,10 @@ def addImage(request, id = 0):
                 instance.user_id = request.user.id
             instance.save()
 
+            detect_model = None
+            if request.POST.get('project', False):
+                detect_model = Projects.objects.filter(id=request.POST.get('project')).get().detect_model
+
             i = 0
             for f in files:
                 i = i + 1
@@ -86,7 +90,7 @@ def addImage(request, id = 0):
                 ################
                 ### RUN TEST ###
                 ################
-                test_image(photo,request.POST.get('title'),request.POST.get('description'))
+                test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model)
                     
                 if(i>=8):
                     break
@@ -139,6 +143,11 @@ def updateImage(request, id=0):
             if form.is_valid():
                 instance = form.save(commit=False)
                 instance.save()
+
+                detect_model = None
+                if request.POST.get('project', False):
+                    detect_model = Projects.objects.filter(id=request.POST.get('project')).get().detect_model
+
                 i = 0
                 for f in files:
                     i = i + 1
@@ -147,7 +156,7 @@ def updateImage(request, id=0):
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(photo,request.POST.get('title'),request.POST.get('description'))
+                    test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model)
 
                     if(i>=8):
                         break
@@ -269,8 +278,9 @@ def deleteImageFile(request, id):
 def retestImageFile(request, id):
     try:
         image_file = ImageFile.objects.get(id=id)
+        detect_model = image_file.image.project.detect_model
         if not image_file.result or not image_file.score:
-            test_status = test_image(image_file)
+            test_status = test_image(image_file, detect_model=detect_model)
             if test_status:
                 messages.success(request, 'Image Tested Successfully.')
             else:
@@ -359,8 +369,14 @@ def watsonTrain(request):
 
 @user_passes_test(is_admin, login_url=login_url)
 def watsonClassifierList(request):
-    classifiers = Classifier.objects.order_by('-object_type').order_by('order').all()
-    return render(request, 'list_classifier.html',{'classifiers':classifiers})
+    if request.GET.get('object_type', False):
+        classifiers = Classifier.objects.order_by('-object_type').filter(object_type=request.GET.get('object_type')).order_by('order').all()
+        object_type = ObjectType.objects.filter(id=request.GET.get('object_type')).get().name
+    else:
+        classifiers = Classifier.objects.order_by('-object_type').order_by('order').all()
+        object_type = False
+    
+    return render(request, 'list_classifier.html',{'classifiers':classifiers,'object_type':object_type})
 
 # Classifier Details of IBM
 @user_passes_test(is_admin, login_url=login_url)
@@ -492,12 +508,23 @@ def watsonClassifierTest(request, id):
 # Watson object detail fetch from ibm
 @user_passes_test(is_admin, login_url=login_url)
 def watsonObject(request):
-    detail = object_detail()
-    if detail:
-        detail = json.dumps(detail, indent=4)
-    else:
-        detail = 'Could Not Fetch List Object Detail Metadata'
-    return render(request, 'objects.html',{'detail':detail})
+    if request.method != "POST":
+        default_object_model = classifier_list.detect_object_model_id
+        projects = Projects.objects.all().distinct('detect_model')
+        return render(request, 'objects_detail.html',{'default_object_model':default_object_model,'projects':projects})
+    elif request.method == "POST":
+        detail = None
+        object_id = request.POST.get('object_id', False)
+        try:
+            detail = object_detail(object_id)
+            if detail:
+                detail = json.dumps(detail, indent=4)
+            else:
+                detail = 'Could Not Fetch List Object Detail Metadata'
+        except:
+            detail = 'Could Not Fetch List Object Detail Metadata (Server Error or Object Not Found)'
+        finally:
+            return render(request, 'objects.html',{'detail':detail,'object_id':object_id})
 
 # Watson Object Type List
 @user_passes_test(is_admin, login_url=login_url)

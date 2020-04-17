@@ -91,7 +91,7 @@ def transform_image(img, ext, saveto, rotate, warp, inverse):
 ###################
 ## Detect Object ##
 ###################
-def detect_image(image_file):
+def detect_image(image_file, detect_model):
     # Find Image Path (used to open)
     file_url = str(os.path.abspath(os.path.dirname(__name__))) + image_file.file.url
     if not os.path.exists(file_url):
@@ -100,10 +100,14 @@ def detect_image(image_file):
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     print('Detecting Image Object...')
     saveto = None
-    if os.path.exists(file_url) and settings.IBM_API_KEY and classifier_list.detect_object_model_id:
+    if os.path.exists(file_url) and settings.IBM_API_KEY and (classifier_list.detect_object_model_id or detect_model):
+        object_id = classifier_list.detect_object_model_id
+        if detect_model:
+            object_id = detect_model
+
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
-        post_data = {'collection_ids': classifier_list.detect_object_model_id, 'threshold': '0.6', 'features':'objects'}
+        post_data = {'collection_ids': object_id, 'threshold': '0.6', 'features':'objects'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
 
@@ -178,9 +182,9 @@ def detect_image(image_file):
 ####################
 # Default on 1st Image Test check Classifier Ids 1
 # If result is nogo/nogos then run test again with classifier ids 2
-def test_image(image_file, title=None, description=None, save_to_path=None, classifier_index=0, detected_as=None):
+def test_image(image_file, title=None, description=None, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None):
     if not detected_as:
-        detected_as = detect_image(image_file)
+        detected_as = detect_image(image_file, detect_model)
     
     if not detected_as:
         if save_to_path:
@@ -244,7 +248,7 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
                     if classifier_index + 1 < len(classifier_list.data().get(object_type,[])):
                         print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                        test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as) #save_to_path=temp file
+                        test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as, detect_model) #save_to_path=temp file
 
                 if(classifier_index <= 0):
                     resized_image_open.close()
@@ -639,10 +643,13 @@ def classifier_detail(object_type, model):
             return False
 
 # Fetch Object Detection Metadata Details #
-def object_detail():
+def object_detail(object_id):
     # IF IBM KEY is provided + classifier list exists
     if ( settings.IBM_API_KEY 
-        and classifier_list.detect_object_model_id ):
+        and (classifier_list.detect_object_model_id or object_id) ):
+        
+        if not object_id:
+            object_id = classifier_list.detect_object_model_id
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
@@ -652,7 +659,7 @@ def object_detail():
         content = {}
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'?version=2019-02-11', headers=post_header)
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'?version=2019-02-11', headers=post_header)
         status = response.status_code
         try:
             content.update(response.json())
@@ -661,7 +668,7 @@ def object_detail():
             print('IBM Response was BAD for collection info')
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'/objects?version=2019-02-11', headers=post_header)
+        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'/objects?version=2019-02-11', headers=post_header)
         status = response.status_code
         try:
             content.update(response.json())
@@ -670,7 +677,7 @@ def object_detail():
             print('IBM Response was BAD for objects')
 
         # Call the API for Images
-        # response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+classifier_list.detect_object_model_id+'/images?version=2019-02-11', headers=post_header)
+        # response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'/images?version=2019-02-11', headers=post_header)
         # status = response.status_code
         # try:
         #     content.update(response.json())
@@ -691,14 +698,17 @@ def object_detail():
 ##################################################
 
 # Similar to detect_image but from temp no need to deal with image_file model (used in e.g. google map image test detect)
-def detect_temp_image(file_url):
+def detect_temp_image(file_url, detect_model):
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     print('Detecting Image Object [TEMP Google Street Images]...')
     saveto = None
-    if os.path.exists(file_url) and settings.IBM_API_KEY and classifier_list.detect_object_model_id:
+    if os.path.exists(file_url) and settings.IBM_API_KEY and (classifier_list.detect_object_model_id or detect_model):
+        object_id = classifier_list.detect_object_model_id
+        if detect_model:
+            object_id = detect_model
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
-        post_data = {'collection_ids': classifier_list.detect_object_model_id, 'threshold': '0.6', 'features':'objects'}
+        post_data = {'collection_ids': object_id, 'threshold': '0.6', 'features':'objects'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
 
@@ -767,10 +777,10 @@ def detect_temp_image(file_url):
 score = None
 result = None
 ### SAME AS test_image BUT FOR TEMP IMAGES (no need to deal with models and other stuffs (used for e.g. in google map images testing))
-def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected_as=None):
+def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None):
     global score, result
     if not detected_as:
-        detected_as = detect_temp_image(image_file)
+        detected_as = detect_temp_image(image_file, detect_model)
     
     if not detected_as:
         if save_to_path:
@@ -829,7 +839,7 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
                     if classifier_index + 1 < len(classifier_list.data().get(object_type,[])):
                         print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                        test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as) #save_to_path=temp file
+                        test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model) #save_to_path=temp file
 
                 if(classifier_index <= 0):
                     resized_image_open.close()

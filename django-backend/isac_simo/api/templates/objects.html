@@ -1,8 +1,8 @@
 {% extends 'master/base.html' %}
 
-{% block title %} List Object Metadata {% endblock title %}
-{% block dashboard_title1 %} List Object Metadata {% endblock dashboard_title1 %}
-{% block dashboard_title2 %} Object Detail {% endblock dashboard_title2 %}
+{% block title %} Fetch Object Type Details of {{object_id}} {% endblock title %}
+{% block dashboard_title1 %} Object Type Detail {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Object Type {% endblock dashboard_title2 %}
 {% load static %}
 
 {% block content %}
@@ -11,6 +11,7 @@
             <div class="card">
                 <div class="card-body">
                     <h5>Detect Object Type:</h5>
+                    <p>{{object_id}}</p>
                     <hr/>
                     {% if detail %}
                         <pre id="object_detail" style="border-left: 2px solid salmon;">{{detail}}</pre>
@@ -20,7 +21,7 @@
                     <hr/>
 
                     <div class="form-group">
-                        <button onclick="location.reload()" class="ml-2 btn btn-secondary btn-sm">Refresh &nbsp; <i class="fa fa-sync"></i></button>
+                        <button onclick="location.reload()" class="ml-2 btn btn-secondary btn-sm">Check other Object Model &nbsp; <i class="fa fa-arrow-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -28,5 +29,8 @@
     </div>
     <script>
         document.getElementById('object_detail').innerHTML = document.getElementById('object_detail').innerText.replace(/false/g,'<b style="font-family: verdana;">false</b>').replace(/true/g, '<b style="font-family: verdana;">true</b>')
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
     </script>
 {% endblock content %}

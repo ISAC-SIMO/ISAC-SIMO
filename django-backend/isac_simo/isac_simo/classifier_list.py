@@ -5,7 +5,8 @@ except ImportError as e:
     print(e)
     print('Classifier list model import error')
 
-# LIST OF CLASSIFIERS PIPELINE PASSES THORUGH (IN CASE OF NOGO FOR EXAMPLE)
+# NOTE: DETECT OBJECT MODEL ID FOR WATSON (IF ANY PROJECT CONTAINS detect model then that is used)
+# NOTE: IF NO model is given to a project this will be the default DETECT MODEL ID
 # NEEDS TO BE CHANGED AS REQUIRED - IN SERVER, PRODUCTION, STAGE as required
 detect_object_model_id = '9068cba3-6dab-4233-805b-2d64a16daae8'
 

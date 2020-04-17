@@ -38,6 +38,9 @@
                                         <a onclick="deleteDataWriteConfirm(event, 'form-{{ object_type.id }}', 'Object Type')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'watson.object.delete' object_type.id %}" class="btn text-secondary px-0">
                                             <i class="fa fa-trash text-danger"></i>
                                         </a>
+                                        <a title="View Classifiers for {{object_type.name|title}}" data-toggle="tooltip" data-placement="right" href="{% url 'watson.classifier.list' %}?object_type={{object_type.id}}" class="btn text-secondary px-0 pl-2 pr-2">
+                                            <i class="fa fa-arrow-right text-info"></i>
+                                        </a>
                                         <form action="{% url 'watson.object.delete' object_type.id %}" id="form-{{ object_type.id }}" class="d-inline">
                                             {% csrf_token %}
                                         </form>

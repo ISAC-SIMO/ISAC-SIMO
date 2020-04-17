@@ -1,0 +1,41 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Fetch Object Type Details {% endblock title %}
+{% block dashboard_title1 %} Object Type Detail {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Object Type {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <form action="{% url 'watson.object' %}" id="object_form" method="POST" class="col-12">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="object_id" class="col-sm-12 col-md-5 col-form-label">Object Model</label>
+                        <div class="col-sm-12 col-md-5">
+                            <select name="object_id" class="form-control select2" id="object_id" required>
+                                <option value="{{default_object_model}}">{{default_object_model}}</option>
+                                {% for project in projects %}
+                                    {% if project.detect_model %}
+                                        <option value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="form-group">
+                        <button type="submit" id="object_btn" class="ml-2 btn btn-primary">Get Detail</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $('#object_id').select2();
+    </script>
+{% endblock script %}

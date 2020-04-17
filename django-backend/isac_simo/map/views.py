@@ -20,6 +20,7 @@ from api.helpers import test_temp_images
 from main import authorization
 from main.authorization import *
 from main.models import User
+from projects.models import Projects
 
 
 def reload_classifier_list():
@@ -35,9 +36,12 @@ def check(request):
         GOOGLE_MAP_STREET_API = settings.GOOGLE_MAP_STREET_API
         GOOGLE_MAP_API = settings.GOOGLE_MAP_API
         PROJECT_FOLDER = os.environ.get('PROJECT_FOLDER','')
-        return render(request, 'check.html', {'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API})
-    elif request.method == "POST":
-        redirect('dashboard')
+        default_object_model = classifier_list.detect_object_model_id
+        projects = Projects.objects.all().distinct('detect_model')
+        return render(request, 'check.html', {
+            'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API,
+            'default_object_model':default_object_model,'projects':projects
+        })
     else:
         messages.error(request, 'Invalid Map Request')
         redirect('dasboard')
@@ -86,6 +90,7 @@ def fetch(request):
 @user_passes_test(is_admin, login_url=login_url)
 def test(request):
     images = request.POST.get('image_list', False)
+    detect_model = request.POST.get('detect_model', None)
     if not images:
         return JsonResponse({'status':'error','message':'No Saved Images Found'}, status=404)
 
@@ -93,7 +98,7 @@ def test(request):
     data = []
     print(image_list)
     for image in image_list:
-        response = test_temp_images(image)
+        response = test_temp_images(image, detect_model=detect_model)
         if not response:
             data.append({
                 'image': image,
