@@ -12,9 +12,19 @@
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
+                        <label for="project" class="col-sm-5 col-md-4 col-form-label">Project</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="project" class="form-control" id="project" required>
+                                <option disabled="" selected="">No Projects Found</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="object" class="col-sm-5 col-md-4 col-form-label">Object</label>
                         <div class="col-sm-12 col-md-4">
-                            <select name="object" class="form-control" id="object" required></select>
+                            <select name="object" class="form-control" id="object" required>
+                                <option disabled="" selected="">No Objects Found</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -28,7 +38,7 @@
                     <hr/>
                     {% if detail %}
                     <h3>Result:</h3>
-                    <small><b>Object: {{object|title}} <br/> Model: {{model}}</b></small>
+                    <small><b>Project: {{project|title}} <br/> Object: {{object|title}} <br/> Model: {{model}}</b></small>
                     <pre style="border-left: 2px solid salmon;">{{detail}}</pre>
                     <hr/>
                     {% endif %}
@@ -43,27 +53,50 @@
 
 {% block script %}
     <script>
-        var classifier_list = {{classifier_list|safe}}
+        var classifier_list = {{classifier_list|safe}} 
 
-        $('#object').html('')
-        Object.keys(classifier_list).forEach(function(key){
-            $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
-        });
+        $(function() {
+            $('#project').select2({
+                'placeholder':'No Project Found'
+            })
+            $('#object').select2({
+                'placeholder':'No Object Found'
+            })
+            $('#model').select2({
+                'placeholder':'No Model Found'
+            })
 
-        function updateModel(){
-            var sel = $('#object').val()
-            $('#model').html('')
-            if(sel){
-                for(var i = 0 ; i < classifier_list[sel].length ; i++){
-                    $('#model').append('<option value="'+classifier_list[sel][i]+'">'+classifier_list[sel][i]+'</option>')
+            $('#project').html('')
+            Object.keys(classifier_list).forEach(function(key){
+                $('#project').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+            });
+
+            function updateObject(){
+                var sel = $('#project').val()
+                $('#object').html('')
+                if(sel && Object.keys(classifier_list[sel]).length > 0){
+                    Object.keys(classifier_list[sel]).forEach(function(key){
+                        $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+                    });
                 }
-            }else{
-                $('#model').append('<option disabled="" selected="">No Models Found</option>')
+                updateModel();
             }
-        }
 
-        $('#object').on('change', updateModel);
-        updateModel();
+            function updateModel(){
+                var selP = $('#project').val()
+                var sel = $('#object').val()
+                $('#model').html('')
+                if(sel && selP && classifier_list[selP][sel].length > 0){
+                    classifier_list[selP][sel].forEach(function(key){
+                        $('#model').append('<option value="'+key+'">'+key+'</option>')
+                    });
+                }
+            }
+
+            $('#project').on('change', updateObject);
+            $('#object').on('change', updateModel);
+            updateObject();
+        });
 
         {% if detail %}
         if ( window.history.replaceState ) {

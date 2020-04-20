@@ -346,8 +346,8 @@ def watsonTrain(request):
             min_image_required = 2
 
         # we have "model" in request. If Model is all or not provided then all images are re-trained in all classifiers of object type given, else only on selected classifier (it is the last parameter in retrain function)
-        if zipped >= min_image_required and image_file_list and request.POST.get('object', False) and request.POST.get('result', False):
-            retrain_status = retrain_image(image_file_list, request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False))
+        if zipped >= min_image_required and image_file_list and request.POST.get('project', False) and request.POST.get('object', False) and request.POST.get('result', False):
+            retrain_status = retrain_image(image_file_list, request.POST.get('project'), request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False))
             print(retrain_status)
             if retrain_status:
                 messages.success(request,str(zipped) + ' images zipped and was sent to retrain in ' + str(retrain_status) + ' classifier(s). (Retraining takes time)')
@@ -384,14 +384,14 @@ def watsonClassifier(request):
     if request.method != "POST":
         return render(request, 'classifiers.html',{'classifier_list':classifier_list.data()})
     elif request.method == "POST":
-        detail = classifier_detail(request.POST.get('object', False), request.POST.get('model', False))
+        detail = classifier_detail(request.POST.get('project', False), request.POST.get('object', False), request.POST.get('model', False))
         if detail:
             detail = json.dumps(detail, indent=4)
         else:
             detail = 'Could Not Fetch Classifier Detail'
         
         reload_classifier_list()
-        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data(), 'detail':detail, 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data(), 'detail':detail, 'project':request.POST.get('project', False), 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
 
 # Create Custom Classifiers with zip data
 @user_passes_test(is_admin, login_url=login_url)
@@ -522,7 +522,7 @@ def watsonClassifierTest(request, id):
 def watsonObject(request):
     if request.method != "POST":
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().values('detect_model').distinct()
+        projects = Projects.objects.all().values('detect_model','project_name').distinct()
         return render(request, 'objects_detail.html',{'default_object_model':default_object_model,'projects':projects})
     elif request.method == "POST":
         detail = None

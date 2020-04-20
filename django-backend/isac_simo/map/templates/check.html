@@ -40,14 +40,13 @@
                             <label for="object_id" class="col-sm-12 col-md-5 col-form-label">Select the Object Model to test on:</label>
                             <div class="col-sm-12 col-md-5">
                                 <select name="object_id" class="form-control select2" id="object_id" required>
-                                    {% if default_object_model %}
-                                        <option value="{{default_object_model}}">{{default_object_model}} (Default)</option>
-                                    {% endif %}
-
+                                    {% comment %} {% if default_object_model %}
+                                        <option value="{{default_object_model}}">{{default_object_model}}</option>
+                                    {% endif %} {% endcomment %}
                                     {% if projects %}
                                         {% for project in projects %}
                                             {% if project.detect_model %}
-                                                <option value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                                <option data-project-id="{{project.id}}" data-project="{{project.project_name}}" value="{{project.detect_model}}">{{project.detect_model}}</option>
                                             {% endif %}
                                         {% endfor %}
                                     {% endif %}
@@ -232,11 +231,16 @@
             evt.target.style.pointerEvents = 'none'
             document.getElementById('clean-image-btn').style.display = 'none';
             document.getElementById('test_images_btn_text').style.display = 'block';
+            var project = $("#object_id").find(":selected").data().projectId;
+            if(!project){
+                alert('Unable to retrive project.')
+                return;
+            }
 
             $.ajax({
                 type: "POST",
                 url: "{% url 'map.test' %}",
-                data: {'image_list': document.getElementById('image_list').value, 'detect_model': document.getElementById('object_id').value, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                data: {'image_list': document.getElementById('image_list').value, 'detect_model': document.getElementById('object_id').value, 'project': project, 'csrfmiddlewaretoken': '{{csrf_token}}'},
                 dataType: "json",
                 success: function(res) {
                     console.log(res);
@@ -246,7 +250,11 @@
                     var data = res.data
                     for(var i = 0 ; i < data.length ; i++){
                         if(document.getElementById('img-'+i)){
-                            document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                            if(data[i]["score"] && data[i]["result"]){
+                                document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                            }else{
+                                document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">No Result</small>'
+                            }
                         }else{
                             console.log(data[i])
                         }
@@ -270,6 +278,31 @@
             });
         })
 
-        $('#object_id').select2();
+        function formatState (state) {
+            if (!state.id) {
+                return state.text;
+            }
+            var project = state.element.getAttribute('data-project')
+            var $state = $(
+                '<span><b>' + state.text + '</b><br/><small>Project: ' + (project?project:'Default') + '</small></span>'
+            );
+            return $state;
+        };
+
+        function formatSelection (state) {
+            if (!state.id) {
+                return state.text;
+            }
+            var project = state.element.getAttribute('data-project')
+            var $state = $(
+                '<span>' + state.text + ' - <small>(' + (project?project:'Default') + ')</small></span>'
+            );
+            return $state;
+        };
+
+        $('#object_id').select2({
+            templateResult: formatState,
+            templateSelection: formatSelection
+        });
     </script>
 {% endblock script %}

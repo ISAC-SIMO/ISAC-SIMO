@@ -12,9 +12,19 @@
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
+                        <label for="project" class="col-sm-5 col-md-4 col-form-label">Project</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="project" class="form-control" id="project" required>
+                                <option disabled="" selected="">No Projects Found</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="object" class="col-sm-12 col-md-6 col-form-label">Object</label>
                         <div class="col-sm-12 col-md-4">
-                            <select name="object" class="form-control" id="object" required></select>
+                            <select name="object" class="form-control" id="object" required>
+                                <option disabled="" selected="">No Objects Found</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -88,70 +98,93 @@
     <script>
         var classifier_list = {{classifier_list|safe}}
 
-        $('#object').html('')
-        Object.keys(classifier_list).forEach(function(key){
-            $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
-        });
+        $(function() {
+            $('#project').select2({
+                'placeholder':'No Project Found'
+            })
+            $('#object').select2({
+                'placeholder':'No Object Found'
+            })
+            $('#model').select2({
+                'placeholder':'No Model Found'
+            })
 
-        function updateModel(){
-            var sel = $('#object').val()
-            $('#model').html('')
-            if(sel){
-                $('#model').append('<option value="all" selected="">All</option>')
-                for(var i = 0 ; i < classifier_list[sel].length ; i++){
-                    $('#model').append('<option value="'+classifier_list[sel][i]+'">'+classifier_list[sel][i]+'</option>')
+            $('#project').html('')
+            Object.keys(classifier_list).forEach(function(key){
+                $('#project').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+            });
+
+            function updateObject(){
+                var sel = $('#project').val()
+                $('#object').html('')
+                if(sel && Object.keys(classifier_list[sel]).length > 0){
+                    Object.keys(classifier_list[sel]).forEach(function(key){
+                        $('#object').append('<option value="'+key+'">'+key.toUpperCase()+'</option>')
+                    });
                 }
-            }else{
-                $('#model').append('<option disabled="" selected="">No Models Found</option>')
+                updateModel();
             }
-        }
 
-        $('#object').on('change', updateModel);
-        updateModel();
-
-        function getImagesCount(){
-            var total = document.getElementById('images').files;
-            if(total.length < {% if debug %} 2 {% else %} 10 {% endif %}){
-                Swal.fire('At least {% if debug %} 2 (for development) {% else %} 10 {% endif %} Images Required','Please select more.')
-                document.getElementById('images').value = ''
-                return false
+            function updateModel(){
+                var selP = $('#project').val()
+                var sel = $('#object').val()
+                $('#model').html('')
+                $('#model').append('<option value="all" selected="">All</option>')
+                if(sel && selP && classifier_list[selP][sel].length > 0){
+                    classifier_list[selP][sel].forEach(function(key){
+                        $('#model').append('<option value="'+key+'">'+key+'</option>')
+                    });
+                }
             }
-            return true
-        }
 
-        $('#images').on('change', getImagesCount)
+            $('#project').on('change', updateObject);
+            $('#object').on('change', updateModel);
+            updateObject();
 
-        $('#retrain_form').on('submit', function(event){
-            Pace.restart()
-            if(!getImagesCount()){
-                event.preventDefault()
-            }else{
-                $('#retrain_btn').attr('disabled','disabled')
-                Swal.fire({
-                    'title':'Sending Images to retrain the classifier',
-                    'html':'Do not close this window until response is received, It might take some time depending on the size and amount of images.',
-                    'type':'info',
-                    'allowOutsideClick': false
-                })
+            function getImagesCount(){
+                var total = document.getElementById('images').files;
+                if(total.length < {% if debug %} 2 {% else %} 10 {% endif %}){
+                    Swal.fire('At least {% if debug %} 2 (for development) {% else %} 10 {% endif %} Images Required','Please select more.')
+                    document.getElementById('images').value = ''
+                    return false
+                }
+                return true
             }
-        })
 
-        $('#process').on('change', function(event){
-            if($('#process').is(":checked")){
-                $('#rotate-group').slideDown();
-                $('#warp-group').slideDown();
-                $('#inverse-group').slideDown();
-                $('#rotate').prop('checked', false);
-                $('#warp').prop('checked', false);
-                $('#inverse').prop('checked', false);
-            }else{
-                $('#rotate-group').slideUp();
-                $('#warp-group').slideUp();
-                $('#inverse-group').slideUp();
-                $('#rotate').prop('checked', false);
-                $('#warp').prop('checked', false);
-                $('#inverse').prop('checked', false);
-            }
-        })
+            $('#images').on('change', getImagesCount)
+
+            $('#retrain_form').on('submit', function(event){
+                Pace.restart()
+                if(!getImagesCount()){
+                    event.preventDefault()
+                }else{
+                    $('#retrain_btn').attr('disabled','disabled')
+                    Swal.fire({
+                        'title':'Sending Images to retrain the classifier',
+                        'html':'Do not close this window until response is received, It might take some time depending on the size and amount of images.',
+                        'type':'info',
+                        'allowOutsideClick': false
+                    })
+                }
+            })
+
+            $('#process').on('change', function(event){
+                if($('#process').is(":checked")){
+                    $('#rotate-group').slideDown();
+                    $('#warp-group').slideDown();
+                    $('#inverse-group').slideDown();
+                    $('#rotate').prop('checked', false);
+                    $('#warp').prop('checked', false);
+                    $('#inverse').prop('checked', false);
+                }else{
+                    $('#rotate-group').slideUp();
+                    $('#warp-group').slideUp();
+                    $('#inverse-group').slideUp();
+                    $('#rotate').prop('checked', false);
+                    $('#warp').prop('checked', false);
+                    $('#inverse').prop('checked', false);
+                }
+            })
+        });
     </script>
 {% endblock script %}

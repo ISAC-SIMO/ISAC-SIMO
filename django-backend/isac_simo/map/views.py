@@ -37,7 +37,7 @@ def check(request):
         GOOGLE_MAP_API = settings.GOOGLE_MAP_API
         PROJECT_FOLDER = os.environ.get('PROJECT_FOLDER','')
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().values('detect_model').distinct()
+        projects = Projects.objects.all().values('detect_model','project_name','id').distinct()
         return render(request, 'check.html', {
             'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API,
             'default_object_model':default_object_model,'projects':projects
@@ -68,10 +68,13 @@ def fetch(request):
         
         latlngList = [x.strip() for x in latlng.split(',')]
         panoids = streetview.panoids(lat=latlngList[0], lon=latlngList[1])
-        print(panoids)
+        # print(panoids)
         count = 0
+        max_fetch = 150
+        if settings.DEBUG:
+            max_fetch = 5
         for pano in panoids:
-            if (count < 180):
+            if (count < max_fetch):
                 # IF panoroma is older then 2015 ignore it
                 if pano.get('year', False) and pano.get('year') < 2015:
                     continue
@@ -81,11 +84,17 @@ def fetch(request):
                 
                 # heading recommendation: 0, 90, 180, or 270
                 for heading in [30, 220, 0, 90, 180, 270]:
-                    file = streetview.api_download(pano.get('panoid'), heading, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
+                    file = None
+                    try:
+                        file = streetview.api_download(pano.get('panoid'), heading, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
+                    except Exception as e:
+                        print('Failed to download this streetview image')
+
                     if file:
                         filelist.append(file)
                         count += 1
             else:
+                messages.info(request, 'Max Street View Images ('+str(max_fetch)+') was fetched earlier.')
                 break
 
         return JsonResponse({'status':'ok','message':'Images Saved','data':filelist}, status=200)
@@ -97,14 +106,19 @@ def fetch(request):
 def test(request):
     images = request.POST.get('image_list', False)
     detect_model = request.POST.get('object_id', None)
+    project = request.POST.get('project', False)
     if not images:
         return JsonResponse({'status':'error','message':'No Saved Images Found'}, status=404)
+
+    if not project:
+        return JsonResponse({'status':'error','message':'Unable to verify project'}, status=404)
 
     image_list = json.loads(images)
     data = []
     print(image_list)
+    project = Projects.objects.filter(id=request.POST.get('project')).get()
     for image in image_list:
-        response = test_temp_images(image, detect_model=detect_model)
+        response = test_temp_images(image, detect_model=detect_model, project=project)
         if not response:
             data.append({
                 'image': image,

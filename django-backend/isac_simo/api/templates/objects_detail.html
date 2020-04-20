@@ -12,8 +12,8 @@
             <div class="card">
                 <div class="card-body">
                     <div class="form-group">
-                        <label for="object_id" class="col-sm-12 col-md-5 col-form-label">Object Model</label>
-                        <div class="col-sm-12 col-md-5">
+                        <label for="object_id" class="col-sm-12 col-md-6 col-form-label">Object Model</label>
+                        <div class="col-sm-12 col-md-6">
                             <select name="object_id" class="form-control select2" id="object_id" required>
                                 {% if default_object_model %}
                                     <option value="{{default_object_model}}">{{default_object_model}}</option>
@@ -22,7 +22,7 @@
                                 {% if projects %}
                                     {% for project in projects %}
                                         {% if project.detect_model %}
-                                            <option value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                            <option value="{{project.detect_model}}" data-project="{{project.project_name}}">{{project.detect_model}}</option>
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
@@ -41,6 +41,20 @@
 
 {% block script %}
     <script>
-        $('#object_id').select2();
+        function formatState (state) {
+            if (!state.id) {
+                return state.text;
+            }
+            var project = state.element.getAttribute('data-project')
+            var $state = $(
+                '<span><b>' + state.text + '<b><br/><small>Project: ' + (project?project:'Default') + '</small></span>'
+            );
+            return $state;
+        };
+
+
+        $('#object_id').select2({
+            templateResult: formatState
+        });
     </script>
 {% endblock script %}

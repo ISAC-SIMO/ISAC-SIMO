@@ -81,3 +81,25 @@ if(total_classifiers <= 0):
     print('-------------------------------------------------------------------------------------------')
 else:
     print(str(total_classifiers) + ' Classifier Model Type Found.')
+
+# Returns the length of data specific object
+def lenList(project, object_type):
+    content = data()
+    if project and object_type and content.get(project, False):
+        if content.get(project).get(object_type, False):
+            return len(content.get(project).get(object_type))
+    
+    return 0
+
+def searchList(project, object_type, model=None, index=None):
+    content = data()
+    if project and object_type and model and content.get(project, False):
+        if content.get(project).get(object_type, False):
+            if index: # Search by index check if exists
+                if len(content.get(project).get(object_type)) <= index and content.get(project).get(object_type)[index]:
+                    return content.get(project).get(object_type)[index]
+            else: # search by model
+                if model in content.get(project).get(object_type):
+                    return model
+    
+    return False
