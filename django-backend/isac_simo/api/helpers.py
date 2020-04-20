@@ -421,6 +421,7 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
                 content = response.json()
             except ValueError:
                 # IBM Response is BAD
+                print(response)
                 print('IBM Response was BAD - (e.g. zip might be too large)')
             
             print(status)
@@ -590,6 +591,7 @@ def create_classifier(zip_file_list, negative_zip=False, name=False, object_type
             content = response.json()
         except ValueError:
             # IBM Response is BAD
+            print(response)
             print('IBM Response was BAD - (e.g. zip might be too large or similar problem)')
         
         print(status)
@@ -846,5 +848,10 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
                     os.remove(save_to_path)
                 return {'score': score, 'result': result}
     else:
+        print(os.path.exists(save_to_path))
+        print(settings.IBM_API_KEY )
+        print(classifier_index)
+        print(classifier_list.lenList(project,object_type))
+        print(check_and_get_classifier_ids)
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False

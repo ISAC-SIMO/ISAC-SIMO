@@ -93,10 +93,14 @@ def lenList(project, object_type):
 
 def searchList(project, object_type, model=None, index=None):
     content = data()
-    if project and object_type and model and content.get(project, False):
+    if project and object_type and content.get(project, False):
+        print('1--')
         if content.get(project).get(object_type, False):
-            if index: # Search by index check if exists
-                if len(content.get(project).get(object_type)) <= index and content.get(project).get(object_type)[index]:
+            print('2--')
+            if index >= 0: # Search by index check if exists
+                print('3--')
+                if len(content.get(project).get(object_type)) > index and content.get(project).get(object_type)[index]:
+                    print('4--')
                     return content.get(project).get(object_type)[index]
             else: # search by model
                 if model in content.get(project).get(object_type):
