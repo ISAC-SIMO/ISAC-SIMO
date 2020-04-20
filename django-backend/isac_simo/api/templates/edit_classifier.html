@@ -40,7 +40,7 @@
                             <select name="object_type" id="object_type" class="form-control" required>
                                 <option></option>
                                 {% for object_type in object_types %}
-                                <option data-project="{{object_type.project.id}}" value="{{object_type.id}}" {% if object_type.id == classifier.object_type.id %}selected{% endif %}>{{object_type.name|title}}</option>
+                                <option data-project="{{object_type.project.id}}" value="{{object_type.id}}" {% if object_type.id == classifier.object_type.id %}selected="selected"{% endif %}>{{object_type.name|title}}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -82,6 +82,14 @@
 
         $('#project').on( 'change', function() {
             $('#object_type').html( $options.filter( '[data-project="' + this.value + '"]' ) );
+            $('#object_type').trigger( 'change' );
+            for(var i = 0 ; i < $('#object_type').find('option').length ; i++){
+                console.log($('#object_type').find('option')[i].getAttribute('selected'))
+                if($('#object_type').find('option')[i].getAttribute('selected') != null){
+                    $('#object_type').val($('#object_type').find('option')[i].getAttribute('value'))
+                    break;
+                }
+            }
         }).trigger( 'change' );
     </script>
 {% endblock script %}

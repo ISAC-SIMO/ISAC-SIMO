@@ -14,3 +14,6 @@ class Projects(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Call the "real" save() method.
+
+    def unique_name(self):
+        return self.project_name.lower() + '-' + str(self.id)

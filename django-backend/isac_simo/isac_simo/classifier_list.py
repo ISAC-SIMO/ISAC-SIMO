@@ -1,4 +1,9 @@
+import json
+
 from django.db.models import Prefetch
+
+from projects.models import Projects
+
 try:
     from api.models import Classifier, ObjectType
 except ImportError as e:
@@ -15,28 +20,51 @@ detect_object_model_id = '9068cba3-6dab-4233-805b-2d64a16daae8'
 
 def data():
     classifier_list = {
-        'wall':[
-            'IfNogo_778825345'
-        ],
-        'rebar':[
-            'DefaultCustomModel_1566448629',
-            'IfNogo_778825345'
-        ],
+        # 'dev_project': {
+            # 'wall':[
+            #     'IfNogo_778825345'
+            # ],
+            # 'rebar':[
+            #     'DefaultCustomModel_1566448629',
+            #     'IfNogo_778825345'
+            # ],
+        # },
     }
 
     try:
-        object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related(Prefetch('classifiers', queryset=Classifier.objects.order_by('order')))
-        # object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related('classifiers')
-        for object_type in object_types:
-            if not classifier_list.get(object_type.name.lower(), False):
-                classifier_list[object_type.name.lower()] = []
+        projects = Projects.objects.order_by('created_at').all().prefetch_related(Prefetch('object_types', queryset=ObjectType.objects.order_by('updated_at').all().prefetch_related(Prefetch('classifiers', queryset=Classifier.objects.order_by('order')))))
+        for project in projects:
+            if not classifier_list.get(project.unique_name(), False):
+                classifier_list[project.unique_name()] = {}
 
-            for classifier in object_type.classifiers.all():
-                if classifier.name not in classifier_list.get(object_type.name.lower(),[]):
-                    classifier_list[object_type.name.lower()] = classifier_list.get(object_type.name.lower(),[]) + [classifier.name]
+            if not project.object_types.all().count():
+                print('WARNING: No Object Type for ' + project.project_name)
+            else:
+                for object_type in project.object_types.all():
+                    if object_type.name.lower() not in classifier_list.get(project.unique_name(),[]):
+                        classifier_list[project.unique_name()][object_type.name.lower()] = []
+                    
+                    if not object_type.classifiers.all().count():
+                        print('WARNING: No Classifiers for ' + object_type.name + ' in ' + project.project_name)
+                    else:
+                        for classifier in object_type.classifiers.all():
+                            if classifier.name not in classifier_list.get(project.unique_name(),[]).get(object_type.name.lower(),[]):
+                                classifier_list[project.unique_name()][object_type.name.lower()] = classifier_list[project.unique_name()][object_type.name.lower()] + [classifier.name]
+
+        # print(json.dumps(classifier_list, indent=4))
+
+        # object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related(Prefetch('classifiers', queryset=Classifier.objects.order_by('order')))
+        # # object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related('classifiers')
+        # for object_type in object_types:
+        #     if not classifier_list.get(object_type.name.lower(), False):
+        #         classifier_list[object_type.name.lower()] = []
+
+        #     for classifier in object_type.classifiers.all():
+        #         if classifier.name not in classifier_list.get(object_type.name.lower(),[]):
+        #             classifier_list[object_type.name.lower()] = classifier_list.get(object_type.name.lower(),[]) + [classifier.name]
 
         print('-LOADING CLASSIFIER LIST-')
-        # print(classifier_list)
+        print(json.dumps(classifier_list, indent=4))
         return classifier_list
     except Exception as e:
         #########
