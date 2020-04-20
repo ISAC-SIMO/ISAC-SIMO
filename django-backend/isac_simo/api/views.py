@@ -510,7 +510,7 @@ def watsonClassifierTest(request, id):
 def watsonObject(request):
     if request.method != "POST":
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().distinct('detect_model')
+        projects = Projects.objects.all().values('detect_model').distinct()
         return render(request, 'objects_detail.html',{'default_object_model':default_object_model,'projects':projects})
     elif request.method == "POST":
         detail = None

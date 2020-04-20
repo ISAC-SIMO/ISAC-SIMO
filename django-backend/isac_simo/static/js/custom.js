@@ -191,4 +191,33 @@ function verifyImage(event, id, result, score, object_type, verified, url, retra
 $(function () {
     $(".table-options a").tooltip();
     $("[data-toggle='tooltip']").tooltip();
+
+    // REGISTER THE SERVICE WORKER //
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('/serviceworker.js')
+        .then(val => {console.log('Service Worker Trying to Register')})
+        .catch(e => {console.log('Service Worker Failed to Load Properly')})
+    }else{
+        console.log('Service Worker will not work.')
+    }
+
+    // GET Service worker registration instance from anywhere //
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistration()
+            .then(r => {
+                if(r.active && r.active.state == 'activated'){
+                    r.update() // Force Update
+                }
+                
+                r.addEventListener('updatefound', evt => { // If Force Update found some update
+                    const swInstalling = r.installing;
+                    swInstalling.addEventListener('statechange', evt => {
+                        if(swInstalling.state == 'installed'){
+                            console.log('new sw version found and installed')
+                        }
+                    })
+                })
+            })
+            .catch(e => {console.log(e)})
+    }
 });

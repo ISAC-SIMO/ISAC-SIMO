@@ -37,7 +37,7 @@ def check(request):
         GOOGLE_MAP_API = settings.GOOGLE_MAP_API
         PROJECT_FOLDER = os.environ.get('PROJECT_FOLDER','')
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().distinct('detect_model')
+        projects = Projects.objects.all().values('detect_model').distinct()
         return render(request, 'check.html', {
             'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API,
             'default_object_model':default_object_model,'projects':projects
@@ -69,18 +69,24 @@ def fetch(request):
         latlngList = [x.strip() for x in latlng.split(',')]
         panoids = streetview.panoids(lat=latlngList[0], lon=latlngList[1])
         print(panoids)
+        count = 0
         for pano in panoids:
-            # IF panoroma is older then 2015 ignore it
-            if pano.get('year', False) and pano.get('year') < 2015:
-                continue
-            
-            # GET ALL Tiles images info
-            # print(streetview.tiles_info(pano.get('panoid')))
-            
-            # heading recommendation: 0, 90, 180, or 270
-            file = streetview.api_download(pano.get('panoid'), 0, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
-            if file:
-                filelist.append(file)
+            if (count < 180):
+                # IF panoroma is older then 2015 ignore it
+                if pano.get('year', False) and pano.get('year') < 2015:
+                    continue
+                
+                # GET ALL Tiles images info
+                # print(streetview.tiles_info(pano.get('panoid')))
+                
+                # heading recommendation: 0, 90, 180, or 270
+                for heading in [30, 220, 0, 90, 180, 270]:
+                    file = streetview.api_download(pano.get('panoid'), heading, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
+                    if file:
+                        filelist.append(file)
+                        count += 1
+            else:
+                break
 
         return JsonResponse({'status':'ok','message':'Images Saved','data':filelist}, status=200)
     else:
@@ -90,7 +96,7 @@ def fetch(request):
 @user_passes_test(is_admin, login_url=login_url)
 def test(request):
     images = request.POST.get('image_list', False)
-    detect_model = request.POST.get('detect_model', None)
+    detect_model = request.POST.get('object_id', None)
     if not images:
         return JsonResponse({'status':'error','message':'No Saved Images Found'}, status=404)
 

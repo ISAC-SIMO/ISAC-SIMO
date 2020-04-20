@@ -36,12 +36,12 @@ def data():
                     classifier_list[object_type.name.lower()] = classifier_list.get(object_type.name.lower(),[]) + [classifier.name]
 
         print('-LOADING CLASSIFIER LIST-')
-        print(classifier_list)
+        # print(classifier_list)
         return classifier_list
     except Exception as e:
         #########
         print(e)
-        print('Classifier List throwing Model exception - IF KEEPS REPEATING IT IS A BIG DEAL (Once is OK)')
+        print('Classifier List throwing Model exception - IF KEEPS REPEATING IT IS A PROBLEM (Once is OK)')
         return classifier_list
 
 total_classifiers = len(data())

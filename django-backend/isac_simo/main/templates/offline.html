@@ -1,0 +1,34 @@
+{% extends 'master/error.html' %}
+
+{% block title %} No Internet Connection {% endblock %}
+{% block code %} <span style="color:#dc3545;"><i class="fa fa-wifi" style="position:relative;"></i></span> {% endblock %}
+{% block message %} &nbsp; No Internet Connection {% endblock %}
+{% block no_sub_msg %} 
+    <p class="sync"><i class="fa fa-sync-alt fa-spin"></i></p>
+
+    <style>
+        i.fa.fa-wifi::after {
+            content: "";
+            background: #dc3545;
+            position: absolute;
+            height: 15px;
+            width: 100%;
+            top: 37%;
+            left: -9px;
+            transform: rotate(45deg);
+        }
+        .sync{
+            margin-bottom: 5px;
+            margin-left: 20px;
+            text-align: center;
+        }
+    </style>
+
+    <script>
+        setInterval(function(){
+            if(navigator.onLine){
+                location.href = location.href;
+            }
+        }, 5000);
+    </script>
+{% endblock %}

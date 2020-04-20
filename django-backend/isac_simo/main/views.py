@@ -1,6 +1,7 @@
 import os
 import subprocess
 from importlib import reload
+from urllib import request
 
 from django import forms
 from django.conf import settings
@@ -14,6 +15,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework.generics import get_object_or_404
 
+import isac_simo.classifier_list as classifier_list
 from api.models import Image, ImageFile
 from main.authorization import *
 from projects.models import Projects
@@ -21,7 +23,7 @@ from projects.models import Projects
 from .forms import (AdminEditForm, AdminRegisterForm, LoginForm, ProfileForm,
                     RegisterForm)
 from .models import User
-import isac_simo.classifier_list as classifier_list
+
 
 def reload_classifier_list():
     try:
@@ -239,3 +241,18 @@ def pull(request):
 
     print('--~~ PULL FAILED ~~--')
     return JsonResponse({'status':'bad'}, status=404)
+
+# Service Worker js response
+def serviceworker(request):
+    try:
+        saveto = os.path.join('static/js/serviceworker.js')
+        if not os.path.exists(saveto):
+            saveto = os.environ.get('PROJECT_FOLDER','') + '/static/js/serviceworker.js'
+
+        return HttpResponse(open(saveto), 'application/javascript')
+    except Exception as e:
+        print(e)
+        return render(request, '404.html', status=404)
+
+def offline(request):
+    return render(request, 'offline.html')

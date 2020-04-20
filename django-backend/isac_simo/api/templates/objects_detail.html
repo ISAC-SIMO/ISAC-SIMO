@@ -15,12 +15,17 @@
                         <label for="object_id" class="col-sm-12 col-md-5 col-form-label">Object Model</label>
                         <div class="col-sm-12 col-md-5">
                             <select name="object_id" class="form-control select2" id="object_id" required>
-                                <option value="{{default_object_model}}">{{default_object_model}}</option>
-                                {% for project in projects %}
-                                    {% if project.detect_model %}
-                                        <option value="{{project.detect_model}}">{{project.detect_model}}</option>
-                                    {% endif %}
-                                {% endfor %}
+                                {% if default_object_model %}
+                                    <option value="{{default_object_model}}">{{default_object_model}}</option>
+                                {% endif %}
+
+                                {% if projects %}
+                                    {% for project in projects %}
+                                        {% if project.detect_model %}
+                                            <option value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
                             </select>
                         </div>
                     </div>

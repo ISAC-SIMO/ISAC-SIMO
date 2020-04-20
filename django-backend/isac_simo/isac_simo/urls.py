@@ -49,6 +49,9 @@ urlpatterns = [
     path('projects/', include('projects.urls')),
     path('app/', include('api.urls')),
     path('map/', include('map.urls')),
+    # Service Worker js
+    path('serviceworker.js', views.serviceworker, name="serviceworker"),
+    path('offline', views.offline, name="offline")
 ]
 
 if settings.DEBUG:

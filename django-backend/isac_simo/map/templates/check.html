@@ -24,6 +24,10 @@
                     </div>
                     <div class="form-group">
                         <button type="submit" id="map_check_btn" class="ml-2 btn btn-primary">Check</button>
+                        <p class="mt-2">
+                            <small class="d-block ml-2">Angle: 30, 220, 0, 90, 180, 270</small>
+                            <small class="d-block ml-2">FOV: 120</small>
+                        </p>
                     </div>
                     <div class="form-group">
                         <hr/>
@@ -36,12 +40,17 @@
                             <label for="object_id" class="col-sm-12 col-md-5 col-form-label">Select the Object Model to test on:</label>
                             <div class="col-sm-12 col-md-5">
                                 <select name="object_id" class="form-control select2" id="object_id" required>
-                                    <option value="{{default_object_model}}">{{default_object_model}} (Default)</option>
-                                    {% for project in projects %}
-                                        {% if project.detect_model %}
-                                            <option value="{{project.detect_model}}">{{project.detect_model}}</option>
-                                        {% endif %}
-                                    {% endfor %}
+                                    {% if default_object_model %}
+                                        <option value="{{default_object_model}}">{{default_object_model}} (Default)</option>
+                                    {% endif %}
+
+                                    {% if projects %}
+                                        {% for project in projects %}
+                                            {% if project.detect_model %}
+                                                <option value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
                                 </select>
                             </div>
                         </div>
@@ -147,16 +156,16 @@
                 document.getElementById('test_images_btn').style.display = 'none';
                 // TRY TO FETCH IMAGES METADATA //
                 $.ajax({
-                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}",
+                    url: "https://maps.googleapis.com/maps/api/streetview/metadata?size=600x300&location="+latlng+"&fov=120&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}",
                     success: function(res){
                         // IF METADATA FOUND - TRY TO GET STREETVIEW FROM FRONTEND //
                         if(res.status == 'OK'){
                             console.log('trying to fetch streetview image....');
-                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location="+latlng+"&fov=90&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}";
+                            var url = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location="+latlng+"&fov=120&heading=235&pitch=10&key="+"{{GOOGLE_MAP_STREET_API}}";
                             $.ajax({
                                 url: url,
                                 success: function(result){
-                                    document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a><small>Trying to load more...</small>'
+                                    document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a><small>Trying to load more. Angle might not always be accurate..</small>'
                                 
                                     // NOW CALL BACKEND API TO FETCH ALL CLOSEST IMAGES //
                                     $.ajax({
