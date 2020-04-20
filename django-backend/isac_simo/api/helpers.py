@@ -182,7 +182,7 @@ def detect_image(image_file, detect_model):
 ####################
 # Default on 1st Image Test check Classifier Ids 1
 # If result is nogo/nogos then run test again with classifier ids 2
-def test_image(image_file, title=None, description=None, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None):
+def test_image(image_file, title=None, description=None, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None, project=None):
     if not detected_as:
         detected_as = detect_image(image_file, detect_model)
     
@@ -197,13 +197,14 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
     
     print('Trying ' + str(classifier_index) + ' No. Classifier for ' + object_type)
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
+    check_and_get_classifier_ids = classifier_list.searchList(project,object_type,index=classifier_index)
     if ( os.path.exists(save_to_path) and settings.IBM_API_KEY 
-        and classifier_index < len(classifier_list.data().get(object_type,[]))
-        and classifier_list.data().get(object_type)[classifier_index] ):
+        and classifier_index < classifier_list.lenList(project,object_type)
+        and check_and_get_classifier_ids ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
-        classifier_ids = classifier_list.data().get(object_type)[classifier_index]
+        classifier_ids = check_and_get_classifier_ids
         post_data = {'classifier_ids': classifier_ids, 'threshold': '0.6'}
         auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
         print(auth_base)
@@ -246,9 +247,8 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
                 # NOTE: later classifier_list.py shall contain the recursion_list to hold results that might require re test
                 # e.g. if recursion_list.get('wall',[]) has nogo/nogos etc. then retest it etc...
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
-                    if classifier_index + 1 < len(classifier_list.data().get(object_type,[])):
-                        print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                        test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as, detect_model) #save_to_path=temp file
+                    print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
+                    test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
 
                 if(classifier_index <= 0):
                     resized_image_open.close()
@@ -839,7 +839,7 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
                 # e.g. if recursion_list.get('wall',[]) has nogo/nogos etc. then retest it etc...
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
                     print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                    test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model) #save_to_path=temp file
+                    test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
 
                 if(classifier_index <= 0):
                     resized_image_open.close()

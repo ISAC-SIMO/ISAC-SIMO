@@ -118,7 +118,7 @@ def test(request):
     print(image_list)
     project = Projects.objects.filter(id=request.POST.get('project')).get()
     for image in image_list:
-        response = test_temp_images(image, detect_model=detect_model, project=project)
+        response = test_temp_images(image, detect_model=detect_model, project=project.unique_name())
         if not response:
             data.append({
                 'image': image,

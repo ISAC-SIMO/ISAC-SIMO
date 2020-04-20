@@ -64,7 +64,7 @@ def data():
         #             classifier_list[object_type.name.lower()] = classifier_list.get(object_type.name.lower(),[]) + [classifier.name]
 
         print('-LOADING CLASSIFIER LIST-')
-        print(json.dumps(classifier_list, indent=4))
+        # print(json.dumps(classifier_list, indent=4))
         return classifier_list
     except Exception as e:
         #########

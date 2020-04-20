@@ -71,9 +71,13 @@ class ImageSerializer(serializers.ModelSerializer):
                                         user_id=user.id,
                                         project_id=validated_data.get('project_id', None))
             
-            detect_model = None
+            project = None
             if validated_data.get('project_id', None):
-                detect_model = Projects.objects.filter(id=validated_data.get('project_id')).get().detect_model
+                project = Projects.objects.filter(id=validated_data.get('project_id')).get()
+            if not project:
+                image.delete()
+                error = {'message': 'Invalid Project'}
+                raise serializers.ValidationError(error)
 
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count
@@ -85,7 +89,7 @@ class ImageSerializer(serializers.ModelSerializer):
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=detect_model)
+                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=project.detect_model, project=project.unique_name())
 
                     u = u + 1
                 except Exception as err:
@@ -115,10 +119,13 @@ class ImageSerializer(serializers.ModelSerializer):
         
         image_files = self.context.get('view').request.FILES
 
-        detect_model = None
-        if validated_data.get('project_id', instance.project_id):
-            detect_model = Projects.objects.filter(id=validated_data.get('project_id', instance.project_id)).get().detect_model
-
+        project = None
+        if validated_data.get('project_id', None):
+            project = Projects.objects.filter(id=validated_data.get('project_id')).get()
+        if not project:
+            error = {'message': 'Invalid Project'}
+            raise serializers.ValidationError(error)
+        
         if len(image_files) < 8:
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count
@@ -130,7 +137,7 @@ class ImageSerializer(serializers.ModelSerializer):
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=detect_model)
+                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=project.detect_model, project=project.unique_name())
                     u = u + 1
                 except Exception as err:
                     print(err)
@@ -172,7 +179,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
         return image.project.project_name if image.project else None
 
     # Function to get the frame image, save to image_file model and test it via ai model
-    def getFrame(self, vidcap, count, sec, image_model, detect_model=None):
+    def getFrame(self, vidcap, count, sec, image_model, project=None):
         vidcap.set(cv2.CAP_PROP_POS_MSEC,sec*1000)
         hasFrames,image = vidcap.read()
         if hasFrames:
@@ -189,7 +196,7 @@ class VideoFrameSerializer(serializers.ModelSerializer):
             ################
             ### RUN TEST ###
             ################
-            test = test_image(image_obj, image_model.title, image_model.description, detect_model=detect_model)
+            test = test_image(image_obj, image_model.title, image_model.description, detect_model=project.detect_model, project=project.unique_name())
         return hasFrames
 
     def create(self, validated_data):
@@ -208,9 +215,13 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                                         user_id=user.id,
                                         project_id=validated_data.get('project_id', None))
 
-            detect_model = None
+            project = None
             if validated_data.get('project_id', None):
-                detect_model = Projects.objects.filter(id=validated_data.get('project_id')).get().detect_model
+                project = Projects.objects.filter(id=validated_data.get('project_id')).get()
+            if not project:
+                image.delete()
+                error = {'message': 'Invalid Project'}
+                raise serializers.ValidationError(error)
 
             e = 0 # Check if files uploaded or Not
             u = 0 # Uploaded Count
@@ -253,14 +264,14 @@ class VideoFrameSerializer(serializers.ModelSerializer):
                         vidcap = cv2.VideoCapture(saveto)
                         sec = 0
                         frameRate = 2 # it will capture image in each 2 second
-                        success = self.getFrame(vidcap,count,sec,image,detect_model) # Get frame self function made above
+                        success = self.getFrame(vidcap,count,sec,image,project) # Get frame self function made above
                         while success:
                             if count >= 10: ###### Max 10 images from one video ######
                                 break
                             count = count + 1
                             sec = sec + frameRate
                             sec = round(sec, 2)
-                            success = self.getFrame(vidcap,count,sec,image,detect_model) # Get frame self function made above
+                            success = self.getFrame(vidcap,count,sec,image,project) # Get frame self function made above
 
                         u = u + 1
                         # Destroy/Close Video and remove from temp

@@ -78,9 +78,12 @@ def addImage(request, id = 0):
                 instance.user_id = request.user.id
             instance.save()
 
-            detect_model = None
+            project = None
             if request.POST.get('project', False):
-                detect_model = Projects.objects.filter(id=request.POST.get('project')).get().detect_model
+                project = Projects.objects.filter(id=request.POST.get('project')).get()
+            if not project:
+                messages.error(request, "Invalid Project")
+                return redirect("images")
 
             i = 0
             for f in files:
@@ -90,7 +93,7 @@ def addImage(request, id = 0):
                 ################
                 ### RUN TEST ###
                 ################
-                test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model)
+                test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=project.detect_model, project=project.unique_name())
                     
                 if(i>=8):
                     break
@@ -144,9 +147,12 @@ def updateImage(request, id=0):
                 instance = form.save(commit=False)
                 instance.save()
 
-                detect_model = None
+                project = None
                 if request.POST.get('project', False):
-                    detect_model = Projects.objects.filter(id=request.POST.get('project')).get().detect_model
+                    project = Projects.objects.filter(id=request.POST.get('project')).get()
+                if not project:
+                    messages.error(request, "Invalid Project")
+                    return redirect("images")
 
                 i = 0
                 for f in files:
@@ -156,7 +162,7 @@ def updateImage(request, id=0):
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model)
+                    test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=project.detect_model, project=project.unique_name())
 
                     if(i>=8):
                         break
@@ -278,9 +284,9 @@ def deleteImageFile(request, id):
 def retestImageFile(request, id):
     try:
         image_file = ImageFile.objects.get(id=id)
-        detect_model = image_file.image.project.detect_model
+        project = image_file.image.project
         if not image_file.result or not image_file.score:
-            test_status = test_image(image_file, detect_model=detect_model)
+            test_status = test_image(image_file, detect_model=project.detect_model, project=project.unique_name())
             if test_status:
                 messages.success(request, 'Image Tested Successfully.')
             else:
@@ -351,7 +357,7 @@ def watsonTrain(request):
             print(retrain_status)
             if retrain_status:
                 messages.success(request,str(zipped) + ' images zipped and was sent to retrain in ' + str(retrain_status) + ' classifier(s). (Retraining takes time)')
-                messages.info(request,'Object: '+request.POST.get('object')+' , Classifier: '+request.POST.get('model')+' , Result: '+request.POST.get('result'))
+                messages.info(request,'Project: '+request.POST.get('project')+', Object: '+request.POST.get('object')+' , Classifier: '+request.POST.get('model')+' , Result: '+request.POST.get('result'))
             else:
                 messages.error(request,str(zipped) + ' images zipped but failed to retrain')
         else:
