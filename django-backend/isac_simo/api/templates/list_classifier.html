@@ -2,7 +2,7 @@
 
 {% block title %} Classifiers List {% if object_type %}for {{object_type|title}}{% endif %} {% endblock title %}
 {% block dashboard_title1 %} Classifiers {% if object_type %}for {{object_type|title}}{% endif %} {% endblock dashboard_title1 %}
-{% block dashboard_title2 %} All Classifiers {% if object_type %} ({{object_type|title}}{% endif %}) {% endblock dashboard_title2 %}
+{% block dashboard_title2 %} All Classifiers {% if object_type %} ({{object_type|title}}){% endif %} {% endblock dashboard_title2 %}
 {% load static %}
 
 {% block content %}
@@ -28,6 +28,7 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Project</th>
                                 <th>Object Type</th>
                                 <th>Added By</th>
                                 <th>Added At</th>
@@ -39,6 +40,7 @@
                             {% for classifier in classifiers %}
                                 <tr>
                                     <td title="Given Name: {{classifier.given_name|default:'None'}}">{{classifier.name}}</td>
+                                    <td>{{classifier.project.project_name|title|default:'<i class="fas fa-exclamation-triangle text-warning"></i> &nbsp; No Project'}}</td>
                                     <td>{{classifier.object_type.name|title}}</td>
                                     <td>{{classifier.created_by.full_name|title}}</td>
                                     <td>{{classifier.created_at}}</td>

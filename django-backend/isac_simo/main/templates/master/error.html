@@ -43,7 +43,7 @@
         <div class="error-page" style="margin-top: -50px;">
             <h2 class="headline text-warning">{% block code %}400{% endblock %}</h2>
 
-            <div class="error-content" style="height: 125px;display: flex;flex-flow: wrap;align-items: center;justify-content:center;margin:0;">
+            <div class="error-content" style="height: 125px;display: flex;flex-flow: wrap;align-items: center;"> <!--justify-content:center;margin:0;-->
                 <h3><i class="fas fa-exclamation-triangle text-warning flash" style="font-size: 0.66em;display: inline-block;transform: translate(0,-2px);"></i> {% block message %}Unable to handle{% endblock %}</h3>
 
                 {% block no_sub_msg %}

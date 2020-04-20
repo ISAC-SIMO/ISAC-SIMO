@@ -30,7 +30,7 @@ def addProject(request, id = 0):
             instance = form.save(commit=False)
             instance.user = User.objects.get(id=request.user.id)
             instance.save()
-            messages.success(request, "New Project Added Successfully!")
+            messages.success(request, "New Project Added Successfully! (Make sure you add Object Types and Classifiers too)")
         else:
             messages.error(request, "Invalid Request")
             return render(request,"add_project.html",{'form':form})

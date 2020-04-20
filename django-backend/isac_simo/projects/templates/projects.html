@@ -43,6 +43,9 @@
                                             <a onclick="deleteData(event, 'form-{{ project.id }}', 'Project')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'deleteproject' project.id %}" class="btn text-secondary px-0">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
+                                            <a title="View Object Type for {{project.project_name|title}}" data-toggle="tooltip" data-placement="left" href="{% url 'watson.object.list' %}?project={{project.id}}" class="btn text-secondary px-0">
+                                                <i class="fa fa-arrow-right text-info"></i>
+                                            </a>
                                             <form action="{% url 'deleteproject' project.id %}" id="form-{{ project.id }}" method="post" class="d-inline">
                                                 {% csrf_token %}
                                             </form>

@@ -1,7 +1,7 @@
 {% extends 'master/base.html' %}
 
-{% block title %} Object Type {% endblock title %}
-{% block dashboard_title1 %} Object Type {% endblock dashboard_title1 %}
+{% block title %} Object Type {% if project_filter %}for {{project_filter|title}}{% endif %} {% endblock title %}
+{% block dashboard_title1 %} Object Type {% if project_filter %}for {{project_filter|title}}{% endif %} {% endblock dashboard_title1 %}
 {% block dashboard_title2 %} View & Create Object Type {% endblock dashboard_title2 %}
 {% load static %}
 
@@ -16,14 +16,19 @@
                     <a href="{% url 'watson.object' %}"  class="btn btn-primary">
                         <i class="fas fa-arrow-right"></i> Fetch Object Type Details from IBM Watson
                     </a>
+                    {% if project_filter %}
+                        <a href="{% url 'watson.object.list' %}"  class="btn btn-secondary pull-right" style="float: right;margin-right: 10px;">
+                            <i class="fas fa-arrow-right"></i> Show all
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <table id="object_types" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Project</th>
                                 <th>Added By</th>
-                                <th>Added At</th>
                                 {% if user.is_admin %}<th style="width:25px;">Actions</th>{% endif %}
                             </tr>
                         </thead>
@@ -31,8 +36,8 @@
                             {% for object_type in object_types %}
                                 <tr>
                                     <td>{{object_type.name|title}}</td>
+                                    <td>{{object_type.project.project_name|title|default:'<i class="fas fa-exclamation-triangle text-warning"></i> &nbsp; No Project'}}</td>
                                     <td>{{object_type.created_by.full_name|default:''}}</td>
-                                    <td>{{object_type.created_at}}</td>
                                     {% if user.is_admin %}
                                     <td class="table-options" style="min-width: 95px;">
                                         <a onclick="deleteDataWriteConfirm(event, 'form-{{ object_type.id }}', 'Object Type')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'watson.object.delete' object_type.id %}" class="btn text-secondary px-0">
@@ -62,14 +67,24 @@
                 <div class="card-body pt-0">
                     <form action="{% url 'watson.object.create' %}" method="POST" id="object_type_create_form" class="d-inline">
                         {% csrf_token %}
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <label for="object_type" class="col-12 col-form-label">Object Type*</label>
                             <div class="col-sm-12">
                                 <input type="text" placeholder="Object Type (e.g. wall, rebar)" class="form-control" id="object_type" name="object_type" required/>
                             </div>
                             <small id="negativeHelp" class="col-sm-12 form-text text-muted">
-                                Must be unique and lowercase
+                                Must be unique and lowercase for each project
                             </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="project" class="col-12 col-form-label">Project*</label>
+                            <div class="col-sm-12">
+                                <select class="form-control" id="project" name="project" required>
+                                    {% for project in projects %}
+                                        <option value="{{project.id}}" title="{{project.project_desc|default:''}} - {{project.detect_model|default:'No Detect Model'}}">{{project.project_name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
                             <div class="col-sm-12">
@@ -94,7 +109,11 @@
             "info": true,
             "autoWidth": true,
             "order": [],
+            "language": {
+			    "emptyTable": "No Object Type Available {% if project_filter %}for {{project_filter|title}}{% endif %}"
+			}
           });
+          $('#project').select2()
         });
     </script>
 {% endblock script %}

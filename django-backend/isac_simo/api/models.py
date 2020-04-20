@@ -51,8 +51,9 @@ class ImageFile(models.Model):
         return self.file.url
 
 class ObjectType(models.Model):
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     created_by = models.ForeignKey(User, related_name='object_types', on_delete=models.SET_NULL, blank=True, null=True)
+    project = models.ForeignKey(Projects, related_name='object_types', on_delete=models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,6 +64,7 @@ class Classifier(models.Model):
     name = models.CharField(max_length=200)
     given_name = models.CharField(max_length=200, blank=True, null=True)
     classes = models.CharField(max_length=200, blank=True, null=True)
+    project = models.ForeignKey(Projects, related_name='classifiers', on_delete=models.CASCADE, blank=True, null=True)
     object_type = models.ForeignKey(ObjectType, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
     order = models.IntegerField("Order", default=0, blank=False, null=False)
     created_by = models.ForeignKey(User, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)

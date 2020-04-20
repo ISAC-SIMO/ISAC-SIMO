@@ -398,7 +398,8 @@ def watsonClassifier(request):
 def watsonClassifierCreate(request):
     if request.method == "GET":
         object_types = ObjectType.objects.order_by('-created_at').all()
-        return render(request, 'create_classifier.html', {'object_types':object_types})
+        projects = Projects.objects.order_by('project_name').all()
+        return render(request, 'create_classifier.html', {'object_types':object_types, 'projects':projects})
     elif request.method == "POST":
         print(request.FILES.getlist('zip'))
         if request.POST.get('justaddit', False) and request.POST.get('name'):
@@ -413,17 +414,24 @@ def watsonClassifierCreate(request):
             given_name = created.get('data', {}).get('name',request.POST.get('name'))
             classes = str(created.get('data', {}).get('classes',[]))
             object_type = None
+            project = None
             try:
                 object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
             except(ObjectType.DoesNotExist):
-                messages.error(request, 'Object Not Was Invalid')
+                messages.error(request, 'Object Was Invalid')
 
+            try:
+                project = Projects.objects.get(id=request.POST.get('project'))
+            except(Projects.DoesNotExist):
+                messages.error(request, 'Project Was Invalid')
+            
             if name and given_name and classes and object_type:
                 classifier = Classifier()
                 classifier.name = name
                 classifier.given_name = given_name
                 classifier.classes = classes
                 classifier.object_type = object_type
+                classifier.project = project
                 classifier.created_by = request.user
                 classifier.order = request.POST.get('order',0)
                 classifier.save()
@@ -441,26 +449,30 @@ def watsonClassifierCreate(request):
 # Watson Classifier Edit
 @user_passes_test(is_admin, login_url=login_url)
 def watsonClassifierEdit(request, id):
-    if(request.method == "POST"):
+    if(request.method == "POST" and request.POST.get('object_type', False) 
+        and request.POST.get('project', False)
+        and request.POST.get('order', False)
+    ):
         try:
             classifier = Classifier.objects.get(id=id)
             classifier.name = request.POST.get('name')
-            classifier.given_name = request.POST.get('given_name')
             classifier.object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
+            classifier.project = Projects.objects.get(id=request.POST.get('project'))
             classifier.order = request.POST.get('order', 0)
             classifier.save()
             messages.success(request, 'Classifier Updated (Order set to: '+ str(request.POST.get('order', 0)) +')')
             reload_classifier_list()
             return redirect('watson.classifier.list')
         except(Classifier.DoesNotExist):
-            messages.success(request, 'Classifier Not Found')
+            messages.error(request, 'Classifier Not Found')
             return redirect('watson.classifier.list')
     elif(request.method == "GET"):
         classifier = Classifier.objects.get(id=id)
         object_types = ObjectType.objects.order_by('-created_at').all()
-        return render(request, 'edit_classifier.html', {'classifier':classifier, 'object_types':object_types})
+        projects = Projects.objects.order_by('project_name').all()
+        return render(request, 'edit_classifier.html', {'classifier':classifier, 'object_types':object_types, 'projects':projects})
     else:
-        messages.success(request, 'Classifier Not Edited Bad Request')
+        messages.error(request, 'Classifier Not Edited Bad Request')
         return redirect('watson.classifier.list')
 
 # Watson Classifier Delete
@@ -529,22 +541,35 @@ def watsonObject(request):
 # Watson Object Type List
 @user_passes_test(is_admin, login_url=login_url)
 def watsonObjectList(request):
-    object_types = ObjectType.objects.order_by('-created_at').all()
-    return render(request, 'create_objects.html', {'object_types':object_types})
+    if request.GET.get('project', False):
+        object_types = ObjectType.objects.order_by('-created_at').filter(project=request.GET.get('project')).all()
+        project_filter = Projects.objects.filter(id=request.GET.get('project')).get().project_name
+    else:
+        object_types = ObjectType.objects.order_by('-created_at').order_by('project').all()
+        project_filter = False
+
+    projects = Projects.objects.order_by('project_name').all()
+    return render(request, 'create_objects.html', {'object_types':object_types, 'projects':projects, 'project_filter':project_filter})
 
 # Watson Object Type Create local
 @user_passes_test(is_admin, login_url=login_url)
 def watsonObjectCreate(request):
-    if(request.method == "POST" and request.POST.get('object_type', False)):
-        object_type = ObjectType()
-        object_type.name = request.POST.get('object_type').lower()
-        object_type.created_by = request.user
-        object_type.save()
-        messages.success(request, 'Object Type Added')
-        reload_classifier_list()
-        return redirect('watson.object.list')
+    if(request.method == "POST" and request.POST.get('object_type', False) and request.POST.get('project', False)):
+        check_unique = ObjectType.objects.filter(project=request.POST.get('project')).filter(name=request.POST.get('object_type').lower()).all()
+        if not check_unique:
+            object_type = ObjectType()
+            object_type.name = request.POST.get('object_type').lower()
+            object_type.project = Projects.objects.filter(id=request.POST.get('project')).get()
+            object_type.created_by = request.user
+            object_type.save()
+            messages.success(request, 'Object Type Added')
+            reload_classifier_list()
+            return redirect('watson.object.list')
+        else:
+            messages.error(request, 'Object Not Added - Object Name already exists for this Project')
+            return redirect('watson.object.list')
     else:
-        messages.success(request, 'Object Not Added')
+        messages.error(request, 'Object Not Added')
         return redirect('watson.object.list')
 
 # Watson Object Type Delete
