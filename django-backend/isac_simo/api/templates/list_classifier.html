@@ -16,14 +16,14 @@
                     <a href="{% url 'watson.classifier.create' %}"  class="btn btn-primary">
                         <i class="fas fa-plus"></i> Create New Classifier
                     </a>
-                    <a href="{% url 'watson.classifier' %}"  class="btn btn-primary">
+                    <a href="{% url 'watson.classifier' %}"  class="d-none d-md-inline-block btn btn-primary">
                         <i class="fas fa-plus"></i> Fetch Classifier Details
                     </a>
-                    <a href="{% url 'watson.train' %}" style="float:right;"  class="mr-2 btn btn-success">
+                    <a href="{% url 'watson.train' %}"  class="float-md-right d-none d-md-inline-block mr-2 btn btn-success">
                         <i class="fas fa-plus"></i> Re-Train Classifiers
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="card-body table table-responsive">
                     <table id="classifierTable" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>

@@ -51,6 +51,7 @@ def check(request):
 def fetch(request):
     if request.method == "POST":
         latlng = request.POST.get('latlng', False)
+
         if not latlng:
             return JsonResponse({'status':'error','message':'Latitude, Longitude Not Provided Properly'}, status=404)
 
@@ -65,39 +66,64 @@ def fetch(request):
             saveto = os.path.join('media/street_view_images')
 
         filelist = []
+        latlngList = []
+        panoFileLatLngList = []
+        panoIdsList = []
         
-        latlngList = [x.strip() for x in latlng.split(',')]
-        panoids = streetview.panoids(lat=latlngList[0], lon=latlngList[1])
-        # print(panoids)
+        try:
+            # If Map Polygon points array arrives
+            latlngList = json.loads(latlng)
+        except Exception as e:
+            # If Point of string lat,lng arrives
+            latlngList = [x.strip() for x in latlng.split(',')]
+            latlngList = [{"lat":latlngList[0], "lng":latlngList[1]}]
+        
         count = 0
-        max_fetch = 150
+        max_fetch = 200
         if settings.DEBUG:
             max_fetch = 5
-        for pano in panoids:
-            if (count < max_fetch):
-                # IF panoroma is older then 2015 ignore it
-                if pano.get('year', False) and pano.get('year') < 2015:
-                    continue
-                
-                # GET ALL Tiles images info
-                # print(streetview.tiles_info(pano.get('panoid')))
-                
-                # heading recommendation: 0, 90, 180, or 270
-                for heading in [30, 220, 0, 90, 180, 270]:
-                    file = None
-                    try:
-                        file = streetview.api_download(pano.get('panoid'), heading, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
-                    except Exception as e:
-                        print('Failed to download this streetview image')
 
-                    if file:
-                        filelist.append(file)
-                        count += 1
-            else:
-                messages.info(request, 'Max Street View Images ('+str(max_fetch)+') was fetched earlier.')
+        for coords in latlngList:
+            if not coords.get('lat', False) or not coords.get('lng', False):
+                continue # If lat, lng does not exists some how
+            print('Trying to fetch streetview image at: ' + str(coords.get('lat')) + ',' + str(coords.get('lng')))
+
+            if (count > max_fetch):
                 break
 
-        return JsonResponse({'status':'ok','message':'Images Saved','data':filelist}, status=200)
+            panoids = streetview.panoids(lat=str(coords.get('lat')), lon=str(coords.get('lng')))
+            # print(panoids)
+            for pano in panoids:
+                if (count < max_fetch):
+                    # IF panoroma is older then 2018 ignore it
+                    if pano.get('year', False) and pano.get('year') < 2018:
+                        continue
+
+                    if pano.get('panoid') in panoIdsList:
+                        continue
+
+                    panoIdsList = panoIdsList + [pano.get('panoid')]
+                    
+                    # GET ALL Tiles images info
+                    # print(streetview.tiles_info(pano.get('panoid')))
+                    
+                    # heading recommendation: 0, 90, 180, or 270
+                    for heading in [30, 220, 0, 90, 180, 270]:
+                        file = None
+                        try:
+                            file = streetview.api_download(pano.get('panoid'), heading, saveto, settings.GOOGLE_MAP_STREET_API, year=pano.get('year','now'))
+                        except Exception as e:
+                            print('Failed to download this streetview image')
+
+                        if file:
+                            filelist.append(file)
+                            panoFileLatLngList.append(str(pano.get('lat'))+','+str(pano.get('lon')))
+                            count += 1
+                else:
+                    messages.info(request, 'Max Street View Images ('+str(max_fetch)+') was fetched earlier.')
+                    break
+
+        return JsonResponse({'status':'ok','message':'Images Saved','data':filelist,'coords':panoFileLatLngList}, status=200)
     else:
         return JsonResponse({'status':'error','message':'Invalid Request'}, status=404)
 

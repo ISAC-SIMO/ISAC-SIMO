@@ -8,19 +8,26 @@
     <style>.swal2-icon{transform: scale(1) !important;margin: 1.25em auto 1.875em !important;}</style>
 
     <div class="row">
-        {% comment %} <form action="{% url 'map.check' %}" id="map_check" method="POST" class="col-12"> {% endcomment %}
         <div id="map_check" class='col-12'>
             {% csrf_token %}
             <div class="card">
                 <div class="card-body">
                     <div id="map" style="width:100%;height:430px;"></div>
 
-                    <div class="form-group">
-                        <label for="latlng" class="col-sm-12 col-md-6 col-form-label">Latitude/Longitude</label>
-                        <div class="col-sm-12 col-md-6">
-                            <input type="text" name="latlng" class="form-control" id="latlng" placeholder="Click on Map to get Latitude and Longitude or type in e.g.(24.44,54.22)" required/>
+                    <div class="row">
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="latlng" class="col-sm-12 col-form-label">Latitude/Longitude</label>
+                            <div class="col-sm-12">
+                                <input type="text" name="latlng" class="form-control" id="latlng" placeholder="Click on Map to get Latitude and Longitude or type in e.g.(24.44,54.22)" required/>
+                            </div>
+                            <small class="col-sm-12 form-text mt-1 text-danger" id="latlng_msg" style="margin:0;"></small>
                         </div>
-                        <small class="col-sm-12 form-text mt-1 text-danger" id="latlng_msg" style="margin:0;"></small>
+                        <div class="form-group col-sm-12 col-md-6">
+                            <label for="coordinates" class="col-sm-12 col-form-label">Coordinates</label>
+                            <div class="col-sm-12" id="coordinates">
+                                <b class="form-control ">-OR- Add Polygon in the map to use Coordinates for getting images</b>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <button type="submit" id="map_check_btn" class="ml-2 btn btn-primary">Check</button>
@@ -63,22 +70,16 @@
                 </div>
             </div>
         </div>
-        {% comment %} </form> {% endcomment %}
     </div>
 {% endblock content %}
 
 {% block script %}
-    {% if debug %}
-    <script src="https://maps.googleapis.com/maps/api/js?callback=initMap"
-    async defer></script>
-    {% else %}
-    <script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAP_API}}&callback=initMap"
-    async defer></script>
-    {% endif %}
-
     <script>
         var map;
         var marker;
+        var imageMarkers = []
+        var coordinates = [];
+        var currentPolygon = null;
         function validateLatLng(latlng){
             var lat = latlng.split(',')[0]
             var lng = latlng.split(',')[1]
@@ -102,6 +103,15 @@
             map.panTo(latlng);
             if(zoom){
                 map.setZoom(zoom);
+            }
+        }
+
+        function clearPolygon(){
+            if(currentPolygon){
+                currentPolygon.setMap(null)
+                coordinates = []
+                var coordinatesContainer = document.getElementById('coordinates')
+                coordinatesContainer.innerHTML = ''
             }
         }
 
@@ -137,18 +147,76 @@
                     document.getElementById('latlng_msg').innerText = 'Provide a valid Latitude,Longitude';
                 }
             })
+
+            // Draw Polygon
+            var drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: false,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_CENTER,
+                    drawingModes: ['polygon']
+                },
+                polygonOptions: {
+                    fillColor: '#323232',
+                    fillOpacity: 0.4,
+                    strokeWeight: 2,
+                    strokeColor: '#ffff00',
+                    clickable: true,
+                    editable: true,
+                    zIndex: 1
+                }
+            });
+            drawingManager.setMap(map);
+
+            function updatePolygonPoints(polygon){
+                currentPolygon = polygon;
+                var path = polygon.getPath();
+                var coordinatesContainer = document.getElementById('coordinates')
+                coordinatesContainer.innerHTML = ''
+                coordinates = [];
+                for (var i = 0 ; i < path.length ; i++) {
+                    coordinates.push({
+                        lat: path.getAt(i).lat(),
+                        lng: path.getAt(i).lng()
+                    });
+                    coordinatesContainer.innerHTML = coordinatesContainer.innerHTML + 
+                        '<b>Lat: ' + path.getAt(i).lat() + ', Long: ' + path.getAt(i).lng() +'<br/>'  
+                }
+                coordinatesContainer.innerHTML = coordinatesContainer.innerHTML + '<button class="btn btn-sm btn-secondary" onclick="clearPolygon()">Clear Polygon</button>'
+                //console.log(coordinates);
+                drawingManager.setDrawingMode(null);
+            }
+            
+            google.maps.event.addListener(drawingManager, "polygoncomplete", function(polygon){
+                google.maps.event.addListener(polygon.getPath(), 'insert_at', function(index, obj) {
+                    updatePolygonPoints(polygon)
+                });
+                google.maps.event.addListener(polygon.getPath(), 'set_at', function(index, obj) {
+                    updatePolygonPoints(polygon)
+                });
+                google.maps.event.addListener(polygon.getPath(), 'remove_at', function(index, obj) {
+                    updatePolygonPoints(polygon)
+                });
+                
+                clearPolygon()
+                updatePolygonPoints(polygon)
+            })
         }
 
         document.getElementById('map_check_btn').addEventListener('click', function(evt){
             var latlng = document.getElementById('latlng').value;
-            if(!latlng){
+            if(!latlng && coordinates.length <= 0){
                 Swal.fire({
                     title: "Latitude/Longitude Not Provided",
-                    text: 'Click on the map to get latlng or type in manually above',
+                    text: 'Click on the map to get latlng or draw polygon area',
                     type: 'error',
                 });
                 return;
             }else{
+                if(coordinates.length > 0){ // Give 1st priority to polygon rather then drop pin
+                    latlng = coordinates[0]['lat']+','+coordinates[0]['lng']
+                }
+
                 evt.target.innerHTML = 'Check <i class="ml-2 fa fa-sync fa-spin"></i>'
                 evt.target.style.pointerEvents = 'none'
                 document.getElementById('image-container').innerHTML = '<div class="ml-3">No Result !!</div>'
@@ -167,6 +235,9 @@
                                     document.getElementById('image-container').innerHTML = '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;" href="'+url+'" target="_blank"><img src="'+url+'" alt="streetview image result" class="img-fluid"/></a><small>Trying to load more. Angle might not always be accurate..</small>'
                                 
                                     // NOW CALL BACKEND API TO FETCH ALL CLOSEST IMAGES //
+                                    if(coordinates.length > 0){ // Give 1st priority to polygon rather then drop pin
+                                        latlng = JSON.stringify(coordinates)
+                                    }
                                     $.ajax({
                                         type: "POST",
                                         url: "{% url 'map.fetch' %}",
@@ -177,9 +248,28 @@
                                             evt.target.innerHTML = 'Check'
                                             evt.target.style.pointerEvents = 'all'
                                             var images = res.data
+                                            var panoFileLatLngList = res.coords
+                                            if(imageMarkers.length > 0){
+                                                for(var i = 0 ; i < imageMarkers.length ; i++){
+                                                    imageMarkers[i].setMap(null)
+                                                }
+                                                imageMarkers = []
+                                            }
                                             var imageHtml = ''
                                             for(var i = 0 ; i < images.length ; i++){
-                                                imageHtml += '<a class="col-sm-6 col-md-3" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" target="_blank" id="img-'+i+'"><img src="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
+                                                imageHtml += '<a class="col-sm-6 col-md-3 target-focus" id="pano-image-'+i+'" title="'+panoFileLatLngList[i]+'" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" target="_blank" id="img-'+i+'"><img src="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
+
+                                                var latlngObj = new google.maps.LatLng(panoFileLatLngList[i].split(',')[0], panoFileLatLngList[i].split(',')[1])
+                                                mark = new google.maps.Marker({
+                                                    position: latlngObj,
+                                                    map: map,
+                                                    title: panoFileLatLngList[i],
+                                                    url: window.location.href.split('#')[0] + '#' + 'pano-image-'+i
+                                                });
+                                                google.maps.event.addListener(mark, 'click', function() {
+                                                    window.location.href = this.url
+                                                });
+                                                imageMarkers.push(mark)
                                             }
                                             document.getElementById('image-container').innerHTML = imageHtml?imageHtml:'<div class="ml-3">No Result !!</div>'
                                             Swal.fire(images.length + ' Images Fetched from Street View','','success');
@@ -305,4 +395,12 @@
             templateSelection: formatSelection
         });
     </script>
+
+    {% if not debug %}
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=drawing&callback=initMap"
+    async defer></script>
+    {% else %}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAP_API}}&libraries=drawing&callback=initMap"
+    async defer></script>
+    {% endif %}
 {% endblock script %}

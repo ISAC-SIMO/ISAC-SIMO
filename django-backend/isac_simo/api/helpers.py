@@ -628,8 +628,14 @@ def classifier_detail(project, object_type, model):
         post_header = {'Accept':'application/json','Authorization':auth_base}
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v3/classifiers/'+model+'?version=2018-03-19', headers=post_header)
-        status = response.status_code
+        try:
+            response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v3/classifiers/'+model+'?version=2018-03-19', headers=post_header)
+            status = response.status_code
+        except Exception as e:
+            print(e)
+            response = {}
+            status = False
+        
         try:
             content = response.json()
         except ValueError:
@@ -661,8 +667,14 @@ def object_detail(object_id):
         content = {}
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'?version=2019-02-11', headers=post_header)
-        status = response.status_code
+        try:
+            response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'?version=2019-02-11', headers=post_header)
+            status = response.status_code
+        except Exception as e:
+            print(e)
+            response = {}
+            status = False
+
         try:
             content.update(response.json())
         except ValueError:
@@ -670,8 +682,14 @@ def object_detail(object_id):
             print('IBM Response was BAD for collection info')
 
         # Call the API
-        response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'/objects?version=2019-02-11', headers=post_header)
-        status = response.status_code
+        try:
+            response = requests.get('https://gateway.watsonplatform.net/visual-recognition/api/v4/collections/'+object_id+'/objects?version=2019-02-11', headers=post_header)
+            status = response.status_code
+        except Exception as e:
+            print(e)
+            response = {}
+            status = False
+
         try:
             content.update(response.json())
         except ValueError:

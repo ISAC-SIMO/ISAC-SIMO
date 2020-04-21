@@ -91,7 +91,7 @@ def lenList(project, object_type):
     
     return 0
 
-def searchList(project, object_type, model=None, index=None):
+def searchList(project, object_type, model=None, index=-1):
     content = data()
     if project and object_type and content.get(project, False):
         if content.get(project).get(object_type, False):

@@ -16,8 +16,8 @@
                             <i class="fas fa-plus"></i> Add New Project
                         </a>
                     </div>
-                    <div class="card-body">
-                        <table id="usersTable" class="table table-bordered table-hover table-striped">
+                    <div class="card-body table table-responsive">
+                        <table id="projectsTable" class="table table-bordered table-hover table-striped">
                             <thead>
                                 <tr>
                                     <th>Id</th>
@@ -64,7 +64,7 @@
 {% block script %}
     <script>
         $(function () {
-          $('#usersTable').DataTable({
+          $('#projectsTable').DataTable({
             "paging": true,
             "lengthChange": true,
             "searching": true,
