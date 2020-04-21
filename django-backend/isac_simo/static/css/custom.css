@@ -30,3 +30,5 @@ body::-webkit-scrollbar,.table-responsive::-webkit-scrollbar{width:.6em;height:.
 .number-btn{padding:0 6px;display: inline-block;margin-right:2px;margin-bottom:5px;background:#fff;width: 30px;text-align:center;}
 .number-btn:focus{box-shadow: 0 0 5px 2px rgba(100,60,200,0.7) !important;}
 .target-focus:target{outline: 2px solid orange;}
+.fade-img{opacity:0;}.fade-img:not(.initial) {transition: opacity 1s;}.fade-img.initial,.fade-img.loaded,.fade-img.error {opacity: 1;}
+.fade-img:not([src]) {visibility: hidden;}

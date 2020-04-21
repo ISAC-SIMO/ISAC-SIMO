@@ -74,7 +74,15 @@
 {% endblock content %}
 
 {% block script %}
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@15.1.1/dist/lazyload.min.js"></script>
+
     <script>
+        (function() {
+            var ll = new LazyLoad({
+                threshold: 0,
+            });
+        })();
+
         var map;
         var marker;
         var imageMarkers = []
@@ -257,7 +265,7 @@
                                             }
                                             var imageHtml = ''
                                             for(var i = 0 ; i < images.length ; i++){
-                                                imageHtml += '<a class="col-sm-6 col-md-3 target-focus" id="pano-image-'+i+'" title="'+panoFileLatLngList[i]+'" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" target="_blank" id="img-'+i+'"><img src="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" alt="streetview image result '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid"/></a>'
+                                                imageHtml += '<a class="col-sm-6 col-md-3 target-focus" id="pano-image-'+i+'" title="'+panoFileLatLngList[i]+'" style="display:flex;justify-content:center;align-items:center;flex-flow:column;margin-bottom: 10px;" href="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" target="_blank"><img data-src="'+images[i].replace("{{PROJECT_FOLDER}}",'')+'" alt="streetview image result no. '+i+'" style="box-shadow: 0 4px 8px #323232;" class="img-fluid fade-img"/></a>'
 
                                                 var latlngObj = new google.maps.LatLng(panoFileLatLngList[i].split(',')[0], panoFileLatLngList[i].split(',')[1])
                                                 mark = new google.maps.Marker({
@@ -278,6 +286,7 @@
                                                 document.getElementById('image_list').value = JSON.stringify(images);
                                                 document.getElementById('clean-image-btn').style.display = 'block';
                                             }
+                                            new LazyLoad({threshold: 0});
                                         },
                                         error: function(err) {
                                             if(err.responseJSON){
@@ -287,6 +296,7 @@
                                             }
                                             evt.target.innerHTML = 'Check'
                                             evt.target.style.pointerEvents = 'all'
+                                            new LazyLoad({threshold: 0});
                                         }
                                     });
                                 },
@@ -333,17 +343,17 @@
                 data: {'image_list': document.getElementById('image_list').value, 'detect_model': document.getElementById('object_id').value, 'project': project, 'csrfmiddlewaretoken': '{{csrf_token}}'},
                 dataType: "json",
                 success: function(res) {
-                    console.log(res);
+                    //console.log(res);
                     evt.target.innerHTML = 'Test Images'
                     evt.target.style.pointerEvents = 'all'
 
                     var data = res.data
                     for(var i = 0 ; i < data.length ; i++){
-                        if(document.getElementById('img-'+i)){
+                        if(document.getElementById('pano-image-'+i)){
                             if(data[i]["score"] && data[i]["result"]){
-                                document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                                document.getElementById('pano-image-'+i).innerHTML = document.getElementById('pano-image-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
                             }else{
-                                document.getElementById('img-'+i).innerHTML = document.getElementById('img-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">No Result</small>'
+                                document.getElementById('pano-image-'+i).innerHTML = document.getElementById('pano-image-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">No Result</small>'
                             }
                         }else{
                             console.log(data[i])
@@ -351,6 +361,7 @@
                     }
                     if(data.length >= 1){
                         document.getElementById('test_images_btn').style.display = 'none';
+                        document.getElementById('test_images_btn_text').style.display = 'none';
                         document.getElementById('image_list').value = '';
                     }
                     document.getElementById('clean-image-btn').style.display = 'block';
@@ -396,7 +407,7 @@
         });
     </script>
 
-    {% if not debug %}
+    {% if debug %}
     <script src="https://maps.googleapis.com/maps/api/js?libraries=drawing&callback=initMap"
     async defer></script>
     {% else %}
