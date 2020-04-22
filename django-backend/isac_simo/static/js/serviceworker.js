@@ -129,17 +129,35 @@ self.addEventListener('fetch', evt => {
         }
     }
 
-    if(['document'].indexOf(evt.request.clone().destination) > -1){
-        if(!navigator.onLine){
-            evt.respondWith(new Promise((resolve, reject) => {
-                caches.match('/offline').then(function(cachedRes) {
-                    if(cachedRes){
-                        console.log('offline document from cache...')
-                        resolve(cachedRes)
-                        return;
-                    }
-                })
-            }))
-        }
+    // if(['document'].indexOf(evt.request.clone().destination) > -1){
+    //     if(!navigator.onLine){
+    //         evt.respondWith(new Promise((resolve, reject) => {
+    //             caches.match('/offline').then(function(cachedRes) {
+    //                 if(cachedRes){
+    //                     console.log('offline document from cache...')
+    //                     resolve(cachedRes)
+    //                     return;
+    //                 }
+    //             })
+    //         }))
+    //     }
+    // }
+
+    if (evt.request.mode === 'navigate') {
+        evt.respondWith((async () => {
+            try {
+                const preloadResponse = await evt.preloadResponse;
+                if (preloadResponse) {
+                    return preloadResponse;
+                }
+
+                const networkResponse = await fetch(evt.request);
+                return networkResponse;
+            } catch (error) {
+                console.log('offline document from cache...')
+                const cachedResponse = await caches.match('/offline');
+                return cachedResponse;
+            }
+        })());
     }
 })

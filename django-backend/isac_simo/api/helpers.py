@@ -331,7 +331,7 @@ def quick_test_image(image_file, classifier_ids):
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
-def retrain_image(image_file_list, project, object_type, result, media_folder='image', classifier=None,  process=False, rotate=False, warp=False, inverse=False):
+def retrain_image(image_file_list, project, object_type, result, media_folder='image', classifier=None,  process=False, rotate=False, warp=False, inverse=False, noIndexCheck=False):
     zipObj = None
     zipPath = None
     all_transformed_image = []
@@ -387,7 +387,7 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
     zipObj.close()
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     if ( os.path.exists(zipPath) and settings.IBM_API_KEY 
-        and classifier_list.searchList(project,object_type,classifier) ):
+        and (classifier_list.searchList(project,object_type,classifier) or noIndexCheck) ):
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)

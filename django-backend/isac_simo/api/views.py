@@ -139,7 +139,9 @@ def updateImage(request, id=0):
                         can_retrain = True
 
             form = ImageForm(instance=image)
-            return render(request,"add_image.html",{'form':form, 'id':id, 'image_files':image_files, 'verified_list':verified_list, 'can_retrain':can_retrain})
+            user_name = image.user.full_name
+            user_id = image.user.id
+            return render(request,"add_image.html",{'form':form, 'user_name':user_name, 'user_id':user_id, 'id':id, 'image_files':image_files, 'verified_list':verified_list, 'can_retrain':can_retrain})
         elif request.method == "POST":
             files = request.FILES.getlist('image')
             form = ImageForm(request.POST or None, request.FILES or None, instance=image)
@@ -214,7 +216,7 @@ def retrainImage(request, id):
 
         if request.method != "POST":
             messages.error(request, "Re-Train Request was improperly sent")
-            return redirect("images.add")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
         elif request.method == "POST":
             for image_file in image_files:
                 if image_file.verified and image_file.result and image_file.file and image_file.object_type:
@@ -242,8 +244,8 @@ def retrainImage(request, id):
                     if value >= min_images_to_zip:
                         can_retrain = True
                         print(image_file_list.get(p_key,{}).get(key,[]))
-                        # Image File List(arr), object_type, result
-                        retrain_response = retrain_image(image_file_list.get(p_key,{}).get(key,[]), p_key, key)
+                        # Image File List(arr), project, object_type, result
+                        retrain_response = retrain_image(image_file_list.get(p_key,{}).get(key,[]), image.project.unique_name(), p_key, key, noIndexCheck=True)
 
                         if retrain_response:
                             messages.success(request, "Zipped and Sent for Re-Training")

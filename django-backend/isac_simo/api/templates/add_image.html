@@ -38,6 +38,12 @@
                               {{ form|crispy }}
 
                               {% if request.resolver_match.url_name == 'images.update' %}
+                              <p><b>Added By User: <a style="color: teal;" href="{% url 'update_user' user_id %}">{{user_name}}</a></b></p>
+                              {% else %}
+                              <p><b>Adding As: <a style="color: teal;" href="#!">{{user.full_name}}</a></b></p>
+                              {% endif %}
+
+                              {% if request.resolver_match.url_name == 'images.update' %}
                                 <button type="submit" class="btn btn-success">Update Image</button>
                               {% else %}  
                                 <button type="submit" class="btn btn-success">Add Image</button>
@@ -100,3 +106,10 @@
 
         <script>function disableImages(t){var e=document.getElementById("img-content-row");e.style.pointerEvents="none",e.style.opacity="0.8",t.target.className+=" fa-spin";var a=t.target.parentNode;a.style.visibility="visible",a.style.opacity="1",a.style.transform="translate(0,0)"}</script>
 {% endblock content %}
+
+{% block script %}
+  <script>
+    $('#id_project').select2({'placeholder':'Select a Project'})
+    $('#id_user').select2({'placeholder':'-- Keep Unselected for Setting to Yourself --'})
+  </script>
+{% endblock script %}
