@@ -96,7 +96,7 @@ def profile(request):
 @user_passes_test(is_guest, login_url=dashboard_url)
 def login_user(request):
     if request.method == "POST":
-        reload_classifier_list()
+        # reload_classifier_list()
         user = authenticate(username = request.POST.get('email'), password = request.POST.get('password'))
         if user is not None:
             if request.POST.get('remember') is not None:    

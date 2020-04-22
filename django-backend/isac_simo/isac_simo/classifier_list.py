@@ -14,11 +14,13 @@ except ImportError as e:
 # NOTE: IF NO model is given to a project this will be the default DETECT MODEL ID
 # NEEDS TO BE CHANGED AS REQUIRED - IN SERVER, PRODUCTION, STAGE as required
 detect_object_model_id = '9068cba3-6dab-4233-805b-2d64a16daae8'
+data_val = {}
 
 # def classifier_list(): # Previous Name (now data function used for short name to enable reload())
 #     pass
 
 def data():
+    global data_val
     classifier_list = {
         # 'dev_project': {
             # 'wall':[
@@ -51,20 +53,9 @@ def data():
                             if classifier.name not in classifier_list.get(project.unique_name(),[]).get(object_type.name.lower(),[]):
                                 classifier_list[project.unique_name()][object_type.name.lower()] = classifier_list[project.unique_name()][object_type.name.lower()] + [classifier.name]
 
-        # print(json.dumps(classifier_list, indent=4))
-
-        # object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related(Prefetch('classifiers', queryset=Classifier.objects.order_by('order')))
-        # # object_types = ObjectType.objects.order_by('updated_at').all().prefetch_related('classifiers')
-        # for object_type in object_types:
-        #     if not classifier_list.get(object_type.name.lower(), False):
-        #         classifier_list[object_type.name.lower()] = []
-
-        #     for classifier in object_type.classifiers.all():
-        #         if classifier.name not in classifier_list.get(object_type.name.lower(),[]):
-        #             classifier_list[object_type.name.lower()] = classifier_list.get(object_type.name.lower(),[]) + [classifier.name]
-
         print('-LOADING CLASSIFIER LIST-')
         # print(json.dumps(classifier_list, indent=4))
+        data_val = classifier_list
         return classifier_list
     except Exception as e:
         #########
@@ -82,9 +73,14 @@ if(total_classifiers <= 0):
 else:
     print(str(total_classifiers) + ' Classifier Model Type Found.')
 
+def value():
+    global data_val
+    return data_val
+
 # Returns the length of data specific object
 def lenList(project, object_type):
-    content = data()
+    global data_val
+    content = data_val
     if project and object_type and content.get(project, False):
         if content.get(project).get(object_type, False):
             return len(content.get(project).get(object_type))
@@ -92,7 +88,8 @@ def lenList(project, object_type):
     return 0
 
 def searchList(project, object_type, model=None, index=-1):
-    content = data()
+    global data_val
+    content = data_val
     if project and object_type and content.get(project, False):
         if content.get(project).get(object_type, False):
             if index >= 0: # Search by index check if exists

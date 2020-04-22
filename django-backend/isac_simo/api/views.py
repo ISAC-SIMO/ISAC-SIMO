@@ -328,7 +328,7 @@ def verifyImageFile(request, id):
 @user_passes_test(is_admin, login_url=login_url)
 def watsonTrain(request):
     if request.method == "GET":
-        return render(request, 'train.html',{'classifier_list':classifier_list.data()})
+        return render(request, 'train.html',{'classifier_list':classifier_list.value()})
     elif request.method == "POST":
         zipped = 0
         image_file_list = []
@@ -390,7 +390,7 @@ def watsonClassifierList(request):
 @user_passes_test(is_admin, login_url=login_url)
 def watsonClassifier(request):
     if request.method != "POST":
-        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data()})
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list.value()})
     elif request.method == "POST":
         detail = classifier_detail(request.POST.get('project', False), request.POST.get('object', False), request.POST.get('model', False))
         if detail:
@@ -399,7 +399,7 @@ def watsonClassifier(request):
             detail = 'Could Not Fetch Classifier Detail'
         
         reload_classifier_list()
-        return render(request, 'classifiers.html',{'classifier_list':classifier_list.data(), 'detail':detail, 'project':request.POST.get('project', False), 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
+        return render(request, 'classifiers.html',{'classifier_list':classifier_list.value(), 'detail':detail, 'project':request.POST.get('project', False), 'object':request.POST.get('object', False), 'model':request.POST.get('model', False)})
 
 # Create Custom Classifiers with zip data
 @user_passes_test(is_admin, login_url=login_url)

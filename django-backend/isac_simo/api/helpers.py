@@ -423,7 +423,7 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
 
         passed = 0
 
-        for classifier_ids in classifier_list.data().get(project,{}).get(object_type,[]):
+        for classifier_ids in classifier_list.value().get(project,{}).get(object_type,[]):
             # Check if specific classifier to re-train on (and continue if not equal to it)
             if(classifier and classifier != 'all'):
                 if(classifier_ids != classifier):
