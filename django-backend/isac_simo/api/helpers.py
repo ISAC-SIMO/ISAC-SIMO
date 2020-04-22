@@ -236,10 +236,22 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
             if(content['images'][0]['classifiers'][0]['classes']):
                 sorted_by_score = sorted(content['images'][0]['classifiers'][0]['classes'], key=lambda k: k['score'], reverse=True)
                 print(sorted_by_score)
-                if(sorted_by_score and sorted_by_score[0]): # Set Score
+
+                pipeline_status = {}
+                try:
+                    pipeline_status = json.loads(image_file.pipeline_status)
+                except Exception as e:
+                    pipeline_status = {}
+
+                if(sorted_by_score and sorted_by_score[0]): # Set Score and Result/Class
                     image_file.score = sorted_by_score[0]['score']
-                if(sorted_by_score and sorted_by_score[0]): # Set Result/Class
                     image_file.result = sorted_by_score[0]['class']
+                    pipeline_status[check_and_get_classifier_ids] = {
+                        'score': sorted_by_score[0]['score'],
+                        'result': sorted_by_score[0]['class']
+                    }
+                    image_file.pipeline_status = json.dumps(pipeline_status)
+                
                 image_file.tested = True
                 image_file.save()
 
@@ -247,8 +259,11 @@ def test_image(image_file, title=None, description=None, save_to_path=None, clas
                 # NOTE: later classifier_list.py shall contain the recursion_list to hold results that might require re test
                 # e.g. if recursion_list.get('wall',[]) has nogo/nogos etc. then retest it etc...
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
-                    print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                    test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
+                    if classifier_index + 1 < classifier_list.lenList(project,object_type):
+                        print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
+                        test_image(image_file, title, description, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
+                    else:
+                        print('No more Nogo pipeline')
 
                 if(classifier_index <= 0):
                     resized_image_open.close()
@@ -794,11 +809,24 @@ def detect_temp_image(file_url, detect_model):
         print('FAILED TO Detect Object - Check Token, Object Detect Model id and file existence. [Google Street Temp]')
         return False
 
+# THESE ARE GLOBAL VAR FOR TEST TEMP IMAGE USED DURING RECURSION
 score = None
 result = None
+pipeline_status = {}
+# Pipeline Status Format
+# {
+# 	'classifier_name': {
+# 		'result': 'nogo',
+# 		'score': 0.8,
+# 	},
+# 	'second_classifier_name': {
+# 		'result': 'nogo',
+# 		'score': '0.95',
+# 	}
+# }
 ### SAME AS test_image BUT FOR TEMP IMAGES (no need to deal with models and other stuffs (used for e.g. in google map images testing))
 def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None, project=None):
-    global score, result
+    global score, result, pipeline_status
     if not detected_as:
         detected_as = detect_temp_image(image_file, detect_model)
     
@@ -854,22 +882,33 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
                 print(sorted_by_score)
                 score = sorted_by_score[0]['score']
                 result = sorted_by_score[0]['class']
+
+                if(sorted_by_score and sorted_by_score[0]): # Set Score and Result/Class
+                    pipeline_status[check_and_get_classifier_ids] = {
+                        'score': sorted_by_score[0]['score'],
+                        'result': sorted_by_score[0]['class']
+                    }
+
                 # If nogo/nogos then run with next model pipe lopping through available classifier list
                 # NOTE: later classifier_list.py shall contain the recursion_list to hold results that might require re test
                 # e.g. if recursion_list.get('wall',[]) has nogo/nogos etc. then retest it etc...
                 if sorted_by_score[0]['class'].lower() == 'nogo' or sorted_by_score[0]['class'].lower() == 'nogos':
-                    print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
-                    test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
+                    if classifier_index + 1 < classifier_list.lenList(project,object_type):
+                        print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
+                        test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model, project) #save_to_path=temp file
+                    else:
+                        print('No more Nogo pipeline')
 
+                pipeline_status_copy = pipeline_status.copy()
+                score_copy = score
+                result_copy = result
                 if(classifier_index <= 0):
+                    pipeline_status = {}
+                    score = None
+                    result = None
                     resized_image_open.close()
                     os.remove(save_to_path)
-                return {'score': score, 'result': result}
+                return {'score': score_copy, 'result': result_copy, 'pipeline_status': pipeline_status_copy}
     else:
-        print(os.path.exists(save_to_path))
-        print(settings.IBM_API_KEY )
-        print(classifier_index)
-        print(classifier_list.lenList(project,object_type))
-        print(check_and_get_classifier_ids)
         print('FAILED TO TEST - Check Token, Classifier ids and file existence.')
         return False

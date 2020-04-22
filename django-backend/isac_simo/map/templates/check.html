@@ -88,6 +88,7 @@
         var imageMarkers = []
         var coordinates = [];
         var currentPolygon = null;
+        var panoFileLatLngList = [];
         function validateLatLng(latlng){
             var lat = latlng.split(',')[0]
             var lng = latlng.split(',')[1]
@@ -256,7 +257,7 @@
                                             evt.target.innerHTML = 'Check'
                                             evt.target.style.pointerEvents = 'all'
                                             var images = res.data
-                                            var panoFileLatLngList = res.coords
+                                            panoFileLatLngList = res.coords
                                             if(imageMarkers.length > 0){
                                                 for(var i = 0 ; i < imageMarkers.length ; i++){
                                                     imageMarkers[i].setMap(null)
@@ -351,7 +352,7 @@
                     for(var i = 0 ; i < data.length ; i++){
                         if(document.getElementById('pano-image-'+i)){
                             if(data[i]["score"] && data[i]["result"]){
-                                document.getElementById('pano-image-'+i).innerHTML = document.getElementById('pano-image-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
+                                document.getElementById('pano-image-'+i).innerHTML = document.getElementById('pano-image-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;" onclick="showPipelineStatus(event,\''+encodeURIComponent(JSON.stringify(data[i]["pipeline_status"]))+'\',\''+panoFileLatLngList[i]+'\',true)">Score: '+data[i]["score"]+' - Result: '+data[i]["result"]+'</small>'
                             }else{
                                 document.getElementById('pano-image-'+i).innerHTML = document.getElementById('pano-image-'+i).innerHTML + '<small style="font-size: 1.2em;font-weight: 900;">No Result</small>'
                             }

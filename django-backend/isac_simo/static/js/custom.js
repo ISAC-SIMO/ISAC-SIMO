@@ -153,26 +153,38 @@ function simpleConfirm(event, to, text, download){
 }
 
 // TO TIGGER SWAL INPUT FOR go/nogo verify and type
-function verifyImage(event, id, result, score, object_type, verified, url, retrained, csrf){
+function verifyImage(event, id, result, score, object_type, verified, url, retrained, pipeline_status, csrf){
+    var html = '<form action="'+url+'" id="image_file_verify" method="POST">'+
+                '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf+'" />'+
+                '<label class="swal2-label">Result:</label>'+
+                '<input id="test-result" name="test-result" placeholder="No Result" class="swal2-input" style="margin: 0.5em auto;" value="'+result+'">' +
+                '<label class="swal2-label">Score:</label>'+
+                '<input id="test-score" name="test-score" placeholder="No Score" class="swal2-input" disabled style="background: #c7c7c7;margin: 0.5em auto;" value="'+score+'">'+
+                '<label class="swal2-label">Object Type:</label>'+
+                '<input id="test-object-type" name="test-object-type" placeholder="Object Not Detected" class="swal2-input" style="margin: 0.5em auto;" value="'+object_type+'">'+
+                '<label class="swal2-label" style="display: inline-block;float: left;">Verified:'+
+                '<input type="checkbox" id="test-verified" name="test-verified" class="swal2-checkbox" style="margin: 0.5em;transform: scale(1.4);display: inline;"'+ (verified?'checked':'') +'>'+
+                '</label>'+
+                '<label class="swal2-label" style="display: inline-block;float: right;margin: 0.5em;">Retrained: '+(retrained?'Yes':'No')+'</label>';
+
+    html = html + '<label class="swal2-label" style="font-size: 1.1em;margin-top: 40px;">Pipeline Status:</label>';
+    var pipeline_status_data = JSON.parse(pipeline_status)
+    if(Object.keys(pipeline_status_data).length > 0){
+        Object.keys(pipeline_status_data).forEach(function(key){
+            html = html + '<hr style="margin: 0.5rem 0;border-top: 1px solid rgba(0, 0, 0, 0.24);"/><label class="swal2-label" style="font-weight: 400;"><b>Model:</b> '+key+', <b>Result:</b> '+pipeline_status_data[key]["result"]+', <b>Score:</b> '+pipeline_status_data[key]["score"]+'</label>';
+        })
+    }else{
+        html = html + '<hr style="margin: 0.5rem 0;border-top: 1px solid rgba(0, 0, 0, 0.24);"/><label class="swal2-label" style="font-weight: 400;">No Status Data to Show</label>'
+    }
+
+    html = html + '</form>';
+
     Swal.fire({
         title: 'Verify Test Results - '+id,
         showCancelButton: true,
         confirmButtonText: 'Update',
         cancelButtonText: 'Close',
-        html:
-            '<form action="'+url+'" id="image_file_verify" method="POST">'+
-            '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf+'" />'+
-            '<label class="swal2-label">Result:</label>'+
-            '<input id="test-result" name="test-result" placeholder="No Result" class="swal2-input" style="margin: 0.5em auto;" value="'+result+'">' +
-            '<label class="swal2-label">Score:</label>'+
-            '<input id="test-score" name="test-score" placeholder="No Score" class="swal2-input" disabled style="background: #c7c7c7;margin: 0.5em auto;" value="'+score+'">'+
-            '<label class="swal2-label">Object Type:</label>'+
-            '<input id="test-object-type" name="test-object-type" placeholder="Object Not Detected" class="swal2-input" style="margin: 0.5em auto;" value="'+object_type+'">'+
-            '<label class="swal2-label" style="display: inline-block;float: left;">Verified:'+
-            '<input type="checkbox" id="test-verified" name="test-verified" class="swal2-checkbox" style="margin: 0.5em;transform: scale(1.4);display: inline;"'+ (verified?'checked':'') +'>'+
-            '</label>'+
-            '<label class="swal2-label" style="display: inline-block;float: right;margin: 0.5em;">Retrained: '+(retrained?'Yes':'No')+'</label>'+
-            '</form>',
+        html: html,
         focusConfirm: false,
         preConfirm: function(){
             Pace.restart();
@@ -185,6 +197,7 @@ function verifyImage(event, id, result, score, object_type, verified, url, retra
             }
         }
     })
+    $('#test-result').blur()
 }
 
 // Tooltip resets (kinda needed)
@@ -221,3 +234,28 @@ $(function () {
             .catch(e => {console.log(e)})
     }
 });
+
+// SHOW Pipeline Status in Swal //
+function showPipelineStatus(event, pipeline_status, latlng, decodeURI){
+    event.preventDefault();
+    html = '<label class="swal2-label" style="font-size: 1.1em;margin-top: 10px;">Pipeline Status:</label>';
+    var pipeline_status_data = null
+    if(decodeURI){
+        pipeline_status_data = JSON.parse(decodeURIComponent(pipeline_status))
+    }else{
+        pipeline_status_data = JSON.parse(pipeline_status)
+    }
+
+    if(Object.keys(pipeline_status_data).length > 0){
+        Object.keys(pipeline_status_data).forEach(function(key){
+            html = html + '<hr style="margin: 0.5rem 0;border-top: 1px solid rgba(0, 0, 0, 0.24);"/><label class="swal2-label" style="font-weight: 400;"><b>Model:</b> '+key+', <b>Result:</b> '+pipeline_status_data[key]["result"]+', <b>Score:</b> '+pipeline_status_data[key]["score"]+'</label>';
+        })
+    }else{
+        html = html + '<hr style="margin: 0.5rem 0;border-top: 1px solid rgba(0, 0, 0, 0.24);"/><label class="swal2-label" style="font-weight: 400;">No Status Data to Show</label>'
+    }
+
+    Swal.fire({
+        title: 'Lat,Long: '+latlng,
+        html: html,
+    })
+}

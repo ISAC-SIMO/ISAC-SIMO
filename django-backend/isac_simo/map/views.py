@@ -149,14 +149,16 @@ def test(request):
             data.append({
                 'image': image,
                 'result': '',
-                'score': ''
+                'score': '',
+                'pipeline_status': {}
             })
         else:
             data.append({
                 'image': image,
                 'result': response.get('result',''),
-                'score': response.get('score','')
+                'score': response.get('score',''),
+                'pipeline_status': response.get('pipeline_status',{})
             })
     
-    print(data)
+    # print(data)
     return JsonResponse({'status':'ok','message':'Tested','data':data}, safe=True)

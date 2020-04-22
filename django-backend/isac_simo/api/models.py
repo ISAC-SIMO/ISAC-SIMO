@@ -44,6 +44,7 @@ class ImageFile(models.Model):
     object_type = models.CharField(blank=True, null=True, max_length=500)
     retrained = models.BooleanField(default=False)
     verified = models.BooleanField(default=False)
+    pipeline_status = models.TextField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
