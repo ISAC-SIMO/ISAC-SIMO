@@ -331,6 +331,35 @@
                 </li>
               </ul>
             </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'offline.model.list' or request.resolver_match.url_name == 'offline.model.create' or request.resolver_match.url_name == 'offline.model.edit' or request.resolver_match.url_name == 'offline.model.delete' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'offline.model.list' or request.resolver_match.url_name == 'offline.model.create' or request.resolver_match.url_name == 'offline.model.edit' or request.resolver_match.url_name == 'offline.model.delete' %} active {% endif %}">
+                <i class="nav-icon fas fa-leaf"></i>
+                <p>
+                  Offline Model
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'offline.model.list' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'offline.model.list' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>View All Offline Model</p>
+                  </a>
+                </li>
+              </ul>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'offline.model.create' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'offline.model.create' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>Create Offline Model</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
             {% endif %}
             {% comment %} / IS ADMIN / {% endcomment %}
 

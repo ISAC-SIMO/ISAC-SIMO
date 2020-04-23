@@ -4,6 +4,7 @@ from django.db import models
 from .models import Image
 from django.forms.widgets import Textarea
 from projects.models import Projects
+from api.models import OfflineModel
 
 
 class ImageForm(forms.ModelForm):
@@ -34,3 +35,23 @@ class ImageForm(forms.ModelForm):
         self.fields['lat'].widget.attrs['max'] = 90
         self.fields['lng'].widget.attrs['min'] = -180
         self.fields['lng'].widget.attrs['max'] = 180
+
+
+class OfflineModelForm(forms.ModelForm):
+    model_type = forms.ChoiceField(choices=[('OBJECT_DETECT','Object Detect'),('CLASSIFIER','Classifier')], widget=forms.Select, initial = 'model_type')
+    model_format = forms.CharField(widget=forms.Select, initial = 'model_format')
+    class Meta:
+        model = OfflineModel     
+        fields = ('name', 'model_type', 'model_format', 'file')
+        labels = {
+            'model_type':'Model Type',
+            'model_format':'Model File Format',
+            'file':'File',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(OfflineModelForm, self).__init__(*args, **kwargs)
+        self.fields['model_format'].help_text = 'Choose a format or type yourself'
+        if self.instance and False: # TODO: self.instance.projects and self.instance.classifiers exists then hide format in edit
+            self.fields['model_type'].widget = forms.HiddenInput()
+            self.fields['model_format'].help_text = 'Choose a format or type yourself <br/> Model Type is Unable to change because it is used by some projects'

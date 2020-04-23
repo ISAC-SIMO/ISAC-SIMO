@@ -29,6 +29,13 @@ urlpatterns = [
     path('watson/object/delete/<int:id>', views.watsonObjectDelete, name="watson.object.delete"),
     path('watson/object/detail', views.watsonObject, name="watson.object"), # fetch from ibm details
 
+    # Offline Model
+    # ---------------
+    path('offline_model', views.offlineModel, name="offline.model.list"),
+    path('offline_model/create', views.offlineModelCreate, name="offline.model.create"),
+    path('offline_model/edit/<int:id>', views.offlineModelEdit, name="offline.model.edit"),
+    path('offline_model/delete/<int:id>', views.offlineModelDelete, name="offline.model.delete"),
+
     # Other Misc. Actions
     path('misc/clean/temp', views.cleanTemp, name="watson.cleantemp"),
     path('misc/clean/temp/streetview', views.cleanTempStreetView, name="watson.cleantempstreetview"),

@@ -1,0 +1,77 @@
+{% extends 'master/base.html' %}
+
+{% block title %}
+  {% if request.resolver_match.url_name == 'offline.model.edit' %}
+    Update Offline Model
+  {% else %}  
+    Add Offline Model
+  {% endif %} 
+{% endblock title %}
+
+{% block dashboard_title1 %}
+  {% if request.resolver_match.url_name == 'offline.model.edit' %}
+    Update Offline Model
+  {% else %}  
+    Add Offline Model
+  {% endif %} 
+{% endblock dashboard_title1 %}
+
+{% block dashboard_title2 %}
+  {% if request.resolver_match.url_name == 'offline.model.edit' %}
+    Edit Offline Model
+  {% else %}  
+    Add Offline Model
+  {% endif %}
+{% endblock dashboard_title2 %}
+
+{% block content %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% load crispy_forms_tags %}
+
+                        <form action="{% if request.resolver_match.url_name == 'offline.model.edit' %}{% url 'offline.model.edit' offlineModel.id %}{% else %}{% url 'offline.model.create' %}{% endif %}" method="POST" class="form-group" enctype="multipart/form-data">
+                            {% csrf_token %}
+                              {{ form|crispy }}
+
+                              {% if request.resolver_match.url_name == 'offline.model.edit' %}
+                                <button type="submit" class="btn btn-success">Update Model</button>
+                              {% else %}  
+                                <button type="submit" class="btn btn-success">Add Model</button>
+                              {% endif %}  
+                        </form>
+
+                        {% if request.resolver_match.url_name == 'offline.model.edit' %}
+                          <hr/>
+                          <h4>Linked Projects:</h4>
+                          {% if offlineModel.projects %}
+                            <ul>
+
+                            <ul>
+                          {% else %}
+                            No project linked yet !!
+                          {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        if($('#id_model_type')[0].localName == 'select'){
+            $('#id_model_type').select2({
+                minimumResultsForSearch: -1
+            })
+        }
+        
+        $('#id_model_format').select2({
+            tags: true,
+            data: [
+                {id: 'h5', text: '.h5'}, {id: 'hdf5', text: '.hdf5'}, {id: 'keras', text: '.keras'}
+            ]
+        })
+    </script>
+{% endblock script %}

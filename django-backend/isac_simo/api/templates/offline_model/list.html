@@ -1,0 +1,83 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Offline Models {% endblock title %}
+{% block dashboard_title1 %} Offline Model {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Offline Model {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <style>
+        .bs-tooltip-auto[x-placement^=top] .arrow, .bs-tooltip-top .arrow{transform:translate(6px,0)}
+    </style>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-title ml-3 mt-2">
+                    <a href="{% url 'offline.model.create' %}"  class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Offline Model
+                    </a>
+                </div>
+                <div class="card-body table table-responsive">
+                    <table id="offlineModelTable" class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Format</th>
+                                <th>Added By</th>
+                                <th>Added At</th>
+                                {% if user.is_admin %}<th>Actions</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in models %}
+                                <tr>
+                                    <td>{{model.name}}</td>
+                                    <td>{{model.model_type|title}}</td>
+                                    <td>{{model.model_format}}</td>
+                                    <td>{{model.created_by.full_name}}</td>
+                                    <td>{{model.created_at}}</td>
+                                    {% if user.is_admin %}
+                                    <td class="table-options" style="min-width: 95px;">
+                                        <a onclick="deleteDataWriteConfirm(event, 'offline-model-{{ model.id }}', 'Offline Model')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'offline.model.delete' model.id %}" class="btn text-secondary px-0">
+                                            <i class="fa fa-trash text-danger"></i>
+                                        </a>
+                                        <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'offline.model.edit' model.id %}" class="btn text-secondary px-0">
+                                            <i class="far fa-edit text-info"></i>
+                                        </a>
+                                        <a title="Download {{model.filename}}" data-toggle="tooltip" data-placement="top" href="{{model.file.url}}" download class="btn text-secondary px-0">
+                                            <i class="fas fa-file-download text-info"></i>
+                                        </a>
+                                        <form action="{% url 'offline.model.delete' model.id %}" method="POST" id="offline-model-{{ model.id }}" class="d-inline">
+                                            {% csrf_token %}
+                                        </form>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody> 
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(function () {
+          $('#offlineModelTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "order": [],
+            "language": {
+			    "emptyTable": "No Offline Model Available"
+			}
+          });
+        });
+    </script>
+{% endblock script %}

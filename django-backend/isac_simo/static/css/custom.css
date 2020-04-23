@@ -11,7 +11,7 @@ body::-webkit-scrollbar,.table-responsive::-webkit-scrollbar{width:.6em;height:.
 @keyframes fader{0%{opacity:0;transform:translate(0,-8px);}100%{opacity:1;transform:translate(0,0);}}
 .main-container{opacity: 0;animation: fader 0.5s 0.1s ease forwards;}
 .fa-trash:hover{opacity:0.8;}
-#id_image{padding-bottom: 35px;}
+#id_image, #id_file{padding-bottom: 35px;}
 .tooltip-inner{max-width: 500px;}
 .img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:3px;background:#eee;margin:5px;position:relative;}
 .img-flex:after {position: absolute;content: "";background: #323232;opacity: 0;top: 0;left: 0;right: 0;bottom: 0;z-index: 1;transition: all 0.3s ease;pointer-events: none;}

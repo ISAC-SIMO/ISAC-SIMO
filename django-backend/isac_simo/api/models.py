@@ -21,6 +21,7 @@ class PathAndRename(object):
         return os.path.join(self.path, filename)
 
 path_and_rename = PathAndRename("image")
+path_and_rename_offline_models = PathAndRename("offline_models")
 
 class Image(models.Model):
     title = models.CharField(max_length=255)
@@ -77,3 +78,27 @@ class Classifier(models.Model):
 
     class Meta:
         ordering = ['order']  # order is the field holding the order
+
+class OfflineModel(models.Model):
+    name = models.CharField(max_length=200)
+    model_type = models.CharField(max_length=200)
+    model_format = models.CharField(max_length=50)
+    file = models.FileField(upload_to=path_and_rename_offline_models)
+    created_by = models.ForeignKey(User, related_name='offline_models', on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    def isObjectDetect(self):
+        return True if self.model_type == 'OBJECT_DETECT' else False
+
+    def isClassifier(self):
+        return True if self.model_type == 'CLASSIFIER' else False
+
+    def filename(self):
+        try:
+            return self.file.url.replace('/media/offline_models/','')
+        except Exception as e:
+            return ''

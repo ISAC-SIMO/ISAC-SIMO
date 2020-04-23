@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core import serializers
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -23,19 +24,19 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 import isac_simo.classifier_list as classifier_list
+from api.forms import OfflineModelForm
 from api.helpers import (classifier_detail, create_classifier, object_detail,
                          quick_test_image, retrain_image, test_image)
-from api.models import Classifier, ObjectType
+from api.models import Classifier, ObjectType, OfflineModel
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
 from main import authorization
 from main.authorization import *
 from main.models import User
+from projects.models import Projects
 
 from .forms import ImageForm
 from .models import Image, ImageFile
-from projects.models import Projects
-from django.db.models import Q
 
 
 def reload_classifier_list():
@@ -596,6 +597,87 @@ def watsonObjectDelete(request, id):
     else:
         messages.success(request, 'Object Not Deleted')
         return redirect('watson.object.list')
+
+##################
+# OFFLINE MODELS #
+@user_passes_test(is_admin, login_url=login_url)
+def offlineModel(request):
+    models = OfflineModel.objects.all().order_by('name')
+    return render(request, 'offline_model/list.html',{'models':models})
+
+#########################
+# OFFLINE MODELS CREATE #
+@user_passes_test(is_admin, login_url=login_url)
+def offlineModelCreate(request):
+    if request.method == "GET":
+        form = OfflineModelForm()
+        return render(request,"offline_model/create.html",{'form':form})
+    elif request.method == "POST":
+        form = OfflineModelForm(request.POST or None, request.FILES or None)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.created_by = User.objects.get(id=request.user.id)
+            instance.save()
+            messages.success(request, "New Offline Model Added")
+        else:
+            messages.error(request, "Invalid Request")
+            return render(request,"offline_model/create.html",{'form':form})  
+
+    return redirect("offline.model.list")
+
+#######################
+# OFFLINE MODELS EDIT #
+@user_passes_test(is_admin, login_url=login_url)
+def offlineModelEdit(request, id):
+    try:
+        offlineModel = OfflineModel.objects.filter(id=id).get()
+        offlineModelFile = os.path.join(offlineModel.file.url.replace('/media/','media/'))
+
+        if request.method == "GET":
+            form = OfflineModelForm(instance=offlineModel)
+            return render(request,"offline_model/create.html",{'form':form, 'offlineModel':offlineModel})
+        elif request.method == "POST":
+            form = OfflineModelForm(request.POST or None, request.FILES or None, instance=offlineModel)
+            if form.is_valid():
+                if request.FILES.get('file', False):
+                    try:
+                        if not os.path.exists(offlineModelFile):
+                            os.remove(os.environ.get('PROJECT_FOLDER','') + offlineModelFile)
+                        else:
+                            os.remove(offlineModelFile)
+                    except Exception as e:
+                        print('Failed to remove old Offline Model File')
+                        messages.info('Failed to remove old Offline Model File')
+
+                instance = form.save(commit=False)
+                instance.save()
+                messages.success(request, "Offline Model Updated Successfully!")
+            else:
+                messages.error(request, "Invalid Request")
+                return render(request,"offline_model/create.html",{'form':form, 'offlineModel':offlineModel})
+
+        return redirect("offline.model.list")
+    except(Projects.DoesNotExist):
+        messages.error(request, "Invalid Offline Model attempted to Edit")
+        return redirect("offline.model.list")
+
+#########################
+# OFFLINE MODELS DELETE #
+@user_passes_test(is_admin, login_url=login_url)
+def offlineModelDelete(request, id):
+    try:
+        if request.method == "POST":
+            offlineModel = OfflineModel.objects.get(id=id)
+            offlineModel.file.delete()
+            offlineModel.delete()
+            messages.success(request, 'Offline Model Deleted Successfully!')
+            return redirect('offline.model.list')
+        else:
+            messages.error(request, 'Failed to Delete!')
+            return redirect('offline.model.list')
+    except(Projects.DoesNotExist):
+        messages.error(request, "Invalid Offline Model attempted to Delete")
+        return redirect("offline.model.list")
 
 #########################
 # Clean Temporary Files #
