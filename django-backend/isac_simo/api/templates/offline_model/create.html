@@ -43,15 +43,34 @@
                         </form>
 
                         {% if request.resolver_match.url_name == 'offline.model.edit' %}
+                        
                           <hr/>
-                          <h4>Linked Projects:</h4>
-                          {% if offlineModel.projects %}
-                            <ul>
-
-                            <ul>
-                          {% else %}
-                            No project linked yet !!
+                          {% if offlineModel.model_type == 'OBJECT_DETECT' %}
+                            <h4>Linked Projects:</h4>
+                            {% if offlineModel.projects and offlineModel.projects.all %}
+                              <ul>
+                                {% for p in offlineModel.projects.all %}
+                                  <li><a href="{% url 'updateproject' p.id %}">{{p.project_name}}</a></li>
+                                {% endfor %}
+                              <ul>
+                            {% else %}
+                              No project linked yet !!
+                            {% endif %}
                           {% endif %}
+
+                          {% if offlineModel.model_type == 'CLASSIFIER' %}
+                            <h4>Linked Classifiers:</h4>
+                            {% if offlineModel.classifiers and offlineModel.classifiers.all %}
+                              <ul>
+                                {% for c in offlineModel.classifiers.all %}
+                                  <li><a href="{% url 'watson.classifier.edit' c.id %}">{{c.name}}</a></li>
+                                {% endfor %}
+                              <ul>
+                            {% else %}
+                              No project linked yet !!
+                            {% endif %}
+                          {% endif %}
+
                         {% endif %}
                     </div>
                 </div>

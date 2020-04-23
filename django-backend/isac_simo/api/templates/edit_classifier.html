@@ -20,6 +20,20 @@
                             Be Careful Here. This is what is used to call the Watson AI
                         </small>
                     </div>
+                    <div class="form-group" id="offline-model-group">
+                        <label for="offlineModel" class="col-sm-5 col-md-4 col-form-label">Offline Model</label>
+                        <div class="col-sm-12 col-md-4">
+                            <select name="offlineModel" id="offlineModel" class="form-control">
+                                <option></option>
+                                {% for offlineModel in offlineModels %}
+                                <option value="{{offlineModel.id}}" {% if offlineModel.id == classifier.offline_model.id %}selected{% endif %}>{{offlineModel.name|title}} - {{offlineModel.model_format}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <small class="col-sm-12 form-text text-muted">
+                            If Offline Model is added it is used with 1st priority
+                        </small>
+                    </div>
                     <div class="form-group">
                         <label for="project" class="col-sm-5 col-md-4 col-form-label">Project*</label>
                         <div class="col-sm-12 col-md-4">
@@ -78,6 +92,10 @@
         })
         $('#object_type').select2({
             'placeholder':'Select a Object Type'
+        })
+        $('#offlineModel').select2({
+            placeholder: 'Select Offline Detect Model {% if not classifier.offline_model %}(Currently None){% endif %}',
+            allowClear: true
         })
 
         $('#project').on( 'change', function() {

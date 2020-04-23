@@ -69,6 +69,7 @@ class Classifier(models.Model):
     project = models.ForeignKey(Projects, related_name='classifiers', on_delete=models.CASCADE, blank=True, null=True)
     object_type = models.ForeignKey(ObjectType, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
     order = models.IntegerField("Order", default=0, blank=False, null=False)
+    offline_model = models.ForeignKey('OfflineModel', on_delete=models.SET_NULL, related_name='classifiers', blank=True, null=True)
     created_by = models.ForeignKey(User, related_name='classifiers', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -89,7 +90,7 @@ class OfflineModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.name + ' - ' + self.model_format
 
     def isObjectDetect(self):
         return True if self.model_type == 'OBJECT_DETECT' else False

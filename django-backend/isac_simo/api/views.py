@@ -408,11 +408,15 @@ def watsonClassifierCreate(request):
     if request.method == "GET":
         object_types = ObjectType.objects.order_by('-created_at').all()
         projects = Projects.objects.order_by('project_name').all()
-        return render(request, 'create_classifier.html', {'object_types':object_types, 'projects':projects})
+        offlineModels = OfflineModel.objects.filter(model_type='CLASSIFIER').all()
+        return render(request, 'create_classifier.html', {'object_types':object_types, 'projects':projects, 'offlineModels':offlineModels})
     elif request.method == "POST":
         print(request.FILES.getlist('zip'))
         if request.POST.get('justaddit', False) and request.POST.get('name'):
-            created = {'data':{'classifier_id':request.POST.get('name'),'name':request.POST.get('name'),'classes':[]}}
+            if request.POST.get('offlineModel',False):
+                created = {'data':{'classifier_id':request.POST.get('name'),'name':request.POST.get('name'),'offline_model':request.POST.get('offlineModel'),'classes':[]}}
+            else:
+                created = {'data':{'classifier_id':request.POST.get('name'),'name':request.POST.get('name'),'classes':[]}}
         else:
             created = create_classifier(request.FILES.getlist('zip'), request.FILES.get('negative', False), request.POST.get('name'), request.POST.get('object_type'), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False))
         
@@ -443,6 +447,8 @@ def watsonClassifierCreate(request):
                 classifier.project = project
                 classifier.created_by = request.user
                 classifier.order = request.POST.get('order',0)
+                if request.POST.get('offlineModel',False):
+                    classifier.offline_model = OfflineModel.objects.filter(id=request.POST.get('offlineModel')).get()
                 classifier.save()
             
             created = json.dumps(created, indent=4)
@@ -467,6 +473,8 @@ def watsonClassifierEdit(request, id):
             classifier.name = request.POST.get('name')
             classifier.object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
             classifier.project = Projects.objects.get(id=request.POST.get('project'))
+            if request.POST.get('offlineModel', False):
+                classifier.offlineModel = OfflineModel.objects.get(id=request.POST.get('offlineModel'))
             classifier.order = request.POST.get('order', 0)
             classifier.save()
             messages.success(request, 'Classifier Updated (Order set to: '+ str(request.POST.get('order', 0)) +')')
@@ -479,7 +487,8 @@ def watsonClassifierEdit(request, id):
         classifier = Classifier.objects.get(id=id)
         object_types = ObjectType.objects.order_by('-created_at').all()
         projects = Projects.objects.order_by('project_name').all()
-        return render(request, 'edit_classifier.html', {'classifier':classifier, 'object_types':object_types, 'projects':projects})
+        offlineModels = OfflineModel.objects.filter(model_type='CLASSIFIER').all()
+        return render(request, 'edit_classifier.html', {'classifier':classifier, 'object_types':object_types, 'projects':projects, 'offlineModels':offlineModels})
     else:
         messages.error(request, 'Classifier Not Edited Bad Request')
         return redirect('watson.classifier.list')

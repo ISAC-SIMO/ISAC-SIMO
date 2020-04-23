@@ -62,4 +62,31 @@
 {% endblock content %}
 
 {% block script %}
+  <script>
+    var id_detect_model = ''
+    function loadOfflineModelSelect2(){
+      $('#id_offline_model').select2({
+        placeholder: 'Select Offline Detect Model',
+        allowClear: true
+      }).on("select2:select", function (e) {
+        $('#div_id_detect_model').slideUp()
+        id_detect_model = document.getElementById('id_detect_model').value
+        document.getElementById('id_detect_model').value = ''
+      }).on("select2:unselecting", function (e) {
+        $(this).data('state', 'unselected');
+        $('#div_id_detect_model').slideDown()
+        document.getElementById('id_detect_model').value = id_detect_model
+      }).on("select2:open", function (e){
+        if ($(this).data('state') === 'unselected') {
+          $(this).removeData('state'); 
+          var self = $(this);
+          setTimeout(function() {
+            self.select2('close');
+          }, 1);
+        }
+      })
+    }
+
+    loadOfflineModelSelect2();
+  </script>
 {% endblock script %}

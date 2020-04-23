@@ -31,7 +31,6 @@
                                 <th>Project</th>
                                 <th>Object Type</th>
                                 <th>Added By</th>
-                                <th>Added At</th>
                                 <th>Order</th>
                                 {% if user.is_admin %}<th>Actions</th>{% endif %}
                             </tr>
@@ -39,11 +38,10 @@
                         <tbody>
                             {% for classifier in classifiers %}
                                 <tr>
-                                    <td title="Given Name: {{classifier.given_name|default:'None'}}">{{classifier.name}}</td>
+                                    <td title="Given Name: {{classifier.given_name|default:'None'}}">{{classifier.name}} {% if classifier.offline_model %}<small style="color:teal;"><b>(Local: <a href="{% url 'offline.model.edit' classifier.offline_model.id %}">{{classifier.offline_model.name}}</a></b>)</small> {% endif %}</td>
                                     <td>{{classifier.project.project_name|title|default:'<i class="fas fa-exclamation-triangle text-warning"></i> &nbsp; No Project'}}</td>
                                     <td>{{classifier.object_type.name|title}}</td>
-                                    <td>{{classifier.created_by.full_name|title}}</td>
-                                    <td>{{classifier.created_at}}</td>
+                                    <td title="{{classifier.created_at}}">{{classifier.created_by.full_name|title}}</td>
                                     <td>{{classifier.order}}</td>
                                     {% if user.is_admin %}
                                     <td class="table-options" style="min-width: 95px;">

@@ -6,6 +6,7 @@ class Projects(models.Model):
     image = models.ImageField(upload_to='project_images')
     project_desc = models.TextField()
     detect_model = models.TextField(blank=True, null=True)
+    offline_model = models.ForeignKey('api.OfflineModel', on_delete=models.SET_NULL, related_name='projects', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 

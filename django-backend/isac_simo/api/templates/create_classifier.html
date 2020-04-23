@@ -51,7 +51,7 @@
                                 Just Add Classifier Without Training
                             </label>
                             <small class="col-sm-12 form-text text-muted" style="margin:0;">
-                                This is only useful if Classifier was already created in IBM Watson and you just want it to be added here
+                                This is only useful if Classifier was already created in IBM Watson / Local Offline Model and you just want it to be added here
                             </small>
                         </div>
                         <div class="form-group" id="process-group">
@@ -88,6 +88,20 @@
                             </label>
                             <small class="col-sm-12 form-text text-muted" style="margin:0;">
                                 This will add Inverted / Negative and Edge of image within the zip file
+                            </small>
+                        </div>
+                        <div class="form-group animated fast bounceInLeft" id="offline-model-group" style="display:none;">
+                            <label for="offlineModel" class="col-sm-5 col-md-4 col-form-label">Offline Model</label>
+                            <div class="col-sm-12 col-md-4">
+                                <select name="offlineModel" id="offlineModel" class="form-control">
+                                    <option></option>
+                                    {% for offlineModel in offlineModels %}
+                                    <option value="{{offlineModel.id}}">{{offlineModel.name|title}} - {{offlineModel.model_format}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <small class="col-sm-12 form-text text-muted">
+                                If Offline Model is added it is used with 1st priority
                             </small>
                         </div>
                         <div class="form-group">
@@ -184,6 +198,7 @@
                 $('#rotate-group').slideUp();
                 $('#warp-group').slideUp();
                 $('#inverse-group').slideUp();
+                $('#offline-model-group').slideDown(); // make offline add able
             }else{
                 $('#zip-group').slideDown();
                 $('#zip').attr('required','required');
@@ -191,6 +206,7 @@
                 $('#process-group').slideDown();
                 $('#warp-group').hide();
                 $('#inverse-group').hide();
+                $('#offline-model-group').slideUp();
             }
         })
 
@@ -219,6 +235,10 @@
         })
         $('#object_type').select2({
             'placeholder':'Select a Object Type'
+        })
+        $('#offlineModel').select2({
+            placeholder: 'Select Offline Detect Model',
+            allowClear: true
         })
 
         $('#project').on( 'change', function() {
