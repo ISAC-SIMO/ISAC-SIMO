@@ -3,7 +3,8 @@ jobs:
   build:
     docker:
       # Specify the version you desire here
-      - image: amd64/python:3.8.2
+      - image: circleci/python:3.8.2
+      - image: tensorflow/tensorflow:latest
       - image: circleci/postgres:11.5
         environment:
           POSTGRES_USER: root

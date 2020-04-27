@@ -7,6 +7,7 @@ pip3 install --user django
 
 source env/bin/activate
 pip install -r requirements.txt
+pip install tensorflow==2.1.0
 
 python manage.py migrate
 echo '==MIGRATE AND PULL DONE=='
