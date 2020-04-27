@@ -22,6 +22,7 @@ gunicorn = "*"
 filetype = "*"
 opencv-python = "*"
 streetview = {git = "https://github.com/robolyst/streetview"}
+tensorflow = "*"
 
 [requires]
 python_version = "3.8"

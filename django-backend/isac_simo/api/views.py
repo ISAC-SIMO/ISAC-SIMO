@@ -7,6 +7,10 @@ from datetime import datetime
 from http.client import HTTPResponse
 from importlib import reload
 
+import numpy as np
+import tensorflow as tf
+import PIL.Image as PILImage
+
 import filetype
 from django.conf import settings
 from django.contrib import messages
@@ -448,7 +452,9 @@ def watsonClassifierCreate(request):
                 classifier.created_by = request.user
                 classifier.order = request.POST.get('order',0)
                 if request.POST.get('offlineModel',False):
-                    classifier.offline_model = OfflineModel.objects.filter(id=request.POST.get('offlineModel')).get()
+                    offline_model = OfflineModel.objects.filter(id=request.POST.get('offlineModel')).get()
+                    classifier.offline_model = offline_model
+                    classifier.classes = json.loads(offline_model.offline_model_labels)
                 classifier.save()
             
             created = json.dumps(created, indent=4)
@@ -474,7 +480,9 @@ def watsonClassifierEdit(request, id):
             classifier.object_type = ObjectType.objects.get(id=request.POST.get('object_type'))
             classifier.project = Projects.objects.get(id=request.POST.get('project'))
             if request.POST.get('offlineModel', False):
-                classifier.offlineModel = OfflineModel.objects.get(id=request.POST.get('offlineModel'))
+                offline_model = OfflineModel.objects.get(id=request.POST.get('offlineModel'))
+                classifier.offline_model = offline_model
+                classifier.classes = json.loads(offline_model.offline_model_labels)
             classifier.order = request.POST.get('order', 0)
             classifier.save()
             messages.success(request, 'Classifier Updated (Order set to: '+ str(request.POST.get('order', 0)) +')')
@@ -516,10 +524,55 @@ def watsonClassifierTest(request, id):
     if(request.method == "POST"):
         try:
             classifier = Classifier.objects.get(id=id)
-            quick_test_image_result = quick_test_image(request.FILES.get('file', False), classifier.name)
+
+            # IF THIS CLASSIFIER HAS OFFLINE MODEL THEN
+            if classifier.offline_model:
+                x = PILImage.open(request.FILES.get('file', False)).resize((150, 150))
+                x = np.array(x)/255.0
+
+                saved_model = None
+                if not os.path.exists(os.path.join('media/offline_models/')):
+                    saved_model = os.environ.get('PROJECT_FOLDER','') + '/media/offline_models/'+classifier.offline_model.filename()
+                else:
+                    saved_model = os.path.join('media/offline_models/', classifier.offline_model.filename())
+                
+                new_model = tf.keras.models.load_model(saved_model)
+                result = new_model.predict(x[np.newaxis, ...]).tolist()
+                data = []
+                try:
+                    offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
+                except Exception as e:
+                    print(e)
+                    offlineModelLabels = []
+                
+                i = 0
+                for r in result[0]:
+                    if len(offlineModelLabels) > i:
+                        label = offlineModelLabels[i]
+                    else:
+                        label = 'No.'+str(i+1)
+
+                    data.append({
+                        "class": label,
+                        "score": r
+                    })
+                    i += 1
+
+                try:
+                    result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
+                except:
+                    result_type = 'No.'+str(result[0].index(max(result[0])) + 1)
+
+                quick_test_image_result = {'data':data, 'score':max(result[0]), 'result':result_type}
+            
+            # ELSE ONLINE MODEL THEN
+            else:
+                quick_test_image_result = quick_test_image(request.FILES.get('file', False), classifier.name)
+            
             if quick_test_image_result:
                 request.session['test_result'] = json.dumps(quick_test_image_result.get('data','No Test Data'), indent=4)
-                messages.success(request, 'Classifier Test Success. Score: '+str(quick_test_image_result.get('score','0'))+' and Class: '+quick_test_image_result.get('result','Not Found'))
+                messages.success(request, 'Classifier Test Success.')
+                messages.success(request, 'Score: '+str(quick_test_image_result.get('score','0'))+' | Class: '+quick_test_image_result.get('result','Not Found'))
             else:
                 messages.error(request, 'Unable to Test (Make sure Classifier is valid and is in ready state)')
 
@@ -527,6 +580,11 @@ def watsonClassifierTest(request, id):
         except(Classifier.DoesNotExist):
             messages.success(request, 'Classifier Not Found')
             return redirect('watson.classifier.list')
+        except Exception as e:
+            print(e)
+            messages.success(request, 'Classifier Test Failed')
+            return redirect('watson.classifier.test', id=id)
+
     elif(request.method == "GET"):
         classifier = Classifier.objects.get(id=id)
         test_result = request.session.pop('test_result', False)
@@ -620,12 +678,14 @@ def offlineModel(request):
 def offlineModelCreate(request):
     if request.method == "GET":
         form = OfflineModelForm()
-        return render(request,"offline_model/create.html",{'form':form})
+        offlineModelLabels = []
+        return render(request,"offline_model/create.html",{'form':form,'offlineModelLabels':offlineModelLabels})
     elif request.method == "POST":
         form = OfflineModelForm(request.POST or None, request.FILES or None)
         if form.is_valid():
             instance = form.save(commit=False)
             instance.created_by = User.objects.get(id=request.user.id)
+            instance.offline_model_labels = json.dumps(request.POST.getlist('offline_model_labels'))
             instance.save()
             messages.success(request, "New Offline Model Added")
         else:
@@ -644,7 +704,8 @@ def offlineModelEdit(request, id):
 
         if request.method == "GET":
             form = OfflineModelForm(instance=offlineModel)
-            return render(request,"offline_model/create.html",{'form':form, 'offlineModel':offlineModel})
+            offlineModelLabels = json.loads(offlineModel.offline_model_labels)
+            return render(request,"offline_model/create.html",{'form':form, 'offlineModel':offlineModel,'offlineModelLabels':offlineModelLabels})
         elif request.method == "POST":
             form = OfflineModelForm(request.POST or None, request.FILES or None, instance=offlineModel)
             if form.is_valid():
@@ -659,6 +720,7 @@ def offlineModelEdit(request, id):
                         messages.info('Failed to remove old Offline Model File')
 
                 instance = form.save(commit=False)
+                instance.offline_model_labels = json.dumps(request.POST.getlist('offline_model_labels'))
                 instance.save()
                 messages.success(request, "Offline Model Updated Successfully!")
             else:

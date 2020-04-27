@@ -32,7 +32,7 @@
                         <tbody>
                             {% for model in models %}
                                 <tr>
-                                    <td>{{model.name}}</td>
+                                    <td title="{{model.offline_model_labels|default:"No Labels Provided"}}" data-toggle="tooltip" data-placement="right">{{model.name}}</td>
                                     <td>{{model.model_type|title}}</td>
                                     <td>{{model.model_format}}</td>
                                     <td>{{model.created_by.full_name}}</td>

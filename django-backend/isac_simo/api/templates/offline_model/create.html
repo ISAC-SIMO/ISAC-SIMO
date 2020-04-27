@@ -35,6 +35,21 @@
                             {% csrf_token %}
                               {{ form|crispy }}
 
+                              <div class="form-group" id="offline-model-label-group">
+                                  <label for="id_offline_model_labels">Offline Model Labels</label>
+                                  <div class="">
+                                      <select name="offline_model_labels" multiple id="id_offline_model_labels" class="form-control">
+                                          <option></option>
+                                          {% for offlineModelLabel in offlineModelLabels %}
+                                              <option value="{{offlineModelLabel}}" selected>{{offlineModelLabel}}</option>
+                                          {% endfor %}
+                                      </select>
+                                  </div>
+                                  <small class=" form-text text-muted">
+                                      Add Multiple Indexes starting from zero (So, that the classifier will know the scores respective class/result)
+                                  </small>
+                              </div>
+
                               {% if request.resolver_match.url_name == 'offline.model.edit' %}
                                 <button type="submit" class="btn btn-success">Update Model</button>
                               {% else %}  
@@ -85,6 +100,12 @@
                 minimumResultsForSearch: -1
             })
         }
+        
+        $('#id_offline_model_labels').select2({
+            placeholder: 'Add Offline Model Labels (multiple indexes)',
+            tags: true,
+            tokenSeparators: [',']
+        })
         
         $('#id_model_format').select2({
             tags: true,

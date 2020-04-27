@@ -85,6 +85,7 @@ class OfflineModel(models.Model):
     model_type = models.CharField(max_length=200)
     model_format = models.CharField(max_length=50)
     file = models.FileField(upload_to=path_and_rename_offline_models)
+    offline_model_labels = models.CharField(max_length=200, blank=True, null=True)
     created_by = models.ForeignKey(User, related_name='offline_models', on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

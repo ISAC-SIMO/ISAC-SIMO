@@ -32,3 +32,4 @@ body::-webkit-scrollbar,.table-responsive::-webkit-scrollbar{width:.6em;height:.
 .target-focus:target{outline: 2px solid orange;}
 .fade-img{opacity:0;}.fade-img:not(.initial) {transition: opacity 1s;}.fade-img.initial,.fade-img.loaded,.fade-img.error {opacity: 1;}
 .fade-img:not([src]) {visibility: hidden;}
+.select2-container--default .select2-selection--multiple {min-height: calc(0.25rem + 2px) !important;}
