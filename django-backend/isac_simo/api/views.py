@@ -704,7 +704,10 @@ def offlineModelEdit(request, id):
 
         if request.method == "GET":
             form = OfflineModelForm(instance=offlineModel)
-            offlineModelLabels = json.loads(offlineModel.offline_model_labels)
+            try:
+                offlineModelLabels = json.loads(offlineModel.offline_model_labels)
+            except Exception as e:
+                offlineModelLabels = []
             return render(request,"offline_model/create.html",{'form':form, 'offlineModel':offlineModel,'offlineModelLabels':offlineModelLabels})
         elif request.method == "POST":
             form = OfflineModelForm(request.POST or None, request.FILES or None, instance=offlineModel)
