@@ -536,6 +536,10 @@ def watsonClassifierTest(request, id):
                 else:
                     saved_model = os.path.join('media/offline_models/', classifier.offline_model.filename())
                 
+                session_conf = tf.compat.v1.ConfigProto(
+                    intra_op_parallelism_threads=1,
+                    inter_op_parallelism_threads=1)
+                sess = tf.compat.v1.Session(config=session_conf)
                 new_model = tf.keras.models.load_model(saved_model)
                 result = new_model.predict(x[np.newaxis, ...]).tolist()
                 data = []
