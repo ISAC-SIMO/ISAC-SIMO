@@ -8,7 +8,7 @@ from http.client import HTTPResponse
 from importlib import reload
 
 import numpy as np
-# import tensorflow as tf
+import tensorflow as tf
 import PIL.Image as PILImage
 
 import filetype
@@ -41,8 +41,8 @@ from projects.models import Projects
 
 from .forms import ImageForm
 from .models import Image, ImageFile
-# from keras import backend as K
-import keras
+from keras import backend as K
+# import keras
 
 
 def reload_classifier_list():
@@ -545,7 +545,7 @@ def watsonClassifierTest(request, id):
                 # sess = tf.compat.v1.Session(config=session_conf)
                 # K.set_session(sess)
                 
-                new_model = keras.models.load_model(saved_model)
+                new_model = tf.keras.models.load_model(saved_model)
                 result = new_model.predict(x[np.newaxis, ...]).tolist()
                 data = []
                 try:

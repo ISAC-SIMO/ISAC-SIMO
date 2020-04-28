@@ -42,6 +42,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install --upgrade pip
+            pip install tensorflow==2.2.0rc3
             pip install -r requirements.txt
 
       - save_cache:
