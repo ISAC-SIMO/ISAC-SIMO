@@ -8,7 +8,7 @@ from http.client import HTTPResponse
 from importlib import reload
 
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 import PIL.Image as PILImage
 
 import filetype
@@ -41,6 +41,8 @@ from projects.models import Projects
 
 from .forms import ImageForm
 from .models import Image, ImageFile
+# from keras import backend as K
+import keras
 
 
 def reload_classifier_list():
@@ -537,12 +539,13 @@ def watsonClassifierTest(request, id):
                     saved_model = os.path.join('media/offline_models/', classifier.offline_model.filename())
                 
                 # Single thread example for tensorflow #
-                session_conf = tf.compat.v1.ConfigProto(
-                    intra_op_parallelism_threads=1,
-                    inter_op_parallelism_threads=1)
-                sess = tf.compat.v1.Session(config=session_conf)
+                # session_conf = tf.compat.v1.ConfigProto(
+                #     intra_op_parallelism_threads=1,
+                #     inter_op_parallelism_threads=1)
+                # sess = tf.compat.v1.Session(config=session_conf)
+                # K.set_session(sess)
                 
-                new_model = tf.keras.models.load_model(saved_model)
+                new_model = keras.models.load_model(saved_model)
                 result = new_model.predict(x[np.newaxis, ...]).tolist()
                 data = []
                 try:

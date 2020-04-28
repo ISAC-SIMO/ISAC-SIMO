@@ -29,6 +29,14 @@
             if(navigator.onLine){
                 location.href = location.href;
             }
-        }, 5000);
+        }, 8000);
+    </script>
+{% endblock %}
+{% block no_date %}
+    <script>
+        var d = new Date();
+        var datestring = d.getFullYear()  + "-" + (d.getMonth()+1) + "-" + d.getDate() + " " +
+        d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        document.write(datestring)
     </script>
 {% endblock %}
