@@ -2,6 +2,7 @@ import glob
 import io
 import json
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import uuid
 from datetime import datetime
 from http.client import HTTPResponse
