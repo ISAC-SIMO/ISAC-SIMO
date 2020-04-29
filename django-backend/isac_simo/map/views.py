@@ -21,6 +21,7 @@ from main import authorization
 from main.authorization import *
 from main.models import User
 from projects.models import Projects
+from api.models import Classifier, OfflineModel
 
 
 def reload_classifier_list():
@@ -37,7 +38,7 @@ def check(request):
         GOOGLE_MAP_API = settings.GOOGLE_MAP_API
         PROJECT_FOLDER = os.environ.get('PROJECT_FOLDER','')
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().values('detect_model','project_name','id').distinct()
+        projects = Projects.objects.all().values('detect_model','project_name','id','offline_model').distinct()
         return render(request, 'check.html', {
             'GOOGLE_MAP_STREET_API':GOOGLE_MAP_STREET_API,'PROJECT_FOLDER':PROJECT_FOLDER,'GOOGLE_MAP_API':GOOGLE_MAP_API,
             'default_object_model':default_object_model,'projects':projects
@@ -131,7 +132,7 @@ def fetch(request):
 @user_passes_test(is_admin, login_url=login_url)
 def test(request):
     images = request.POST.get('image_list', False)
-    detect_model = request.POST.get('object_id', None)
+    detect_model = request.POST.get('detect_model', None)
     project = request.POST.get('project', False)
     if not images:
         return JsonResponse({'status':'error','message':'No Saved Images Found'}, status=404)
@@ -141,10 +142,19 @@ def test(request):
 
     image_list = json.loads(images)
     data = []
-    print(image_list)
+    offline = False
+    # print(image_list)
     project = Projects.objects.filter(id=request.POST.get('project')).get()
+    try:
+        offline_model = OfflineModel.objects.filter(id=detect_model).get()
+        if offline_model:
+            offline = True
+            detect_model = offline_model
+    except:
+        offline = False
+    
     for image in image_list:
-        response = test_temp_images(image, detect_model=detect_model, project=project.unique_name())
+        response = test_temp_images(image, detect_model=detect_model, project=project.unique_name(), offline=offline)
         if not response:
             data.append({
                 'image': image,

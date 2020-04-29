@@ -54,6 +54,8 @@
                                         {% for project in projects %}
                                             {% if project.detect_model %}
                                                 <option data-project-id="{{project.id}}" data-project="{{project.project_name}}" value="{{project.detect_model}}">{{project.detect_model}}</option>
+                                            {% elif project.offline_model %}
+                                                <option data-project-id="{{project.id}}" data-project="{{project.project_name}}" value="{{project.offline_model}}">Offline Model - {{project.offline_model}}</option>
                                             {% endif %}
                                         {% endfor %}
                                     {% endif %}

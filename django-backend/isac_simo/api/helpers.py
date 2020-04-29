@@ -704,7 +704,7 @@ def classifier_detail(project, object_type, model):
     if ( settings.IBM_API_KEY 
         and classifier_list.searchList(project, object_type, model) ):
 
-        classifier = Classifier.objects.filter(name=model).get()
+        classifier = Classifier.objects.filter(name=model).all().first()
         if classifier.offline_model:
             try:
                 offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
@@ -814,83 +814,144 @@ def object_detail(object_id):
 
 ##################################################
 ##################################################
+# Offline Model test with file and offline model (not classifier)
+def test_offline_image(image_file, offline_model):
+    if not image_file or not offline_model:
+        return False
+
+    x = Image.open(image_file).resize((150, 150))
+    x = np.array(x)/255.0
+
+    saved_model = None
+    if not os.path.exists(os.path.join('media/offline_models/')):
+        saved_model = os.environ.get('PROJECT_FOLDER','') + '/media/offline_models/'+offline_model.filename()
+    else:
+        saved_model = os.path.join('media/offline_models/', offline_model.filename())
+    
+    try:
+        new_model = tf.keras.models.load_model(saved_model)
+        result = new_model.predict(x[np.newaxis, ...]).tolist()
+    except Exception as e:
+        result = [[0,0]]
+        print(e)
+
+    data = []
+    try:
+        offlineModelLabels = json.loads(offline_model.offline_model_labels)
+    except Exception as e:
+        print(e)
+        offlineModelLabels = []
+    
+    i = 0
+    for r in result[0]:
+        if len(offlineModelLabels) > i:
+            label = offlineModelLabels[i]
+        else:
+            label = 'No.'+str(i+1)
+
+        data.append({
+            "class": label,
+            "score": r
+        })
+        i += 1
+
+    try:
+        result_type = offlineModelLabels[result[0].index(max(result[0]))].lower()
+    except:
+        result_type = 'no.'+str(result[0].index(max(result[0])) + 1)
+
+    return {'data':data, 'score':max(result[0]), 'result':result_type}
+
 
 # Similar to detect_image but from temp no need to deal with image_file model (used in e.g. google map image test detect)
-def detect_temp_image(file_url, detect_model):
-    # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
-    print('Detecting Image Object [TEMP Google Street Images]...')
-    saveto = None
-    if os.path.exists(file_url) and settings.IBM_API_KEY and (classifier_list.detect_object_model_id or detect_model):
-        object_id = classifier_list.detect_object_model_id
-        if detect_model:
-            object_id = detect_model
-        # Authenticate the IBM Watson API
-        api_token = str(settings.IBM_API_KEY)
-        post_data = {'collection_ids': object_id, 'threshold': '0.6', 'features':'objects'}
-        auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
-        print(auth_base)
-
-        post_header = {'Accept':'application/json','Authorization':auth_base}
-        
-        # Temporary Resized Image (basewidth x calcheight)(save_to_path from param comes if looped through)
-        basewidth = 500
-        temp = Image.open(file_url)
-        wpercent = (basewidth/float(temp.size[0]))
-        hsize = int((float(temp.size[1])*float(wpercent)))
-        temp = temp.resize((basewidth,hsize), Image.ANTIALIAS)
-        ext = file_url.split('.')[-1]
-        filename = '{}.{}'.format(uuid.uuid4().hex, ext)
-
-        if not os.path.exists(os.path.join('media/temp/')):
-            saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+def detect_temp_image(file_url, detect_model, offline=False):
+    # IF Is offline Model and detect model is given (detect_model = offline_model object)
+    if offline and detect_model and os.path.exists(file_url):
+        print('Detecting Image Object [Offline Model] [TEMP Google Street Images]...')
+        res = test_offline_image(file_url, detect_model)
+        if res:
+            return {
+                'object_type': res.get('result',''),
+                'file_url': file_url,
+                'temp_image': file_url,
+            }
         else:
-            saveto = os.path.join('media/temp/', filename)
-
-        print(saveto)
-        
-        temp.save(saveto)
-        resized_image_open = open(saveto, 'rb')
-        
-        post_files = {
-            'images_file': resized_image_open,
-        }
-
-        # Call the API
-        response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v4/analyze?version=2019-02-11', files=post_files, headers=post_header, data=post_data)
-        status = response.status_code
-        try:
-            content = response.json()
-        except ValueError:
-            # IBM Response is BAD
-            print('IBM Response was BAD (During Detect) - (e.g. image too large)')
             return False
-        
-        print(status)
-        print(content)
-        # If success save the data
-        if(status == 200 or status == '200' or status == 201 or status == '201'):
-            if "collections" in content['images'][0]['objects']:
-                if(content['images'][0]['objects']['collections'][0]['objects']):
-                    sorted_by_score = sorted(content['images'][0]['objects']['collections'][0]['objects'], key=lambda k: k['score'], reverse=True)
-                    print(sorted_by_score)
-                    if(sorted_by_score and sorted_by_score[0]): # Set Score
-                        resized_image_open.close()
-                        # Return Object detected type
-                        return {
-                            'object_type': sorted_by_score[0]['object'].lower(),
-                            'file_url': file_url,
-                            'temp_image': saveto,
-                        }
-        
-        resized_image_open.close()
-        os.remove(saveto)
-        print('Object Detect False, either bad response, no index, bad format array, sorted score empty etc. [Google Street Temp]')
-        return False
     else:
-        if saveto:
+        # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
+        print('Detecting Image Object [TEMP Google Street Images]...')
+        saveto = None
+        if os.path.exists(file_url) and settings.IBM_API_KEY and (classifier_list.detect_object_model_id or detect_model):
+            object_id = classifier_list.detect_object_model_id
+            if detect_model:
+                object_id = detect_model
+            # Authenticate the IBM Watson API
+            api_token = str(settings.IBM_API_KEY)
+            post_data = {'collection_ids': object_id, 'threshold': '0.6', 'features':'objects'}
+            auth_base = 'Basic '+str(base64.b64encode(bytes('apikey:'+api_token, 'utf-8')).decode('utf-8'))
+            print(auth_base)
+
+            post_header = {'Accept':'application/json','Authorization':auth_base}
+            
+            # Temporary Resized Image (basewidth x calcheight)(save_to_path from param comes if looped through)
+            basewidth = 500
+            temp = Image.open(file_url)
+            wpercent = (basewidth/float(temp.size[0]))
+            hsize = int((float(temp.size[1])*float(wpercent)))
+            temp = temp.resize((basewidth,hsize), Image.ANTIALIAS)
+            ext = file_url.split('.')[-1]
+            filename = '{}.{}'.format(uuid.uuid4().hex, ext)
+
+            if not os.path.exists(os.path.join('media/temp/')):
+                saveto = os.environ.get('PROJECT_FOLDER','') + '/media/temp/'+filename
+            else:
+                saveto = os.path.join('media/temp/', filename)
+
+            print(saveto)
+            
+            temp.save(saveto)
+            resized_image_open = open(saveto, 'rb')
+            
+            post_files = {
+                'images_file': resized_image_open,
+            }
+
+            # Call the API
+            response = requests.post('https://gateway.watsonplatform.net/visual-recognition/api/v4/analyze?version=2019-02-11', files=post_files, headers=post_header, data=post_data)
+            status = response.status_code
+            try:
+                content = response.json()
+            except ValueError:
+                # IBM Response is BAD
+                print('IBM Response was BAD (During Detect) - (e.g. image too large)')
+                return False
+            
+            print(status)
+            print(content)
+            # If success save the data
+            if(status == 200 or status == '200' or status == 201 or status == '201'):
+                if "collections" in content['images'][0]['objects']:
+                    if(content['images'][0]['objects']['collections'][0]['objects']):
+                        sorted_by_score = sorted(content['images'][0]['objects']['collections'][0]['objects'], key=lambda k: k['score'], reverse=True)
+                        print(sorted_by_score)
+                        if(sorted_by_score and sorted_by_score[0]): # Set Score
+                            resized_image_open.close()
+                            # Return Object detected type
+                            return {
+                                'object_type': sorted_by_score[0]['object'].lower(),
+                                'file_url': file_url,
+                                'temp_image': saveto,
+                            }
+            
+            resized_image_open.close()
             os.remove(saveto)
-        print('FAILED TO Detect Object - Check Token, Object Detect Model id and file existence. [Google Street Temp]')
-        return False
+            print('Object Detect False, either bad response, no index, bad format array, sorted score empty etc. [Google Street Temp]')
+            return False
+        else:
+            if saveto:
+                os.remove(saveto)
+            print('FAILED TO Detect Object - Check Token, Object Detect Model id and file existence. [Google Street Temp]')
+            return False
 
 # THESE ARE GLOBAL VAR FOR TEST TEMP IMAGE USED DURING RECURSION
 score = None
@@ -902,16 +963,13 @@ pipeline_status = {}
 # 		'result': 'nogo',
 # 		'score': 0.8,
 # 	},
-# 	'second_classifier_name': {
-# 		'result': 'nogo',
-# 		'score': '0.95',
-# 	}
 # }
 ### SAME AS test_image BUT FOR TEMP IMAGES (no need to deal with models and other stuffs (used for e.g. in google map images testing))
-def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None, project=None):
+def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected_as=None, detect_model=None, project=None, offline=False):
     global score, result, pipeline_status
     if not detected_as:
-        detected_as = detect_temp_image(image_file, detect_model)
+        detected_as = detect_temp_image(image_file, detect_model, offline=offline)
+        print(detected_as)
     
     if not detected_as:
         if save_to_path:
@@ -925,7 +983,37 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
     print('Trying ' + str(classifier_index) + ' No. Classifier for ' + object_type)
     # IF OS Path to Image exists + IBM KEY is provided + classifier list exists
     check_and_get_classifier_ids = classifier_list.searchList(project,object_type,index=classifier_index)
-    if ( os.path.exists(save_to_path) and settings.IBM_API_KEY 
+    classifier = Classifier.objects.filter(name=check_and_get_classifier_ids).all().first()
+    # IF Offline Model is in this Classifier
+    if classifier and classifier.offline_model:
+        res = test_offline_image(image_file, classifier.offline_model)
+        # print(res)
+        if res:
+            score = res.get('score','')
+            result = res.get('result','')
+            pipeline_status[check_and_get_classifier_ids] = {
+                'score': res.get('score',''),
+                'result': res.get('result','')
+            }
+            if res.get('result','').lower() == 'nogo' or res.get('result','').lower() == 'nogos':
+                if classifier_index + 1 < classifier_list.lenList(project,object_type):
+                    print('NOGOS CLASS - PASSING THROUGH NEW MODEL CLASSIFIER #'+str(classifier_index + 1))
+                    test_temp_images(image_file, save_to_path, classifier_index + 1, detected_as, detect_model, project, offline) #save_to_path=temp file
+                else:
+                    print('No more Nogo pipeline (offline model)')
+
+            pipeline_status_copy = pipeline_status.copy()
+            score_copy = score
+            result_copy = result
+            if(classifier_index <= 0):
+                pipeline_status = {}
+                score = None
+                result = None
+                os.remove(save_to_path)
+            return {'score': score_copy, 'result': result_copy, 'pipeline_status': pipeline_status_copy}
+    
+    # Else IF Not Test in Online Model
+    elif ( os.path.exists(save_to_path) and settings.IBM_API_KEY 
         and classifier_index < classifier_list.lenList(project,object_type)
         and check_and_get_classifier_ids ):
 
@@ -962,7 +1050,7 @@ def test_temp_images(image_file, save_to_path=None, classifier_index=0, detected
         if(status == 200 or status == '200' or status == 201 or status == '201'):
             if(content['images'][0]['classifiers'][0]['classes']):
                 sorted_by_score = sorted(content['images'][0]['classifiers'][0]['classes'], key=lambda k: k['score'], reverse=True)
-                print(sorted_by_score)
+                # print(sorted_by_score)
                 score = sorted_by_score[0]['score']
                 result = sorted_by_score[0]['class']
 
