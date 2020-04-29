@@ -86,10 +86,20 @@ class ImageSerializer(serializers.ModelSerializer):
                     img = PILImage.open(image_file)
                     img.verify()
                     image_obj = ImageFile.objects.create(image=image, file=image_file)
+                    offline = False
+                    detect_model = project.detect_model
+
+                    try:
+                        if project.offline_model and project.offline_model.file:
+                            offline = True
+                            detect_model = project.offline_model
+                    except:
+                        offline = False
+
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=project.detect_model, project=project.unique_name())
+                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=detect_model, project=project.unique_name(), offline=offline)
 
                     u = u + 1
                 except Exception as err:
@@ -134,10 +144,20 @@ class ImageSerializer(serializers.ModelSerializer):
                     img = PILImage.open(image_file)
                     img.verify()
                     image_obj = ImageFile.objects.create(image=instance, file=image_file)
+                    offline = False
+                    detect_model = project.detect_model
+
+                    try:
+                        if project.offline_model and project.offline_model.file:
+                            offline = True
+                            detect_model = project.offline_model
+                    except:
+                        offline = False
+                    
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=project.detect_model, project=project.unique_name())
+                    test_image(image_obj, validated_data.get('title'), validated_data.get('description'), detect_model=detect_model, project=project.unique_name(), offline=offline)
                     u = u + 1
                 except Exception as err:
                     print(err)
@@ -193,10 +213,20 @@ class VideoFrameSerializer(serializers.ModelSerializer):
 
             cv2.imwrite(saveto, image) # save frame as JPG file
             image_obj = ImageFile.objects.create(image=image_model, file=str(os.path.join('media/image/', filename)).replace('media/',''))
+            offline = False
+            detect_model = project.detect_model
+
+            try:
+                if project.offline_model and project.offline_model.file:
+                    offline = True
+                    detect_model = project.offline_model
+            except:
+                offline = False
+            
             ################
             ### RUN TEST ###
             ################
-            test = test_image(image_obj, image_model.title, image_model.description, detect_model=project.detect_model, project=project.unique_name())
+            test = test_image(image_obj, image_model.title, image_model.description, detect_model=detect_model, project=project.unique_name(), offline=offline)
         return hasFrames
 
     def create(self, validated_data):

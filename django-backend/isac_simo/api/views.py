@@ -90,10 +90,19 @@ def addImage(request, id = 0):
                 i = i + 1
                 photo = ImageFile(image=instance, file=f)
                 photo.save()
+                offline = False
+                detect_model = project.detect_model
+
+                try:
+                    if project.offline_model and project.offline_model.file:
+                        offline = True
+                        detect_model = project.offline_model
+                except:
+                    offline = False
                 ################
                 ### RUN TEST ###
                 ################
-                test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=project.detect_model, project=project.unique_name())
+                test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model, project=project.unique_name(), offline=offline)
                     
                 if(i>=8):
                     break
@@ -161,10 +170,20 @@ def updateImage(request, id=0):
                     i = i + 1
                     photo = ImageFile(image=instance, file=f)
                     photo.save()
+                    offline = False
+                    detect_model = project.detect_model
+
+                    try:
+                        if project.offline_model and project.offline_model.file:
+                            offline = True
+                            detect_model = project.offline_model
+                    except:
+                        offline = False
+                    
                     ################
                     ### RUN TEST ###
                     ################
-                    test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=project.detect_model, project=project.unique_name())
+                    test_image(photo, request.POST.get('title'), request.POST.get('description'), detect_model=detect_model, project=project.unique_name(), offline=offline)
 
                     if(i>=8):
                         break
@@ -287,8 +306,17 @@ def retestImageFile(request, id):
     try:
         image_file = ImageFile.objects.get(id=id)
         project = image_file.image.project
+        offline = False
+        detect_model = project.detect_model
+        try:
+            if project.offline_model and project.offline_model.file:
+                offline = True
+                detect_model = project.offline_model
+        except:
+            offline = False
+        
         if not image_file.result or not image_file.score:
-            test_status = test_image(image_file, detect_model=project.detect_model, project=project.unique_name())
+            test_status = test_image(image_file, detect_model=detect_model, project=project.unique_name(), offline=offline)
             if test_status:
                 messages.success(request, 'Image Tested Successfully.')
             else:
