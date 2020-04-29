@@ -2,15 +2,10 @@ import glob
 import io
 import json
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import uuid
 from datetime import datetime
 from http.client import HTTPResponse
 from importlib import reload
-
-import numpy as np
-import tensorflow as tf
-import PIL.Image as PILImage
 
 import filetype
 from django.conf import settings
@@ -30,8 +25,7 @@ from rest_framework.response import Response
 
 import isac_simo.classifier_list as classifier_list
 from api.forms import OfflineModelForm
-from api.helpers import (classifier_detail, create_classifier, object_detail,
-                         quick_test_image, retrain_image, test_image)
+from api.helpers import classifier_detail, create_classifier, object_detail, quick_test_image, quick_test_offline_image, retrain_image, test_image
 from api.models import Classifier, ObjectType, OfflineModel
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
@@ -42,8 +36,6 @@ from projects.models import Projects
 
 from .forms import ImageForm
 from .models import Image, ImageFile
-from keras import backend as K
-# import keras
 
 
 def reload_classifier_list():
@@ -363,7 +355,7 @@ def watsonTrain(request):
 
         # we have "model" in request. If Model is all or not provided then all images are re-trained in all classifiers of object type given, else only on selected classifier (it is the last parameter in retrain function)
         if zipped >= min_image_required and image_file_list and request.POST.get('project', False) and request.POST.get('object', False) and request.POST.get('result', False):
-            retrain_status = retrain_image(image_file_list, request.POST.get('project'), request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False))
+            retrain_status = retrain_image(image_file_list, request.POST.get('project'), request.POST.get('object').lower(), request.POST.get('result').lower(), 'temp', request.POST.get('model', False), request.POST.get('process', False), request.POST.get('rotate', False), request.POST.get('warp', False), request.POST.get('inverse', False), request=request)
             print(retrain_status)
             if retrain_status:
                 messages.success(request,str(zipped) + ' images zipped and was sent to retrain in ' + str(retrain_status) + ' classifier(s). (Retraining takes time)')
@@ -530,51 +522,7 @@ def watsonClassifierTest(request, id):
 
             # IF THIS CLASSIFIER HAS OFFLINE MODEL THEN
             if classifier.offline_model:
-                x = PILImage.open(request.FILES.get('file', False)).resize((150, 150))
-                x = np.array(x)/255.0
-
-                saved_model = None
-                if not os.path.exists(os.path.join('media/offline_models/')):
-                    saved_model = os.environ.get('PROJECT_FOLDER','') + '/media/offline_models/'+classifier.offline_model.filename()
-                else:
-                    saved_model = os.path.join('media/offline_models/', classifier.offline_model.filename())
-                
-                # Single thread example for tensorflow #
-                # session_conf = tf.compat.v1.ConfigProto(
-                #     intra_op_parallelism_threads=1,
-                #     inter_op_parallelism_threads=1)
-                # sess = tf.compat.v1.Session(config=session_conf)
-                # K.set_session(sess)
-                
-                new_model = tf.keras.models.load_model(saved_model)
-                result = new_model.predict(x[np.newaxis, ...]).tolist()
-                data = []
-                try:
-                    offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
-                except Exception as e:
-                    print(e)
-                    offlineModelLabels = []
-                
-                i = 0
-                for r in result[0]:
-                    if len(offlineModelLabels) > i:
-                        label = offlineModelLabels[i]
-                    else:
-                        label = 'No.'+str(i+1)
-
-                    data.append({
-                        "class": label,
-                        "score": r
-                    })
-                    i += 1
-
-                try:
-                    result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
-                except:
-                    result_type = 'No.'+str(result[0].index(max(result[0])) + 1)
-
-                quick_test_image_result = {'data':data, 'score':max(result[0]), 'result':result_type}
-            
+                quick_test_image_result = quick_test_offline_image(request.FILES.get('file', False), classifier)
             # ELSE ONLINE MODEL THEN
             else:
                 quick_test_image_result = quick_test_image(request.FILES.get('file', False), classifier.name)
@@ -608,11 +556,33 @@ def watsonClassifierTest(request, id):
 def watsonObject(request):
     if request.method != "POST":
         default_object_model = classifier_list.detect_object_model_id
-        projects = Projects.objects.all().values('detect_model','project_name').distinct()
+        projects = Projects.objects.all().values('detect_model','project_name','offline_model').distinct()
         return render(request, 'objects_detail.html',{'default_object_model':default_object_model,'projects':projects})
     elif request.method == "POST":
         detail = None
         object_id = request.POST.get('object_id', False)
+        
+        # IF Watson Object Detail is a offline Model type
+        try:
+            offline_model = OfflineModel.objects.filter(id=object_id).all().first()
+            if offline_model:
+                try:
+                    offlineModelLabels = json.loads(offline_model.offline_model_labels)
+                except Exception as e:
+                    offlineModelLabels = []
+                detail = json.dumps({
+                    'offline': True,
+                    'name': offline_model.name,
+                    'type': offline_model.model_type,
+                    'format': offline_model.model_format,
+                    'labels': offlineModelLabels,
+                    'url': offline_model.file.url
+                }, indent=4)
+                return render(request, 'objects.html',{'detail':detail,'object_id':offline_model.name})
+        except:
+            print('Not offline model id failed')
+        
+        # If not offline model try online
         try:
             detail = object_detail(object_id)
             if detail:

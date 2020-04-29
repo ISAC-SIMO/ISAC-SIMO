@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import uuid
 from importlib import reload
 from zipfile import ZipFile
@@ -10,6 +11,10 @@ import requests
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
+import numpy as np
+import tensorflow as tf
+from keras import backend as K
+# import keras
 from watson_developer_cloud import VisualRecognitionV3
 
 import isac_simo.classifier_list as classifier_list
@@ -17,6 +22,9 @@ import cv2
 import pathlib
 import numpy as np
 import random
+from api.models import Classifier
+from django.contrib import messages
+from projects.models import Projects
 
 
 def reload_classifier_list():
@@ -343,13 +351,63 @@ def quick_test_image(image_file, classifier_ids):
         print('FAILED TO TEST CLASSIFIER by Admin - Check Token, Classifier ids is ready and file existence is upload temp file.')
         return False
 
+def quick_test_offline_image(image_file, classifier):
+    if not image_file or not classifier:
+        return False
+
+    x = Image.open(image_file).resize((150, 150))
+    x = np.array(x)/255.0
+
+    saved_model = None
+    if not os.path.exists(os.path.join('media/offline_models/')):
+        saved_model = os.environ.get('PROJECT_FOLDER','') + '/media/offline_models/'+classifier.offline_model.filename()
+    else:
+        saved_model = os.path.join('media/offline_models/', classifier.offline_model.filename())
+    
+    # Single thread example for tensorflow #
+    # session_conf = tf.compat.v1.ConfigProto(
+    #     intra_op_parallelism_threads=1,
+    #     inter_op_parallelism_threads=1)
+    # sess = tf.compat.v1.Session(config=session_conf)
+    # K.set_session(sess)
+    
+    new_model = tf.keras.models.load_model(saved_model)
+    result = new_model.predict(x[np.newaxis, ...]).tolist()
+    data = []
+    try:
+        offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
+    except Exception as e:
+        print(e)
+        offlineModelLabels = []
+    
+    i = 0
+    for r in result[0]:
+        if len(offlineModelLabels) > i:
+            label = offlineModelLabels[i]
+        else:
+            label = 'No.'+str(i+1)
+
+        data.append({
+            "class": label,
+            "score": r
+        })
+        i += 1
+
+    try:
+        result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
+    except:
+        result_type = 'No.'+str(result[0].index(max(result[0])) + 1)
+
+    return {'data':data, 'score':max(result[0]), 'result':result_type}
+
 #################################################
 # ZIP and Pass Images to IBM watson for re-training
 # Funcion receives the image file list, object(wall,rebar,etc.) and result(go,nogo,etc.)
-def retrain_image(image_file_list, project, object_type, result, media_folder='image', classifier=None,  process=False, rotate=False, warp=False, inverse=False, noIndexCheck=False):
+def retrain_image(image_file_list, project, object_type, result, media_folder='image', classifier=None,  process=False, rotate=False, warp=False, inverse=False, noIndexCheck=False, request=False):
     zipObj = None
     zipPath = None
     all_transformed_image = []
+    projectModel = Projects.objects.filter(project_name__icontains=project.split('-')[0]).all().first()
     try:
         # ZIP THE IMAGES #
         filename = '{}.{}'.format(uuid.uuid4().hex, 'zip')
@@ -422,8 +480,15 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
             }
 
         passed = 0
+        offline = 0
 
         for classifier_ids in classifier_list.value().get(project,{}).get(object_type,[]):
+            # Check if classifier is offline
+            if projectModel:
+                classifier = Classifier.objects.filter(name=classifier_ids).filter(project=projectModel).all().first()
+                if classifier.offline_model:
+                    offline += 1
+
             # Check if specific classifier to re-train on (and continue if not equal to it)
             if(classifier and classifier != 'all'):
                 if(classifier_ids != classifier):
@@ -450,6 +515,9 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
         print(str(len(all_transformed_image)) + ' transformed images...')
         for image in all_transformed_image:
             os.remove(image)
+
+        if(offline > 0 and request):
+            messages.warning(request, str(offline) +' Offline Model Ignored')
         
         # IF PASSED AT LEAST ONE CLASSIFIER THEN "OK"
         if(passed > 0):
@@ -635,6 +703,21 @@ def classifier_detail(project, object_type, model):
     # IF IBM KEY is provided + classifier list exists
     if ( settings.IBM_API_KEY 
         and classifier_list.searchList(project, object_type, model) ):
+
+        classifier = Classifier.objects.filter(name=model).get()
+        if classifier.offline_model:
+            try:
+                offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
+            except Exception as e:
+                offlineModelLabels = []
+            return {
+                'offline': True,
+                'name': classifier.name,
+                'type': classifier.offline_model.model_type,
+                'format': classifier.offline_model.model_format,
+                'labels': offlineModelLabels,
+                'url': classifier.offline_model.file.url
+            }
 
         # Authenticate the IBM Watson API
         api_token = str(settings.IBM_API_KEY)
