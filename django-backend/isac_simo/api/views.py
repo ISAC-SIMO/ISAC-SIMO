@@ -892,7 +892,8 @@ def terminal(request):
                 if not settings.PRODUCTION:
                     output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
                 else: # GO INTO THE vitual env and call cmd
-                    output = subprocess.run(('cd ~ && toenv && '+cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+                    project_root = os.environ.get('PROJECT_FOLDER','/')
+                    output = subprocess.run(('cd ' + project_root + ' && . env/bin/activate && '+cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True, cwd='/')
                 
                 res = str(output.stdout)
                 err = str(output.stderr)
