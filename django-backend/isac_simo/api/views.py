@@ -2,6 +2,7 @@ import glob
 import io
 import json
 import os
+import subprocess
 import uuid
 from datetime import datetime
 from http.client import HTTPResponse
@@ -25,7 +26,9 @@ from rest_framework.response import Response
 
 import isac_simo.classifier_list as classifier_list
 from api.forms import OfflineModelForm
-from api.helpers import classifier_detail, create_classifier, object_detail, quick_test_image, quick_test_offline_image, retrain_image, test_image
+from api.helpers import (classifier_detail, create_classifier, object_detail,
+                         quick_test_image, quick_test_offline_image,
+                         retrain_image, test_image)
 from api.models import Classifier, ObjectType, OfflineModel
 from api.serializers import (ImageSerializer, UserSerializer,
                              VideoFrameSerializer)
@@ -856,6 +859,53 @@ def dumpImage(request):
         messages.error(request,'Failed to Dump & Download Image and Image File Data')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
+########################
+# RUN TERMINAL COMMAND #
+########################
+@user_passes_test(is_admin, login_url=login_url)
+def terminal(request):
+    cmd_list = [
+        'pip install', 'pip --version', 'python --version', 'pip list', 'server.up', 'server.down', 'ls',
+    ]
+    if not settings.PRODUCTION:
+        cmd_list.append('dir')
+
+    if request.method == "GET":
+        return render(request, 'terminal.html', {'cmd_list':cmd_list})
+    elif request.method == "POST":
+        print('User id ' + str(request.user.id) + ' - ' + request.user.full_name + ' accessed the terminal')
+        cmd = request.POST.get('cmd','')
+        # Split multiline to single line
+        cmd = cmd.splitlines()[0]
+        # Multiple command split to single
+        cmd = cmd.split('||')[0]
+        cmd = cmd.split('&&')[0]
+        cmd = cmd.split(';')[0]
+        cmd = cmd.strip()
+
+        # Check cmd_list pass
+        cmd_list_pass = cmd.startswith(tuple(cmd_list))
+        res = ''
+        err = ''
+        if cmd_list_pass:
+            try:
+                if not settings.PRODUCTION:
+                    output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+                else: # GO INTO THE vitual env and call cmd
+                    output = subprocess.run(('toenv && '+cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+                
+                res = str(output.stdout)
+                err = str(output.stderr)
+            except Exception as e:
+                print('-FAILURE RUNNING TERMINAL COMMAND-')
+                print(e)
+                return JsonResponse({"message":"Unable to run the provided command. Server Error."}, status=500)
+        else:
+            return JsonResponse({"message":"Invalid Command Provided"}, status=404)
+
+        return JsonResponse({"cmd":cmd, "res":res, "err":err}, status=200)
+    else:
+        return JsonResponse({"message":"Invalid Request"}, status=404)
 
 #######
 # API #

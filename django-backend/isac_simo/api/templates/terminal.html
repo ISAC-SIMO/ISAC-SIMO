@@ -1,0 +1,98 @@
+{% extends 'master/base.html' %}
+
+{% block title %} Terminal {% endblock title %}
+{% block dashboard_title1 %} Terminal {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Terminal {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group mt-1 mb-1">
+                <pre id="output" class="table-responsive" style="border-left: 2px solid salmon;padding: 0.5em 0.75em;"></pre>
+            </div>
+
+            <div class="form-group">
+                <label for="cmd" class="col-sm-12 col-md-6 col-form-label">Command</label>
+                <div class="col-sm-12 col-md-6">
+                    <input type="text" name="cmd" class="form-control" id="cmd" placeholder="pip install <package_name>" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button id="run" style="height: 55px;" class="ml-2 btn btn-primary">Run <span style="margin-left:5px;font-size:1.3em;">↵</span></button>
+            </div>
+            <div class="form-group" id="clear-container" style="display:none;">
+                <button id="clear" class="ml-2 btn btn-sm btn-danger">Clear <i class="fa fa-trash" style="margin-left:5px;"></i></button>
+            </div>
+            <hr/>
+            <b class="ml-2 text-primary">All Commands will run inside the project's environment</b>
+            <hr/>
+            <b class="ml-2">Allowed Commands:</b>
+            <ul style="padding-left: 25px;">
+                {% for cmd in cmd_list %}
+                    <li>{{cmd}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block script %}
+    <script>
+        $(function() {
+            $("#output").html(new Date().toLocaleString() + ' - Terminal Output')
+
+            var waiting = false;
+            $("#run").click($.debounce(1000, function(e) {
+                //<i class="ml-2 fa fa-sync fa-spin"></i>
+                var buttonText = $("#run").html()
+                if(!waiting){
+                    var cmd = $("#cmd").val().trim()
+                    if(cmd.length > 0){
+                        $("#run").attr('disabled','disabled')
+                        $("#run").html('Run <i class="ml-2 fa fa-sync fa-spin"></i>')
+                        waiting = true;
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'terminal' %}",
+                            data: {'cmd': cmd, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                            dataType: "json",
+                            success: function(res) {
+                                console.log(res);
+                                $("#cmd").val(res.cmd)
+                                if(res.res){
+                                    $("#output").html($("#output").html() + '<br/>' + res.res)
+                                }
+                                if(res.err){
+                                    $("#output").html($("#output").html() + '<br/>' + res.err)
+                                }
+                                waiting = false;
+                                $("#run").removeAttr('disabled')
+                                $("#run").html(buttonText)
+                                if($('#output').height() > 300){
+                                    $("#clear-container").css('display','block')
+                                }
+                            },
+                            error: function(err) {
+                                if(err.responseJSON){
+                                    Swal.fire("Failed to run the command",err.responseJSON.message,'error');
+                                }else{
+                                    Swal.fire("Failed to run the command",'','error');
+                                }
+                                waiting = false;
+                                $("#run").removeAttr('disabled')
+                                $("#run").html(buttonText)
+                            }
+                        });
+                    }
+                }
+            }));
+
+            $("#clear").click($.debounce(200, function(e) {
+                $("#clear-container").css('display','none')
+                $("#output").html(new Date().toLocaleString() + ' - Terminal Output')
+            }));
+        });
+    </script>
+{% endblock script %}

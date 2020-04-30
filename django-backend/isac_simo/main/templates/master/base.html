@@ -360,6 +360,16 @@
                 </li>
               </ul>
             </li>
+            <hr style="margin:0.5em 1.3em;border-top:1px solid #555;"/>
+            <li class="nav-item">
+              <a href="{% url 'terminal' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'terminal' %} active {% endif %}">
+                <i class="nav-icon fa fa-terminal"></i>
+                <p>
+                  Terminal
+                </p>
+              </a>
+            </li>
             {% endif %}
             {% comment %} / IS ADMIN / {% endcomment %}
 

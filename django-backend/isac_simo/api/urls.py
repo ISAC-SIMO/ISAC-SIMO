@@ -41,6 +41,9 @@ urlpatterns = [
     path('misc/clean/temp/streetview', views.cleanTempStreetView, name="watson.cleantempstreetview"),
     path('misc/count/images', views.countImage, name="watson.countimage"),
     path('misc/dump/images', views.dumpImage, name="watson.dumpimage"),#dump json of image+image_file models
+
+    # Terminal
+    path('terminal', views.terminal, name="terminal")
 ]
 
 if settings.DEBUG:
