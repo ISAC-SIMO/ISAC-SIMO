@@ -892,7 +892,7 @@ def terminal(request):
                 if not settings.PRODUCTION:
                     output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
                 else: # GO INTO THE vitual env and call cmd
-                    output = subprocess.run(('toenv && '+cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
+                    output = subprocess.run(('cd ~ && toenv && '+cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
                 
                 res = str(output.stdout)
                 err = str(output.stderr)
