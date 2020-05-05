@@ -26,7 +26,7 @@
                 <button id="clear" class="ml-2 btn btn-sm btn-danger">Clear <i class="fa fa-trash" style="margin-left:5px;"></i></button>
             </div>
             <hr/>
-            <b class="ml-2 text-primary">All Commands will run inside the project's environment</b>
+            <b class="ml-2 text-primary">All Commands will run inside the project's environment. Know what you are doing.</b>
             <hr/>
             <b class="ml-2">Allowed Commands:</b>
             <ul style="padding-left: 25px;">
@@ -85,6 +85,8 @@
                                 $("#run").html(buttonText)
                             }
                         });
+                    }else{
+                        $("#cmd").focus()
                     }
                 }
             }));

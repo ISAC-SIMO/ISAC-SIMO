@@ -865,7 +865,8 @@ def dumpImage(request):
 @user_passes_test(is_admin, login_url=login_url)
 def terminal(request):
     cmd_list = [
-        'pip install', 'pip --version', 'python --version', 'pip list', 'server.up', 'server.down', 'ls',
+        'pip install', 'pip --version', 'python --version', 'pip list', 'ls', 
+        # 'server.up', 'server.down',
     ]
     if not settings.PRODUCTION:
         cmd_list.append('dir')

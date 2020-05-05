@@ -113,20 +113,31 @@ def test_offline_image(image_file, offline_model):
         saved_model = os.path.join('media/offline_models/', offline_model.filename())
     
     try:
-        new_model = tf.keras.models.load_model(saved_model)
-        result = new_model.predict(x[np.newaxis, ...]).tolist()
-    except Exception as e:
-        img.close()
-        print('POSSIBLE VALUE ERROR WITH INVALID SEQUENCE OF IMAGE ARRAY')
-        print(e)
-        return False
-
-    data = []
-    try:
         offlineModelLabels = json.loads(offline_model.offline_model_labels)
     except Exception as e:
         print(e)
         offlineModelLabels = []
+
+    # Check type of model
+    # h5, hdf5, keras, py, pickle
+    result = [[]]
+    if offline_model.model_format in ('h5', 'hdf5', 'keras'): # tf.keras models
+        try:
+            new_model = tf.keras.models.load_model(saved_model)
+            result = new_model.predict(x[np.newaxis, ...]).tolist()
+        except Exception as e:
+            img.close()
+            print('POSSIBLE VALUE ERROR WITH INVALID SEQUENCE OF IMAGE ARRAY')
+            print(e)
+            return False
+    elif offline_model.model_format in ('py'): # python script
+        # TODO: Run that python script here passing the images
+        pass
+    elif offline_model.model_format in ('pickle'): # pickle
+        # TODO: Run using pickle library
+        pass
+
+    data = []
     
     i = 0
     for r in result[0]:
@@ -141,15 +152,20 @@ def test_offline_image(image_file, offline_model):
         })
         i += 1
 
-    try:
-        result_type = offlineModelLabels[result[0].index(max(result[0]))].lower()
-    except:
-        result_type = 'no.'+str(result[0].index(max(result[0])) + 1)
-
+    result_type = ''
+    score = ''
+    if len(result[0]) > 0:
+        try:
+            result_type = offlineModelLabels[result[0].index(max(result[0]))].lower()
+        except:
+            result_type = 'no.'+str(result[0].index(max(result[0])) + 1)
+        finally:
+            score = max(result[0])
+    
     tf.keras.backend.clear_session()
     # tf.reset_default_graph()
     img.close()
-    return {'data':data, 'score':max(result[0]), 'result':result_type}
+    return {'data':data, 'score':score, 'result':result_type}
 
 ###################
 ## Detect Object ##
@@ -475,15 +491,27 @@ def quick_test_offline_image(image_file, classifier):
     #     inter_op_parallelism_threads=1)
     # sess = tf.compat.v1.Session(config=session_conf)
     # K.set_session(sess)
-    
-    new_model = tf.keras.models.load_model(saved_model)
-    result = new_model.predict(x[np.newaxis, ...]).tolist()
-    data = []
+
     try:
         offlineModelLabels = json.loads(classifier.offline_model.offline_model_labels)
     except Exception as e:
         print(e)
         offlineModelLabels = []
+
+    # Check type of model
+    # h5, hdf5, keras, py, pickle
+    result = [[]]
+    if classifier.offline_model.model_format in ('h5', 'hdf5', 'keras'): # tf.keras models
+        new_model = tf.keras.models.load_model(saved_model)
+        result = new_model.predict(x[np.newaxis, ...]).tolist()
+    elif classifier.offline_model.model_format in ('py'): # python script
+        # TODO: Run that python script here passing the images
+        pass
+    elif classifier.offline_model.model_format in ('pickle'): # pickle
+        # TODO: Run using pickle library
+        pass
+
+    data = []
     
     i = 0
     for r in result[0]:
@@ -498,14 +526,19 @@ def quick_test_offline_image(image_file, classifier):
         })
         i += 1
 
-    try:
-        result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
-    except:
-        result_type = 'No.'+str(result[0].index(max(result[0])) + 1)
+    result_type = ''
+    score = ''
+    if len(result[0]) > 0:
+        try:
+            result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
+        except:
+            result_type = 'no.'+str(result[0].index(max(result[0])) + 1)
+        finally:
+            score = max(result[0])
     
     tf.keras.backend.clear_session()
     # tf.reset_default_graph()
-    return {'data':data, 'score':max(result[0]), 'result':result_type}
+    return {'data':data, 'score':score, 'result':result_type}
 
 #################################################
 # ZIP and Pass Images to IBM watson for re-training

@@ -91,7 +91,10 @@ class OfflineModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name + ' - ' + self.model_format
+        if self.name and self.model_format:
+            return self.name + ' - ' + self.model_format
+        else:
+            return ''
 
     def isObjectDetect(self):
         return True if self.model_type == 'OBJECT_DETECT' else False

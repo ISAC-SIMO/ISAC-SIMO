@@ -52,6 +52,6 @@ class OfflineModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OfflineModelForm, self).__init__(*args, **kwargs)
         self.fields['model_format'].help_text = 'Choose a format or type yourself'
-        if self.instance and False: # TODO: self.instance.projects and self.instance.classifiers exists then hide format in edit
+        if self.instance and (self.instance.projects.all().count() or self.instance.classifiers.all().count()): # Done, to check if offline model is linked to projects or classifiers to disable editing object type
             self.fields['model_type'].widget = forms.HiddenInput()
-            self.fields['model_format'].help_text = 'Choose a format or type yourself <br/> Model Type is Unable to change because it is used by some projects'
+            self.fields['model_format'].help_text = 'Choose a format or type yourself <br/> Model Type is Unable to change because it is used by some projects or classifier actively'
