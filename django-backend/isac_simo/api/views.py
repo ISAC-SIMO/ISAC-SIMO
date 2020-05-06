@@ -561,17 +561,17 @@ def watsonClassifierTest(request, id):
             if quick_test_image_result:
                 request.session['test_result'] = json.dumps(quick_test_image_result.get('data','No Test Data'), indent=4)
                 messages.success(request, 'Classifier Test Success.')
-                messages.success(request, 'Score: '+str(quick_test_image_result.get('score','0'))+' | Class: '+quick_test_image_result.get('result','Not Found'))
+                messages.success(request, 'Score: '+str(quick_test_image_result.get('score','0'))+' | Class: '+str(quick_test_image_result.get('result','Not Found')))
             else:
                 messages.error(request, 'Unable to Test (Make sure Classifier is valid and is in ready state)')
 
             return redirect('watson.classifier.test', id=id)
         except(Classifier.DoesNotExist):
-            messages.success(request, 'Classifier Not Found')
+            messages.error(request, 'Classifier Not Found')
             return redirect('watson.classifier.list')
         except Exception as e:
             print(e)
-            messages.success(request, 'Classifier Test Failed')
+            messages.error(request, 'Classifier Test Failed')
             return redirect('watson.classifier.test', id=id)
 
     elif(request.method == "GET"):

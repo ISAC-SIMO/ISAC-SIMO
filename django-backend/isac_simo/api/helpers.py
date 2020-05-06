@@ -99,6 +99,7 @@ def transform_image(img, ext, saveto, rotate, warp, inverse):
 ##################################################
 ##################################################
 # Offline Model test with file and offline model (not classifier)
+# README.md might be helpful
 def test_offline_image(image_file, offline_model):
     if not image_file or not offline_model:
         return False
@@ -119,7 +120,7 @@ def test_offline_image(image_file, offline_model):
         offlineModelLabels = []
 
     # Check type of model
-    # h5, hdf5, keras, py, pickle
+    # h5, hdf5, keras, py
     result = [[]]
     if offline_model.model_format in ('h5', 'hdf5', 'keras'): # tf.keras models
         try:
@@ -127,15 +128,27 @@ def test_offline_image(image_file, offline_model):
             result = new_model.predict(x[np.newaxis, ...]).tolist()
         except Exception as e:
             img.close()
+            print('Failed to run h5,hdf5,kears Offline Model')
             print('POSSIBLE VALUE ERROR WITH INVALID SEQUENCE OF IMAGE ARRAY')
             print(e)
             return False
     elif offline_model.model_format in ('py'): # python script
-        # TODO: Run that python script here passing the images
-        pass
-    elif offline_model.model_format in ('pickle'): # pickle
-        # TODO: Run using pickle library
-        pass
+        # Trying to run saved offline .py model (loading saved py file using string name)
+        try:
+            print('----running saved offline model .py------')
+            print(str(saved_model))
+            import importlib
+            loader = importlib.machinery.SourceFileLoader('model', saved_model)
+            handle = loader.load_module('model')
+            result = handle.run(img, offlineModelLabels) # Saved Model .py must have run function (see readme.md in /api)
+            if type(result) is not list or len(result) <= 0:
+                result = [[]]
+                print('py local model -- BAD response (not list)')
+        except Exception as e:
+            print(e)
+            print('Failed to run .py Offline Model')
+    else:
+        print('This Offline Model Format is not supported')
 
     data = []
     
@@ -152,8 +165,8 @@ def test_offline_image(image_file, offline_model):
         })
         i += 1
 
-    result_type = ''
-    score = ''
+    result_type = 'Not Found'
+    score = '0'
     if len(result[0]) > 0:
         try:
             result_type = offlineModelLabels[result[0].index(max(result[0]))].lower()
@@ -472,12 +485,13 @@ def quick_test_image(image_file, classifier_ids):
         print('FAILED TO TEST CLASSIFIER by Admin - Check Token, Classifier ids is ready and file existence is upload temp file.')
         return False
 
+# README.md might be helpful
 def quick_test_offline_image(image_file, classifier):
     if not image_file or not classifier:
         return False
 
-    x = Image.open(image_file).resize((150, 150))
-    x = np.array(x)/255.0
+    img = Image.open(image_file).resize((150, 150))
+    x = np.array(img)/255.0
 
     saved_model = None
     if not os.path.exists(os.path.join('media/offline_models/')):
@@ -499,17 +513,32 @@ def quick_test_offline_image(image_file, classifier):
         offlineModelLabels = []
 
     # Check type of model
-    # h5, hdf5, keras, py, pickle
+    # h5, hdf5, keras, py
     result = [[]]
     if classifier.offline_model.model_format in ('h5', 'hdf5', 'keras'): # tf.keras models
-        new_model = tf.keras.models.load_model(saved_model)
-        result = new_model.predict(x[np.newaxis, ...]).tolist()
+        try:
+            new_model = tf.keras.models.load_model(saved_model)
+            result = new_model.predict(x[np.newaxis, ...]).tolist()
+        except Exception as e:
+            print(e)
+            print('Failed to run h5,hdf5,kears Offline Model [Quick Test]')
     elif classifier.offline_model.model_format in ('py'): # python script
-        # TODO: Run that python script here passing the images
-        pass
-    elif classifier.offline_model.model_format in ('pickle'): # pickle
-        # TODO: Run using pickle library
-        pass
+        # Trying to run saved offline .py model (loading saved py file using string name)
+        try:
+            print('----running saved offline model .py------')
+            print(str(saved_model))
+            import importlib
+            loader = importlib.machinery.SourceFileLoader('model', saved_model)
+            handle = loader.load_module('model')
+            result = handle.run(img, offlineModelLabels) # Saved Model .py must have run function (see readme.md in /api)
+            if type(result) is not list or len(result) <= 0:
+                result = [[]]
+                print('py local model -- BAD response (not list) [Quick Test]')
+        except Exception as e:
+            print(e)
+            print('Failed to run .py Offline Model [Quick Test]')
+    else:
+        print('This Offline Model Format is not supported')
 
     data = []
     
@@ -526,8 +555,8 @@ def quick_test_offline_image(image_file, classifier):
         })
         i += 1
 
-    result_type = ''
-    score = ''
+    result_type = 'Not Found'
+    score = '0'
     if len(result[0]) > 0:
         try:
             result_type = offlineModelLabels[result[0].index(max(result[0]))].title()
@@ -657,7 +686,7 @@ def retrain_image(image_file_list, project, object_type, result, media_folder='i
             os.remove(image)
 
         if(offline > 0 and request):
-            messages.warning(request, str(offline) +' Offline Model Ignored')
+            messages.warning(request, str(offline) +' Classifier(s) was Offline Model and got ignored')
         
         # IF PASSED AT LEAST ONE CLASSIFIER THEN "OK"
         if(passed > 0):

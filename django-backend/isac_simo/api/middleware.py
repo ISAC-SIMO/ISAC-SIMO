@@ -13,7 +13,7 @@ class MaintenanceMode(object):
 
     def __call__(self, request):
         current_url = resolve(request.path_info).url_name
-        if current_url in ['pull','serviceworker']:
+        if current_url in ['pull','serviceworker','offline','index']:
             return self.get_response(request)
         
         if (hasattr(settings, 'MAINTENANCE') and settings.MAINTENANCE) or ("MAINTENANCE" in os.environ and os.getenv('MAINTENANCE') == 'True'):
