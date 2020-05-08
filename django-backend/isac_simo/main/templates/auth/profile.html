@@ -1,0 +1,40 @@
+{% extends 'master/base.html' %}
+{% block title %} Profile {% endblock title %}
+{% block dashboard_title1 %} User Profile {% endblock dashboard_title1 %}
+{% block dashboard_title2 %} Profile {% endblock dashboard_title2 %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% load crispy_forms_tags %}
+                    <img style="width:120px;" class="img-thumbnail" src="{% if user.image %}{{ user.image.url }}{% else %}{% static 'dist/img/avatar5.png' %}{% endif %}" alt="User Image">
+                    <i class="fa fa-arrow-right mr-3 ml-2" style="display:none;" id="profileArrow"></i>
+                    <img style="width:120px;" style="display:none;" id="profileImage">
+                    <br/><br/>
+                    <div class="col-sm-12 col-md-6">
+                        <form action="{% url 'profile' %}" method="POST" class="form-group" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <p><small>User Type: <b>{{ user.user_type|capfirst }}</b></small></p>
+                            <button type="submit" class="btn btn-success">Update User Info</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showBlobImage(event){
+            var src = URL.createObjectURL(event.target.files[0]);
+            var arrow = document.getElementById('profileArrow');
+            arrow.style.display = 'inline-block';
+            var image = document.getElementById('profileImage');
+            image.style.display = 'inline-block';
+            image.className = 'img-thumbnail';
+            image.setAttribute('src', src);
+        }
+    </script>
+{% endblock content %}

@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Build Change - Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra - Web Application">
+  <meta name="description" content="ISAC-SIMO - Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra - Web Application">
   <meta name="keywords" content="ISAC,SIMO,intelligent,supervision,assistant,construction,build,change,dashboard">
-  <meta name="author" content="Build Change,Niush">
+  <meta name="author" content="Build Change,IBM,Niush">
   <meta name="theme-color" content="#343a40">
   <meta name="msapplication-navbutton-color" content="#343a40">
   <meta name="apple-mobile-web-app-status-bar-style" content="#343a40">
@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
   <!-- Pace Progress Bar -->
   <link rel="stylesheet" href="{% static 'plugins/pace-progress/themes/purple/pace-theme-minimal.css' %}">
+  <!-- Animate css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
   <!-- Sweet Alert Bootstrap4 Theme -->
   <link rel="stylesheet" href="{% static 'plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css' %}">
   <!-- Select2 Bootstrap4 Theme -->
@@ -48,30 +50,8 @@
   <link rel="stylesheet" href="{% static 'plugins/daterangepicker/daterangepicker.css' %}">
   <!-- summernote -->
   <link rel="stylesheet" href="{% static 'plugins/summernote/summernote-bs4.css' %}">
-  <style>
-    body{font-size:0.9em;}
-    body::-webkit-scrollbar{width:.6em}body::-webkit-scrollbar-track{-webkit-box-shadow:inset 0 0 6px rgba(0,0,0,.3);background:#dedede}body::-webkit-scrollbar-thumb{background-color:#2c3b41;outline:1px solid slategrey}
-    .table-options a{margin: 0 6px !important;display: inline-block;padding-top:0;padding-bottom:0;}
-    .dataTables_scrollHead,.dataTables_scrollFoot,.dataTables_scrollHeadInner,.dataTables_scrollFootInner, table{width:100% !important;}
-    .close{text-decoration:none !important;color: #fff !important;opacity: 1 !important;}
-    .select2-container--default .select2-selection--single {background-color: initial;border: 1px solid #d2d6de;height: 34px;border-radius: 0 !important;}
-    .select2-container--default .select2-selection--single, .select2-selection .select2-selection--single{padding: 6px 10px !important;}
-    .select2-dropdown{box-shadow: 0px 2px 9px 2px #a2a0a0;}
-    .image_preview *{animation: fade 0.5s ease forwards;margin-bottom: 10px;margin-right: 10px;}@keyframes fade{0%{opacity: 0;transform:scale(0.9) translate(0,50px);}100%{opacity: 1;transform:scale(1) translate(0,0);}}
-    .image_preview{display: flex;justify-content: start;align-items: center;flex-wrap: wrap;}
-    @keyframes fader{0%{opacity:0;transform:translate(0,-8px);}100%{opacity:1;transform:translate(0,0);}}
-    .main-container{opacity: 0;animation: fader 0.5s 0.1s ease forwards;}
-    .fa-trash:hover{opacity:0.8;}
-    #id_image{padding-bottom: 35px;}
-    .tooltip-inner{max-width: 500px;}
-    .img-flex{display:flex;flex-flow:column;justify-content:center;align-items:center;padding:5px;background:#eee;margin:5px;position:relative;}
-    .img-card{width:180px;cursor:pointer;}
-    .img-delete{position: absolute;bottom: 5px;right:8px;font-size:1.5em;visibility:hidden;opacity:0;transform:translate(0,10px);transition:all 0.3s ease;cursor:pointer;}
-    .img-flex:hover .img-delete{visibility:visible;opacity:1;transform:translate(0,0);}
-    .nav-link{border-radius:0 !important;margin-bottom:0 !important;}
-    .nav-sidebar>.nav-item .nav-icon.fa, .nav-sidebar>.nav-item .nav-icon.fab, .nav-sidebar>.nav-item .nav-icon.far, .nav-sidebar>.nav-item .nav-icon.fas, .nav-sidebar>.nav-item .nav-icon.glyphicon, .nav-sidebar>.nav-item .nav-icon.ion{font-size:0.9rem;}
-    .swal2-icon{transform: scale(.5);margin: 0;padding: 0;opacity: 0.9;}.swal2-styled.swal2-confirm{border:none !important;}
-  </style>
+  <!-- Custom css -->
+  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
   {% block style %}{% endblock style %}
   <script>
       function modelMatcher(e,t){if(t.parentText=t.parentText||"",""===$.trim(e.term))return t;if(t.children&&t.children.length>0){for(var r=$.extend(!0,{},t),n=t.children.length-1;n>=0;n--){var l=t.children[n];l.parentText+=t.parentText+" "+t.text,null==modelMatcher(e,l)&&r.children.splice(n,1)}return r.children.length>0?r:modelMatcher(e,r)}var a=(t.parentText+" "+t.text).toUpperCase(),h=e.term.toUpperCase();return a.indexOf(h)>-1?t:null}
@@ -146,7 +126,11 @@
     <!-- Main Sidebar Container -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
-      <a href="{% url 'dashboard' %}" class="brand-link">
+      <a href="{% url 'dashboard' %}" class="brand-link" style="overflow: hidden;position: relative;">
+        <div class="ribbon-wrapper">
+          <style>.ribbon-wrapper .ribbon::after, .ribbon-wrapper .ribbon::before{content:none;}</style>
+          <div class="ribbon" style="right: 9px;top: 14px;width:100px;transform: rotate(46deg);background-color: #0b3244!important;letter-spacing: 2px;user-select:none;">Test</div>
+        </div>
         <img src="{% static 'dist/img/logo.png' %}" alt="ISAC SIMO"
           class="brand-image img-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">ISAC-SIMO</span>
@@ -161,7 +145,7 @@
               alt="User Image">
           </div>
           <div class="info">
-            <a href="#" class="d-block">{{ user.get_full_name|default:"User" }}</a>
+            <a href="{% url 'profile' %}" class="d-block">{{ user.get_full_name|default:"User" }}</a>
           </div>
         </div>
 
@@ -180,7 +164,40 @@
               </a>
             </li>
 
-            {% comment %} IS ADMIN {% endcomment %}
+            {% comment %} FOR NOW IMAGE SHOW FOR ALL - IF ADMIN SHOW ALL {% endcomment %}
+            {% if user.is_active %}
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} active {% endif %}">
+                <i class="nav-icon fas fa-image"></i>
+                <p>
+                  Image
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'images' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>View Images</p>
+                  </a>
+                </li>
+                {% if debug and user.is_admin %}
+                <li class="nav-item">
+                  <a href="{% url 'images.add' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-success"></i>
+                    <p>Add Image</p>
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% endif %}
+
+            {% comment %} For Admin Only {% endcomment %}
             {% if user.is_admin %}
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'allusers' or request.resolver_match.url_name == 'update_user' or request.resolver_match.url_name == 'admin_adduser' %} menu-open {% endif %}">
@@ -209,37 +226,6 @@
                 </li>
               </ul>
             </li>
-
-            <li
-              class="nav-item has-treeview {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} menu-open {% endif %}">
-              <a href="#"
-                class="nav-link {% if request.resolver_match.url_name == 'images' or request.resolver_match.url_name == 'images.add' or request.resolver_match.url_name == 'images.update' %} active {% endif %}">
-                <i class="nav-icon fas fa-image"></i>
-                <p>
-                  Image
-                  <i class="fas fa-angle-left right"></i>
-                </p>
-              </a>
-              <ul class="nav nav-treeview">
-                <li class="nav-item">
-                  <a href="{% url 'images' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'images' %} active {% endif %}">
-                    <i class="nav-icon far fa-circle text-info"></i>
-                    <p>View Images</p>
-                  </a>
-                </li>
-                {% if debug %}
-                <li class="nav-item">
-                  <a href="{% url 'images.add' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'images.add' %} active {% endif %}">
-                    <i class="nav-icon far fa-circle text-success"></i>
-                    <p>Add Image</p>
-                  </a>
-                </li>
-                {% endif %}
-              </ul>
-            </li>
-
             <li
               class="nav-item has-treeview {% if request.resolver_match.url_name == 'viewprojects' or request.resolver_match.url_name == 'updateproject' or request.resolver_match.url_name == 'addproject' %} menu-open {% endif %}">
               <a href="#"
@@ -267,6 +253,122 @@
                 </li>
 
               </ul>
+            </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object' or request.resolver_match.url_name == 'watson.classifier.create' or request.resolver_match.url_name == 'watson.classifier.list' or request.resolver_match.url_name == 'watson.object.list' or request.resolver_match.url_name == 'watson.classifier.edit' or request.resolver_match.url_name == 'watson.classifier.test' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'watson.train' or request.resolver_match.url_name == 'watson.classifier' or request.resolver_match.url_name == 'watson.object' or request.resolver_match.url_name == 'watson.classifier.create' or request.resolver_match.url_name == 'watson.classifier.list' or request.resolver_match.url_name == 'watson.object.list' or request.resolver_match.url_name == 'watson.classifier.edit' or request.resolver_match.url_name == 'watson.classifier.test'  %} active {% endif %}">
+                <i class="nav-icon fab fa-cloudversify"></i>
+                <p>
+                  IBM Watson
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'watson.classifier.list' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.classifier.list' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>All Classifiers</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'watson.classifier' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.classifier' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>Fetch Classifier Details</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'watson.train' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.train' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-danger"></i>
+                    <p>Re-Train Classifier</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'watson.classifier.create' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.classifier.create' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-success"></i>
+                    <p>Create New Classifier</p>
+                  </a>
+                </li>
+                <hr style="margin: 0.3rem;border-top: 1px solid #2d2b2b;"/>
+                <li class="nav-item">
+                  <a href="{% url 'watson.object.list' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.object.list' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-warning"></i>
+                    <p>Object Types</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'watson.object' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'watson.object' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-warning"></i>
+                    <p>Fetch Object Type Details</p>
+                  </a>
+                </li>
+
+              </ul>
+            </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'map.check' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'map.check'  %} active {% endif %}">
+                <i class="nav-icon fas fa-map-marker-alt"></i>
+                <p>
+                  Google Maps
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'map.check' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'map.check' %} active {% endif %}">
+                    <i class="nav-icon fas fa-street-view text-info"></i>
+                    <p>Check Street View</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li
+              class="nav-item has-treeview {% if request.resolver_match.url_name == 'offline.model.list' or request.resolver_match.url_name == 'offline.model.create' or request.resolver_match.url_name == 'offline.model.edit' or request.resolver_match.url_name == 'offline.model.delete' %} menu-open {% endif %}">
+              <a href="#"
+                class="nav-link {% if request.resolver_match.url_name == 'offline.model.list' or request.resolver_match.url_name == 'offline.model.create' or request.resolver_match.url_name == 'offline.model.edit' or request.resolver_match.url_name == 'offline.model.delete' %} active {% endif %}">
+                <i class="nav-icon fas fa-leaf"></i>
+                <p>
+                  Offline Model
+                  <i class="fas fa-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'offline.model.list' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'offline.model.list' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>View All Offline Model</p>
+                  </a>
+                </li>
+              </ul>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'offline.model.create' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'offline.model.create' %} active {% endif %}">
+                    <i class="nav-icon far fa-circle text-info"></i>
+                    <p>Create Offline Model</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <hr style="margin:0.5em 1.3em;border-top:1px solid #555;"/>
+            <li class="nav-item">
+              <a href="{% url 'terminal' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'terminal' %} active {% endif %}">
+                <i class="nav-icon fa fa-terminal"></i>
+                <p>
+                  Terminal
+                </p>
+              </a>
             </li>
             {% endif %}
             {% comment %} / IS ADMIN / {% endcomment %}
@@ -328,9 +430,27 @@
     </footer>
 
     <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
+    <style>.main-header{border-bottom:none;}.control-sidebar-slide-open .control-sidebar, .control-sidebar-slide-open .control-sidebar::before{background: #343a40;}</style>
+    <aside class="p-3 control-sidebar control-sidebar-dark" style="display: block;position: fixed;top: 55px;min-height: 100vh;bottom: 10px;">
       <!-- Control sidebar content goes here -->
-      <i class="fas fa-align-left" style="font-size: 5em;position: absolute;top: 50%;left: 50%;transform: translate(-30%, -50%);"></i>
+      <h5>Options</h5>
+      <hr class="mb-2 mt-2"/>
+      {% comment %} For Admin Only {% endcomment %}
+      {% if user.is_admin %}
+      <div class="mb-1">
+        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.cleantemp' %}','Clean Temporary Files? Make sure no API and process are running at the moment.')"><i class="fas fa-circle text-info mr-2"></i> Clean Temporary Files</a>
+      </div>
+      <div class="mb-1">
+        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.cleantempstreetview' %}','Clean All Temporarily Saved Street View Images?')"><i class="fas fa-circle text-info mr-2"></i> Clean Saved Street View Images</a>
+      </div>
+      <div class="mb-1">
+        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.countimage' %}','Counting total images might take time depending on the amount of files.')"><i class="fas fa-circle text-info mr-2"></i> Count Image Files in Storage</a>
+      </div>
+      <div class="mb-1">
+        <a href="#!" onclick="simpleConfirm(event,'{% url 'watson.dumpimage' %}','Action will return Dump of all Images data',true)"><i class="fas fa-circle text-info mr-2"></i> Dump All Images JSON Data</a>
+      </div>
+      {% endif %}
+      <i class="fas fa-align-left" style="opacity:0.1;pointer-event:none;font-size: 5em;position: absolute;top: 50%;left: 50%;transform: translate(-30%, -50%);"></i>
     </aside>
     <!-- /.control-sidebar -->
   </div>
@@ -353,13 +473,6 @@
   <script src="{% static 'plugins/select2/js/select2.min.js' %}"></script>
   <!-- Pace Progress Bar -->
   <script src="{% static 'plugins/pace-progress/pace.min.js' %}"></script>
-  <!-- Leaflet Map -->
-  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-   crossorigin=""></script>
-  <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />
-	<link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.Default.css" />
-	<script src="https://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
   <!-- ChartJS -->
   <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
   <!-- Sparkline -->
@@ -383,48 +496,18 @@
   <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
   <!-- AdminLTE App -->
   <script src="{% static 'dist/js/adminlte.js' %}"></script>
+  <script src="{% static '/js/custom.js' %}"></script>
+  <!-- Leaflet Map -->
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin=""></script>
+  <link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="https://leaflet.github.io/Leaflet.markercluster/dist/MarkerCluster.Default.css" />
+	<script src="https://leaflet.github.io/Leaflet.markercluster/dist/leaflet.markercluster-src.js"></script>
   <!-- AdminLTE for demo purposes -->
   {% comment %} <script src="{% static 'dist/js/demo.js' %}"></script> {% endcomment %}
-
   {% block script %}{% endblock script %}
-  <script>
-    function showImagePop(event, img, alt, title){
-        event.preventDefault();
-        Pace.restart();
-        Swal.fire({
-            imageUrl: img,
-            imageAlt: alt?alt:'Image Failed to Load',
-            title: title?title:'',
-            confirmButtonText: '<i class="fa fa-times" aria-hidden="true"></i>'
-        })
-    }
-
-    function deleteData(event, element, name){
-        event.preventDefault();
-        var title = 'Delete This '+(name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g,' ')+'?')
-        Swal.fire({
-            title: title,
-            text: "You won't be able to revert this!",
-            type: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            confirmButtonColor: '#ad2424',
-            reverseButtons: true,
-            cancelButtonText: 'No, cancel!',
-            }).then((result) => {
-            if (result.value) {
-              Pace.restart();
-              $('#'+element).submit();
-            }
-        })
-        $('.swal2-cancel').focus();
-    }
-
-    $(function () {
-        $(".table-options a").tooltip();
-        $("[data-toggle='tooltip']").tooltip();
-    });
-  </script>
+  {% if debug %}<script>var allowdrop = true;</script>{% endif %}
 </body>
 
 </html>

@@ -29,8 +29,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DATABASE_URL = ''
-IBM_TOKEN = ''
-CLASSIFIER_IDS = ''
+IBM_API_KEY = ''
 PRODUCTION = False
 
 if env('DATABASE_URL'):
@@ -38,15 +37,10 @@ if env('DATABASE_URL'):
     PRODUCTION = True
     print('DATABASE_URL STRING PROVIDED (PRODUCTION ASSUMED)')
 
-if env('IBM_TOKEN'):
-    IBM_TOKEN = env('IBM_TOKEN')
+if env('IBM_API_KEY'):
+    IBM_API_KEY = env('IBM_API_KEY')
 else:
     print('NO IBM TOKEN')
-
-if env('CLASSIFIER_IDS'):
-    CLASSIFIER_IDS = env('CLASSIFIER_IDS')
-else:
-    print('NO CLASSIFIER_IDS')
 
 if env('ENV') == 'production':
     PRODUCTION = True
@@ -57,7 +51,10 @@ else:
 DEBUG = not PRODUCTION
 TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = ['isac-simo.herokuapp.com','0.0.0.0','localhost','127.0.0.1','niush.pythonanywhere.com']
+GOOGLE_MAP_STREET_API = os.getenv('GOOGLE_MAP_STREET_API')
+GOOGLE_MAP_API = os.getenv('GOOGLE_MAP_API')
+
+ALLOWED_HOSTS = ['0.0.0.0','localhost','127.0.0.1','buildchange.pythonanywhere.com','isac-simo.net','www.isac-simo.net']
 
 INTERNAL_IPS = (
     '127.0.0.1',
@@ -77,12 +74,14 @@ INSTALLED_APPS = [
     'main',
     'projects',
     'api',
+    'map',
     'rest_framework',
 ]
 
 AUTH_USER_MODEL = 'main.User'   #changes the built-in user model to ours
 
 MIDDLEWARE = [
+    'api.middleware.MaintenanceMode',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -188,7 +187,7 @@ if DEBUG:
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (

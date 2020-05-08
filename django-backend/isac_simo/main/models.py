@@ -1,9 +1,12 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-import uuid
 import os
+import uuid
+
 from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.db import models
 from django.utils.deconstruct import deconstructible
+
+from projects.models import Projects
 
 USER_TYPE = [
     ('user', "User"),
@@ -64,6 +67,9 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add = True)
     image = models.ImageField(upload_to=path_and_rename, default='user_images/default.png', blank=True)
+    projects = models.ManyToManyField('projects.Projects', blank=True, related_name='users')
+    # USER IS LINKED TO PROJECT WITH m2m AND USER CAN UPLOAD IMAGE FOR SPECIFIC PROJECT
+    # AND VIEW THE IMAGES EITHER ADDED BY THIS USER -OR- BELONGS TO THIS USERS m2m PROJECTS
 
     USERNAME_FIELD='email'
     REQUIRED_FIELDS = []
@@ -71,10 +77,28 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     def __str__(self):
-        return self.full_name+' - '+self.email
+        str = self.full_name or ''
+        if str:
+            str = str + ' - '
+
+        str = str + (self.email or '(no email)')
+        return str
     
     def get_full_name(self):
         return self.full_name
+
+    def get_project_list(self):
+        return "<br/> ".join(list(map(lambda x: '⮞ '+x.project_name, self.projects.all())))
+    
+    def get_project_json(self):
+        projects = []
+        for project in self.projects.all():
+            projects = projects + [{
+                'id': project.id,
+                'project_name': project.project_name,
+                'project_desc': project.project_desc
+            }]
+        return projects
 
     def has_perm(self, perm, obj=None):
         return True

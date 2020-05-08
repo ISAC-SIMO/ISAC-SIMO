@@ -12,14 +12,18 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                {% if debug %}
+                {% if debug and user.is_admin %}
                     <div class="card-title ml-3 mt-2">
                         <a href="{% url 'images.add' %}"  class="btn btn-primary">
                             <i class="fas fa-plus"></i> Upload/Add Image
                         </a>
                     </div>
                 {% endif %}
-                <div class="card-body">
+                <style>
+                    .this_td{transition: all 0.3s ease;max-height:50px;min-height:100%;display:block;overflow:hidden;}
+                    .this_td:hover{max-height: 100px !important;}
+                </style>
+                <div class="card-body table table-responsive">
                     <table id="imagesTable" class="table table-bordered table-hover table-striped">
                         <thead>
                             <tr>
@@ -27,33 +31,43 @@
                                 <th>Title</th>
                                 <th>Description</th>
                                 <th>User</th>
-                                <th>Image</th>
-                                <th>Actions</th>
+                                <th>Project</th>
+                                <th style="width:250px;">Image</th>
+                                {% if user.is_admin %}<th>Actions</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% for image in images %}
                                 <tr>
-                                    <td style="width:15px;">{{image.id}}</td>
+                                    <td style="width:40px;">I-{{image.id}}</td>
                                     <td>{{image.title|title}}</td>
-                                    <td style="width:350px;" data-search="{{image.description}}" {% if image.description != image.description|truncatewords:8 %} title="{{image.description}}" data-toggle="tooltip" data-placement="top" {% endif %}>{{image.description|truncatewords:8}}</td>
+                                    <td style="width:150px;" data-search="{{image.description}}" {% if image.description != image.description|truncatewords:5 %} title="{{image.description}}" data-toggle="tooltip" data-placement="top" {% endif %}>{{image.description|truncatewords:8}}</td>
                                     <td>{{image.user.full_name|default:'Anonymous'}}</td>
-                                    <td>
+                                    <td title="Detect Model: {{image.project.detect_model|default:'Default'}}">{{image.project.project_name|default:'-'}}</td>
+                                    <td class="this_td">
                                         {% for image_file in image.image_files.all %}
-                                            <a style="padding:0 6px;margin-right:2px;background:#fff;{% if image_file.tested %}outline:1px solid green;{% else %}outline:1px solid salmon;{% endif %}" title="{% if image_file.result %}{{image_file.result|title}} - {{image_file.score}}{% endif %}" data-toggle="tooltip" data-placement="top" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}}{% endif %}')">{{forloop.counter}}</a>
+                                            <a class="number-btn" style="{% if image_file.tested %}{% if image_file.result == 'nogo' or image_file.result == 'nogos' %}outline: 1px solid red;box-shadow: 0px 0px 2px 1px #ff002d inset;{% else %}outline:1px solid green;{% endif %}{% else %}outline:1px solid orange;{% endif %}" title="{% if image_file.result %}{{image_file.result|title}} - {{image_file.score}}{% endif %}" data-toggle="tooltip" data-placement="top" href="#!" onclick="showImagePop(event, '{% if image_file.file %}{{image_file.file.url}}{% else %}{% static 'dist/img/default-150x150.png' %}{% endif %}','Image failed to load.','{% if image_file.result %}Title/Class: {{image_file.result|title}} <br/> Score: {{image_file.score}} <br/> Object: {{image_file.object_type|title}} <br/> Verified: {{image_file.verified|yesno:"Yes,No"}} | Retrained: {{image_file.retrained|yesno:"Yes,No"}}{% else %}<i style=color:maroon>Not Tested</i>{% endif %}')">{{forloop.counter}}</a>
                                         {% endfor %}
                                     </td>
-                                    <td class="table-options">
+                                    {% if user.is_admin %}
+                                    <td class="table-options" style="min-width: 125px;">
                                         <a title="Edit" data-toggle="tooltip" data-placement="left" href="{% url 'images.update' image.id %}" class="btn text-secondary px-0">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <a onclick="deleteData(event, 'form-{{ image.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'images.delete' image.id %}" class="btn text-secondary px-0">
+                                        <a onclick="deleteDataWriteConfirm(event, 'form-{{ image.id }}', 'Image')" title="Delete" data-toggle="tooltip" data-placement="left" href="{% url 'images.delete' image.id %}" class="btn text-secondary px-0">
                                             <i class="fa fa-trash text-danger"></i>
                                         </a>
-                                        <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" method="post" class="d-inline">
+                                        <a title="Map" data-toggle="tooltip" data-placement="top" href="{% url 'dashboard' %}?focus_at={{ image.id }}" class="btn text-secondary text-info px-0">
+                                            <i class="fa fa-map-marker-alt"></i>
+                                        </a>
+                                        <form action="{% url 'images.delete' image.id %}" id="form-{{ image.id }}" class="d-inline">
                                             {% csrf_token %}
                                         </form>
+                                        <a title="Copy Latitude,Longitude to Clipboard" onclick="window.prompt('Copy to clipboard: Ctrl+C, Enter', '{{image.lat}},{{image.lng}}');" data-toggle="tooltip" data-placement="top" style="color:grey;" class="btn px-0">
+                                            <i class="far fa-copy"></i>
+                                        </a>
                                     </td>
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
                         </tbody> 
@@ -74,6 +88,7 @@
             "ordering": true,
             "info": true,
             "autoWidth": true,
+            "order": [],
           });
         });
     </script>
