@@ -9,7 +9,7 @@ ISAC-SIMO is a system to validate that the intervention work done for homeowners
 ## Contents
 
 1. [Target users](#target-users)
-1. [Project detail](#demo-video)
+1. [Project detail](#project-detail)
 1. [The architecture](#the-architecture)
 1. [Project roadmap](#project-roadmap)
 1. [Authors](#authors)
