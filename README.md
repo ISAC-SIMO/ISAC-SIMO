@@ -61,12 +61,12 @@ For the wall checks, the images are classified as "GO" or "NO GO" based on the q
 Basic approach to classification
 
 **Rebar Checks:**
-- Gather images
+- *Gather images*
    1. Generate BIM model images
    1. Gather real world images
    1. Generate variations of the images
 
-- Generate basic GO / NO GO
+- *Generate basic GO / NO GO*
    1. Put them into GO and NO GO buckets to classify
    1. Train the model against the two classifiers
    1. Test images against the model
@@ -74,19 +74,19 @@ Basic approach to classification
 
 **Wall Checks:**
 
-- Gather images
+- *Gather images*
    1. Generate BIM model images
    1. Gather real images
    1. Generate variations of the images through image augmentation
 
-- Perform brick segmentation
+- *Perform brick segmentation*
 
-* Method 1:
+**Method 1** :
    1. Process image to get all contours
    1. Filter contours by area to extract just the contours of bricks
    1. *This method currently only works for the BIM generated images*
 
-* Method 2:
+**Method 2**:
    1. Prepare corresponding binary mask images with white pixels corresponding to the brick regions, and black pixels to the mortar between the bricks and the background
    1. Train a CNN based U-net network with the input-target image pairs
    
