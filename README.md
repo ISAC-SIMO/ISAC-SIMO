@@ -50,15 +50,16 @@ The following checks are planned to be implemented in the rebar and wall categor
 <img src="Images/bond_pattern_check_gonogo.png" width="300">
 
 * **Mortar Joint Thickness**: Checks for compliance based on the relative bed joint thickness (i.e. the thickness of the horizontal layer of mortar upon which bricks are laid in a wall) with respect to the average height of bricks. 
-   
-### Machine learning models
+
+### Methodology
+#### Machine learning models
 For the rebar checks, the machine learning models are trained upon both artificially generated and real world images that have been processed into additional variants into GO and NO GO buckets. The models are trained to check the shape of an individual rebar, its texture, and the configuration of the transverse rebar elements.
 
-### Computational Image Processing
-For the wall checks, the images are classified as "GO" or "NO GO" based on the quantitative information extracted from the image. This is achieved by first processing the input image to extract the contours and centerpoint of each brick. The centerpoints are then used for further analysis of bond pattern and relative mortar joint thicknesses to determine a "GO" or "NO GO" wall.
+#### Computational Image Processing
+For the wall checks, the images are classified as "GO" or "NO GO" based on the quantitative information extracted from the image. This is achieved by first processing the input image to extract the contours and centerpoint of each brick. The centerpoints are then used for further analysis of bond pattern and relative mortar joint thicknesses to determine a "GO" or "NO GO" wall.          
 <img src="Images/bond_pattern_check.png" width="600">
 
-Basic approach to classification
+#### Basic approach to classification
 
 **Rebar Checks:**
 - *Gather images*
@@ -81,16 +82,17 @@ Basic approach to classification
 
 - *Perform brick segmentation*
 
-**Method 1** :
-   1. Process image to get all contours
-   1. Filter contours by area to extract just the contours of bricks
-   1. *This method currently only works for the BIM generated images*
+   - **Method 1** :
+      1. Process image to get all contours
+      1. Filter contours by area to extract just the contours of bricks
+      1. *This method currently only works for the BIM generated images*
 
-**Method 2**:
-   1. Prepare corresponding binary mask images with white pixels corresponding to the brick regions, and black pixels to the mortar between the bricks and the background
-   1. Train a CNN based U-net network with the input-target image pairs
+   - **Method 2**:
+      1. Prepare corresponding binary mask images with white pixels corresponding to the brick regions, 
+         and black pixels to the mortar between the bricks and the background
+      1. Train a CNN based U-net network with the input-target image pairs
    
-- Generate GO / NO GO
+- *Generate GO / NO GO*
    1.  Apply centerpoint detection to the processed images
    1.  Perform further analysis of bond pattern and mortar thickness to predict the outcome
 
