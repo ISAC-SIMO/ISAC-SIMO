@@ -27,8 +27,8 @@ ISAC-SIMO is a system to validate that the intervention work done for homeowners
 ## Project detail
 The technology consists of a mobile application used by all three roles in order to track the progression of an intervention on a home throughout the process to complete work. The application shows the progress of the work, and it can be validated through the analysis of the quality of two building elements, rebar and walls, by guiding the users through a series of checks. In addition to the mobile application, the tool also consists of a web interface that facilitates the management of checks and image processing pipelines implemented in the mobile application. 
 
-The image below shows an overview of the ISAC-SIMO tool:
-<img src="Images/overview.png" width="300">
+The image below shows an overview of the ISAC-SIMO tool:                                                                           
+<img src="Images/overview.png" width="400">
 
 ### Mobile application
 The mobile application is used to take photos of rebar and wall installations. With these photos, an assessment can be made as to whether they are compliant (GO) or non-compliant (NO GO). This is powered by machine learning models that have been trained with images of acceptable and unacceptable configurations. In addition, some of the checks deploy computational image processing to extract some quantitative information from an image to determine the "GO" or "NO GO" outcome.
@@ -37,17 +37,18 @@ The mobile application is used to take photos of rebar and wall installations. W
 The following checks are planned to be implemented in the rebar and wall categories:
 #### Rebar Category
 * **Rebar Shapes**: Checks for the shape of transverse rebar elements such as ties and stirrups. An example of a compliant rebar shape is shown below. 
-<img src="Images/rebar_shape_go.png" width="200">
+<img src="Images/rebar_shape_go.png" width="100">
 
 * **Rebar Texture**: Detects the presence or absence of ribs in the rebar, and verifies that the bar does not have any visible corrosion that could affect its quality. An example of a compliant rebar with ribs and without corrosion is shown below.
-<img src="Images/rebar_texture_go.png" width="200">
+<img src="Images/rebar_texture_go.png" width="100">
 
 * **Rebar Cage**: Checks for the correct spacing of transverse rebar elements in columns or beams before concrete is poured. An example of a rebar cage with correct configuration is shown below.
-<img src="rebar_cage_go.png" width="100">
+<img src="Images/rebar_cage_go.png" width="100">
 
 #### Wall Category
 * **Brick Alignment / Bond Pattern**: Checks for the bond pattern in walls and a wall's proximity to a running bond or a stack bond as shown below
-<img src="bond_pattern_check_gonogo.png" width="300">
+<img src="Images/bond_pattern_check_gonogo.png" width="300">
+
 * **Mortar Joint Thickness**: Checks for compliance based on the relative bed joint thickness (i.e. the thickness of the horizontal layer of mortar upon which bricks are laid in a wall) with respect to the average height of bricks. 
    
 ### Machine learning models
@@ -55,11 +56,11 @@ For the rebar checks, the machine learning models are trained upon both artifici
 
 ### Computational Image Processing
 For the wall checks, the images are classified as "GO" or "NO GO" based on the quantitative information extracted from the image. This is achieved by first processing the input image to extract the contours and centerpoint of each brick. The centerpoints are then used for further analysis of bond pattern and relative mortar joint thicknesses to determine a "GO" or "NO GO" wall.
-<img src="bond_pattern_check.png" width="400">
+<img src="Images/bond_pattern_check.png" width="600">
 
 Basic approach to classification
 
-* **Rebar Checks:**
+**Rebar Checks:**
 - Gather images
    1. Generate BIM model images
    1. Gather real world images
@@ -71,7 +72,7 @@ Basic approach to classification
    1. Test images against the model
    1. Retrain to improve outcomes
 
-* **Wall Checks:**
+**Wall Checks:**
 
 - Gather images
    1. Generate BIM model images
