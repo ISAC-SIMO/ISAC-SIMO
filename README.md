@@ -25,16 +25,41 @@ ISAC-SIMO is a system to validate that the intervention work done for homeowners
 * _Everyone has visibility into the work and notified that's done in order to ensure it's done well, safely, and completely._
 
 ## Project detail
-The technology consists of a mobile application used by all three roles in order to track the progression of an intervention on a home throughout the process to complete work. The application shows the progress of the work, and it can be validated through the analysis of the quality of two building elements, rebar and wall alignments.
+The technology consists of a mobile application used by all three roles in order to track the progression of an intervention on a home throughout the process to complete work. The application shows the progress of the work, and it can be validated through the analysis of the quality of two building elements, rebar and walls, by guiding the users through a series of checks. In addition to the mobile application, the tool also consists of a web interface that facilitates the management of checks and image processing pipelines implemented in the mobile application. 
+
+The image below shows an overview of the ISAC-SIMO tool:
+<img src="Images/overview.png" width="300">
 
 ### Mobile application
-The mobile application is used to take photos of rebar and wall installations. With these photos, an assessment can be made as to whether they are acceptable (GO) or unacceptable (NO GO). This is powered by a machine learning model that has been trained with images of acceptable and unacceptable configurations.
+The mobile application is used to take photos of rebar and wall installations. With these photos, an assessment can be made as to whether they are compliant (GO) or non-compliant (NO GO). This is powered by machine learning models that have been trained with images of acceptable and unacceptable configurations. In addition, some of the checks deploy computational image processing to extract some quantitative information from an image to determine the "GO" or "NO GO" outcome.
 
-### Machine learning model
-The machine learning model is trained upon both generated and real world images classfied that have been processed into additional variants into GO and NO GO buckets. Beyond matching the supplied image against the models, additional analysis can be done to extract additional information from the images, such as brick centerpoint detection relative to other brick center points and edge detection.
+### Checks Implemented
+The following checks are planned to be implemented in the rebar and wall categories:
+#### Rebar Category
+* **Rebar Shapes**: Checks for the shape of transverse rebar elements such as ties and stirrups. An example of a compliant rebar shape is shown below. 
+<img src="Images/rebar_shape_go.png" width="200">
+
+* **Rebar Texture**: Detects the presence or absence of ribs in the rebar, and verifies that the bar does not have any visible corrosion that could affect its quality. An example of a compliant rebar with ribs and without corrosion is shown below.
+<img src="Images/rebar_texture_go.png" width="200">
+
+* **Rebar Cage**: Checks for the correct spacing of transverse rebar elements in columns or beams before concrete is poured. An example of a rebar cage with correct configuration is shown below.
+<img src="rebar_cage_go.png" width="100">
+
+#### Wall Category
+* **Brick Alignment / Bond Pattern**: Checks for the bond pattern in walls and a wall's proximity to a running bond or a stack bond as shown below
+<img src="bond_pattern_check_gonogo.png" width="300">
+* **Mortar Joint Thickness**: Checks for compliance based on the relative bed joint thickness (i.e. the thickness of the horizontal layer of mortar upon which bricks are laid in a wall) with respect to the average height of bricks. 
+   
+### Machine learning models
+For the rebar checks, the machine learning models are trained upon both artificially generated and real world images that have been processed into additional variants into GO and NO GO buckets. The models are trained to check the shape of an individual rebar, its texture, and the configuration of the transverse rebar elements.
+
+### Computational Image Processing
+For the wall checks, the images are classified as "GO" or "NO GO" based on the quantitative information extracted from the image. This is achieved by first processing the input image to extract the contours and centerpoint of each brick. The centerpoints are then used for further analysis of bond pattern and relative mortar joint thicknesses to determine a "GO" or "NO GO" wall.
+<img src="bond_pattern_check.png" width="400">
 
 Basic approach to classification
 
+* **Rebar Checks:**
 - Gather images
    1. Generate BIM model images
    1. Gather real world images
@@ -46,11 +71,27 @@ Basic approach to classification
    1. Test images against the model
    1. Retrain to improve outcomes
 
-- Enhanced approach to classification of brick wall images
-   1. Score as above
-   1. Apply centerpoint detection to GO images
-   1. Further split into GO and NO GO images from that set
-   1. Apply centerpoint detection to NO images
+* **Wall Checks:**
+
+- Gather images
+   1. Generate BIM model images
+   1. Gather real images
+   1. Generate variations of the images through image augmentation
+
+- Perform brick segmentation
+
+* Method 1:
+   1. Process image to get all contours
+   1. Filter contours by area to extract just the contours of bricks
+   1. *This method currently only works for the BIM generated images*
+
+* Method 2:
+   1. Prepare corresponding binary mask images with white pixels corresponding to the brick regions, and black pixels to the mortar between the bricks and the background
+   1. Train a CNN based U-net network with the input-target image pairs
+   
+- Generate GO / NO GO
+   1.  Apply centerpoint detection to the processed images
+   1.  Perform further analysis of bond pattern and mortar thickness to predict the outcome
 
 ### Pipeline configuration model
 Complementing the mobile application is a tool that provides the API endpoint for the images to be uploaded. This is a way for administrators to configure the pipeline and configure its thresholds.
