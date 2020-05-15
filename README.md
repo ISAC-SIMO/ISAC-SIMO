@@ -10,7 +10,6 @@ ISAC-SIMO is a system to validate that the intervention work done for homeowners
 
 1. [Target users](#target-users)
 1. [Project detail](#project-detail)
-1. [The architecture](#the-architecture)
 1. [Project roadmap](#project-roadmap)
 1. [Authors](#authors)
 1. [License](#license)
@@ -26,6 +25,8 @@ ISAC-SIMO is a system to validate that the intervention work done for homeowners
 
 ## Project detail
 The technology consists of a mobile application used by all three roles in order to track the progression of an intervention on a home throughout the process to complete work. The application shows the progress of the work, and it can be validated through the analysis of the quality of two building elements, rebar and walls, by guiding the users through a series of checks. In addition to the mobile application, the tool also consists of a web interface that facilitates the management of checks and image processing pipelines implemented in the mobile application. 
+
+### The architecture
 
 The image below shows an overview of the ISAC-SIMO tool:                                                                           
 <img src="Images/overview.png" width="400">
@@ -98,9 +99,6 @@ For the wall checks, the images are classified as "GO" or "NO GO" based on the q
 
 ### Pipeline configuration model
 Complementing the mobile application is a tool that provides the API endpoint for the images to be uploaded. This is a way for administrators to configure the pipeline and configure its thresholds.
-
-## The architecture
-TBD
 
 ## Project roadmap
 
