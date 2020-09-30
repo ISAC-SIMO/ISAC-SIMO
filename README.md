@@ -6,6 +6,12 @@ Intelligent Supervision Assistant for Construction - Sistema Inteligente de Moni
 
 ISAC-SIMO is a system to validate that the intervention work done for homeowners in Colombia has been done correctly and safely. It is a Build Change project supported by a grant from IBM. 
 
+## Related GitHub repos
+
+* [ISAC-SIMO-Django-Backend](https://github.com/Code-and-Response/ISAC-SIMO-Django-Backend) - Back end for managing the machine learning model pipeline.
+* [ISAC-SIMO-React-Native-App](https://github.com/Code-and-Response/ISAC-SIMO-React-Native-App) - This is the end-user facing mobile app for the homeowner.
+
+
 ## Contents
 
 1. [Target users](#target-users)
