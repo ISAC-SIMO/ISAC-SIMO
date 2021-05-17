@@ -4,12 +4,14 @@
 
 Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra
 
-ISAC-SIMO is a system to validate that the intervention work done for homeowners in Colombia has been done correctly and safely. It is a Build Change project supported by a grant from IBM. 
+ISAC-SIMO is a system to validate that the intervention work done for homeowners in Colombia has been done correctly and safely. It is a Build Change project supported by a grant from IBM.
+
+[View Documentation](https://www.isac-simo.net/docs/)
 
 ## Related GitHub repos
 
-* [ISAC-SIMO-Django-Backend](https://github.com/Code-and-Response/ISAC-SIMO-Django-Backend) - Back end for managing the machine learning model pipeline.
-* [ISAC-SIMO-React-Native-App](https://github.com/Code-and-Response/ISAC-SIMO-React-Native-App) - This is the end-user facing mobile app for the homeowner.
+* [ISAC-SIMO-Django-Backend](https://github.com/ISAC-SIMO/ISAC-SIMO-Django-Backend) - Back end for managing the machine learning model pipeline.
+* [ISAC-SIMO-React-Native-App](https://github.com/ISAC-SIMO/ISAC-SIMO-React-Native-App) - This is the end-user facing mobile app for the homeowner.
 
 
 ## Contents
@@ -108,11 +110,11 @@ Complementing the mobile application is a tool that provides the API endpoint fo
 
 ## Project roadmap
 
-View the [project board to track progress against the 1Q 2020 milestones](https://github.com/Code-and-Response/ISAC-SIMO/projects/2).
+View the [project board to track progress against the 1Q 2020 milestones](https://github.com/ISAC-SIMO/ISAC-SIMO/projects/2).
 
 ## Authors
 
-* See the [contributors list](https://github.com/Code-and-Response/ISAC-SIMO/graphs/contributors)
+* See the [contributors list](https://github.com/ISAC-SIMO/ISAC-SIMO/graphs/contributors)
 
 ## License
 
