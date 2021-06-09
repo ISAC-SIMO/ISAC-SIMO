@@ -114,7 +114,7 @@ View the [project board to track progress against the 1Q 2020 milestones](https:
 
 ## Contributing
 
-Please read [our contributing guidelines](https://www.isac-simo.net/docs/developer-guide/) for details of how you can get involved and please abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Please read [our contributing guidelines](CONTRIBUTING.md) for details of how you can get involved and please abide by the [Code of Conduct](CONTRIBUTING.md#code-of-conduct).
 
 ## Contributors
 <a href="https://github.com/ISAC-SIMO/ISAC-SIMO/graphs/contributors">
