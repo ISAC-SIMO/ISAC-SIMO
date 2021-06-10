@@ -4,9 +4,9 @@
 
 Intelligent Supervision Assistant for Construction - Sistema Inteligente de Monitoreo de Obra
 
-ISAC-SIMO is a system to validate that the intervention work done for homeowners in Colombia has been done correctly and safely. It is a Build Change project supported by a grant from IBM.
+ISAC-SIMO is a system to validate that the intervention work done for homeowners in Colombia has been done correctly and safely. It is a Call for Code with The Linux Foundation created by [Build Change](https://buildchange.org/) and supported by a grant from IBM.
 
-[View Documentation](https://www.isac-simo.net/docs/)
+> [View documentation](https://www.isac-simo.net/docs/) at isac-simo.net.
 
 ## Related GitHub repos
 
@@ -112,11 +112,16 @@ Complementing the mobile application is a tool that provides the API endpoint fo
 
 View the [project board to track progress against the 1Q 2020 milestones](https://github.com/ISAC-SIMO/ISAC-SIMO/projects/2).
 
-## Authors
+## Contributing
 
-* See the [contributors list](https://github.com/ISAC-SIMO/ISAC-SIMO/graphs/contributors)
+Please read [our contributing guidelines](CONTRIBUTING.md) for details of how you can get involved and please abide by the [Code of Conduct](CONTRIBUTING.md#code-of-conduct).
+
+## Contributors
+<a href="https://github.com/ISAC-SIMO/ISAC-SIMO/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=ISAC-SIMO/ISAC-SIMO" />
+</a>
 
 ## License
 
-This project is licensed under the Apache 2 License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the Apache Software License, Version 2, unless otherwise stated.  Separate third party code objects invoked within this project are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1 (DCO)](https://developercertificate.org/) and the [Apache Software License, Version 2](http://www.apache.org/licenses/LICENSE-2.0.txt).
 
